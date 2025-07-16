@@ -48,20 +48,20 @@ public with sharing class CalendarAppController {
     @AuraEnabled
     public static String saveEventAndCosts(EventDataWrapper data) {
         try {
-            // ▼▼▼ 보안 검사 로직을 임시로 주석 처리 ▼▼▼
-            // if (!Security.isCreatable(My_Event__c.sObjectType) || !Security.isUpdateable(My_Event__c.sObjectType)) {
-            //     throw new AuraHandledException('이벤트를 생성하거나 수정할 권한이 없습니다.');
-            // }
+            My_Event__c eventToSave;
 
-            My_Event__c eventToSave = new My_Event__c(
-                Id = data.recordId,
-                Name = data.title,
-                Title__c = data.title,
-                Description__c = data.description,
-                Location__c = data.location, 
-                Related_Record_Id__c = data.relatedId,
-                Related_Record_Type__c = data.recordType
-            );
+            if (data.recordId == null) {
+                // 새 레코드 생성 시
+                eventToSave = new My_Event__c();
+            } else {
+                // 기존 레코드 업데이트 시
+                eventToSave = new My_Event__c(Id = data.recordId);
+            }
+            eventToSave.Title__c = data.title;
+            eventToSave.Description__c = data.description;
+            eventToSave.Location__c = data.location;
+            eventToSave.Related_Record_Id__c = data.relatedId;
+            eventToSave.Related_Record_Type__c = data.recordType;
             
             if (String.isNotBlank(data.startDate)) {
                 eventToSave.Start_DateTime__c = Datetime.valueOf(data.startDate.replace('T', ' '));

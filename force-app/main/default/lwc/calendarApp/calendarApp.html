@@ -217,7 +217,7 @@
                                     <div key={cost.id} class="slds-grid slds-gutters slds-wrap slds-m-bottom_x-small">
                                         
                                         <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox name="type"  label="Cost Type" options={costTypeOptions} value={cost.type} onchange={handleCostChange}>
+                                            <lightning-combobox name="type"  label="Cost Type" options={costTypeOptions} value={cost.type} onchange={handleCostChange} data-id={cost.id}>
                                             </lightning-combobox>
                                         </div>
 

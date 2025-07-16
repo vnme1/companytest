@@ -54,6 +54,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
     @track eventStartDate = '';
     @track eventEndDate = '';
     @track eventDescription = '';
+    @track eventLocation  = '';
     @track draggedItemTitle = '';
 
     // 좌측 패널 데이터 로딩
@@ -363,8 +364,6 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         });
     }
 
-    // 최종 저장 함수
-    // saveEvent 함수 전체를 이 코드로 교체해주세요.
     async saveEvent() {
         // ▼ try 블록을 함수 최상단으로 이동하여 모든 로직을 감쌉니다.
         try {
@@ -379,11 +378,14 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 startDate: this.eventStartDate,
                 endDate: this.eventEndDate,
                 description: this.eventDescription,
-                // ▼ null 오류 방지를 위해 ?. (옵셔널 체이닝) 추가 ▼
+                location: this.eventLocation,
                 relatedId: this.newEventData?.extendedProps?.relatedId,
                 recordType: this.newEventData?.extendedProps?.recordType,
                 costDetailsJson: JSON.stringify(this.costItems)
             };
+            //로그
+            console.log('데이터 전송');
+            console.log(JSON.stringify(dataToSave, null, 2));
 
             // Apex 호출
             await saveEventAndCosts({ data: dataToSave });
@@ -411,6 +413,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         this.eventStartDate = '';
         this.eventEndDate = '';
         this.eventDescription = '';
+        this.eventLocation = '';
         this.newEventData = { extendedProps: {} };
         this.costItems = [];
     }
