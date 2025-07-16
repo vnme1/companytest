@@ -372,7 +372,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 return;
             }
 
-            const dataToSave = {
+            const params = {
                 recordId: this.recordId,
                 title: this.eventTitle,
                 startDate: this.eventStartDate,
@@ -385,10 +385,10 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
             };
             //로그
             console.log('데이터 전송');
-            console.log(JSON.stringify(dataToSave, null, 2));
+            console.log(JSON.stringify(params, null, 2));
 
             // Apex 호출
-            await saveEventAndCosts({ data: dataToSave });
+            await saveEventAndCosts(params);
 
             // 성공 시 로직
             this.showToast('성공', '이벤트가 성공적으로 저장되었습니다.', 'success');

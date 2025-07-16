@@ -13,18 +13,6 @@
  */
 
 public with sharing class CalendarAppController {
-    public class EventDataWrapper {
-        @AuraEnabled public Id recordId;
-        @AuraEnabled public String title;
-        @AuraEnabled public String startDate;
-        @AuraEnabled public String endDate;
-        @AuraEnabled public String description;
-        @AuraEnabled public String location;
-        @AuraEnabled public String relatedId;
-        @AuraEnabled public String recordType;
-        @AuraEnabled public String costDetailsJson;
-    }
-
     public class EventWrapper {
         @AuraEnabled public My_Event__c event; // Event__c -> My_Event__c
         @AuraEnabled public List<Cost_Detail__c> costs;
@@ -46,49 +34,56 @@ public with sharing class CalendarAppController {
     }
 
     @AuraEnabled
-    public static String saveEventAndCosts(EventDataWrapper data) {
+    public static String saveEventAndCosts(
+        Id recordId, String title, String startDate, String endDate,
+        String description, String location, String relatedId,
+        String recordType, String costDetailsJson
+    ) {
         try {
             My_Event__c eventToSave;
 
-            if (data.recordId == null) {
-                // 새 레코드 생성 시
+            if (recordId == null) {
+                // 새 레코드 생성
                 eventToSave = new My_Event__c();
             } else {
-                // 기존 레코드 업데이트 시
-                eventToSave = new My_Event__c(Id = data.recordId);
+                // 기존 레코드 업데이트
+                eventToSave = [SELECT Id FROM My_Event__c WHERE Id = :recordId LIMIT 1];
             }
-            eventToSave.Title__c = data.title;
-            eventToSave.Description__c = data.description;
-            eventToSave.Location__c = data.location;
-            eventToSave.Related_Record_Id__c = data.relatedId;
-            eventToSave.Related_Record_Type__c = data.recordType;
-            
-            if (String.isNotBlank(data.startDate)) {
-                eventToSave.Start_DateTime__c = Datetime.valueOf(data.startDate.replace('T', ' '));
+
+            // 개별 파라미터로 받은 데이터를 직접 할당
+            eventToSave.Name = title;
+            eventToSave.Title__c = title;
+            eventToSave.Description__c = description;
+            eventToSave.Location__c = location;
+            eventToSave.Related_Record_Id__c = relatedId;
+            eventToSave.Related_Record_Type__c = recordType;
+
+            // KST로 받은 시간을 GMT로 변환하여 저장
+            if (String.isNotBlank(startDate)) {
+                eventToSave.Start_DateTime__c = Datetime.valueOfGmt(startDate.replace('T', ' ') + ':00');
             }
-            if (String.isNotBlank(data.endDate)) {
-                eventToSave.End_DateTime__c = Datetime.valueOf(data.endDate.replace('T', ' '));
+            if (String.isNotBlank(endDate)) {
+                eventToSave.End_DateTime__c = Datetime.valueOfGmt(endDate.replace('T', ' ') + ':00');
             }
-            
+
             upsert eventToSave;
             Id eventId = eventToSave.Id;
 
-            // ▼▼▼ 보안 검사 로직을 임시로 주석 처리 ▼▼▼
-            // if (Security.isDeletable(Cost_Detail__c.sObjectType)) {
-                List<Cost_Detail__c> oldCosts = [SELECT Id FROM Cost_Detail__c WHERE Event__c = :eventId];
-                if (!oldCosts.isEmpty()) {
-                    delete oldCosts;
-                }
-            // }
+            // --- 비용 저장 로직 ---
+            List<Cost_Detail__c> oldCosts = [SELECT Id FROM Cost_Detail__c WHERE Event__c = :eventId];
+            if (!oldCosts.isEmpty()) {
+                delete oldCosts;
+            }
 
             List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
-            if (String.isNotBlank(data.costDetailsJson) && data.recordType != 'Personal') {
-                List<Map<String, Object>> parsedCosts = (List<Map<String, Object>>)JSON.deserialize(data.costDetailsJson, List<Map<String, Object>>.class);
+            if (String.isNotBlank(costDetailsJson) && recordType != 'Personal') {
+                List<Map<String, Object>> parsedCosts = (List<Map<String, Object>>)JSON.deserialize(costDetailsJson, List<Map<String, Object>>.class);
                 for (Map<String, Object> costMap : parsedCosts) {
                     Object amountObj = costMap.get('amount');
                     if (amountObj == null || String.isBlank(String.valueOf(amountObj))) continue;
                     Decimal amount = Decimal.valueOf(String.valueOf(amountObj));
                     if (amount == 0) continue;
+
                     costsToInsert.add(new Cost_Detail__c(
                         Event__c = eventId,
                         Cost_Type__c = (String)costMap.get('type'),
@@ -96,17 +91,13 @@ public with sharing class CalendarAppController {
                     ));
                 }
             }
-            
             if (!costsToInsert.isEmpty()) {
-                // ▼▼▼ 보안 검사 로직을 임시로 주석 처리 ▼▼▼
-                // if (!Security.isCreatable(Cost_Detail__c.sObjectType)) {
-                //     throw new AuraHandledException('비용을 생성할 권한이 없습니다.');
-                // }
                 insert costsToInsert;
             }
             return eventId;
+
         } catch (Exception e) {
-            throw new AuraHandledException('저장 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException(e.getMessage() + ' | StackTrace: ' + e.getStackTraceString());
         }
     }
     
@@ -115,8 +106,8 @@ public with sharing class CalendarAppController {
         try {
             EventWrapper wrapper = new EventWrapper();
             wrapper.event = [
-                SELECT Id, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Related_Record_Id__c, Related_Record_Type__c
-                FROM My_Event__c // Event__c -> My_Event__c
+                SELECT Id, Name, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Location__c, Related_Record_Id__c, Related_Record_Type__c
+                FROM My_Event__c
                 WHERE Id = :eventId
                 LIMIT 1
             ];
