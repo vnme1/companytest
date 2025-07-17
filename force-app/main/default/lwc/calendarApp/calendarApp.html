@@ -154,7 +154,7 @@
                         <div class="report-button-container slds-m-top_medium"> 
                             <lightning-button 
                                 variant="brand" 
-                                label="부서 / 월 / 비용유형별 보고서 보기" 
+                                label="Matrix 보고서 보기" 
                                 class="report-btn" 
                                 onclick={handleReportClick}> 
                             </lightning-button> 
@@ -167,7 +167,7 @@
 
     <!--이벤트 입력 모달창 -->
     <template if:true={isModalOpen}>
-        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_large">
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small">
             <div class="slds-modal__container">
                 <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
                     <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>

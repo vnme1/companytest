@@ -229,10 +229,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
-                // height: '100%',
-                // expandRows: true,
-                // contentHeight: 'auto', // contentHeight 제거하거나 auto로 설정
-                // aspectRatio: false,
+                expandRows: true, 
                 events: (fetchInfo, successCallback, failureCallback) => {
                     getEvents({
                         startStr: fetchInfo.start.toISOString(),
