@@ -15,13 +15,13 @@ public with sharing class CalendarEventSelector {
         ];
     }
 
-    // 이벤트 상세 정보와 관련 비용 동시 조회
+    // 이벤트 상세 정보와 관련 비용 동시 조회 - Child Relationship Name 수정
     public static My_Event__c selectEventDetailsById(Id eventId) {
         return [
             SELECT 
                 Id, Name, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Location__c, 
                 Related_Record_Id__c, Related_Record_Type__c,
-                (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details__r)
+                (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details1__r)
             FROM My_Event__c
             WHERE Id = :eventId
             LIMIT 1

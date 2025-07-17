@@ -7,37 +7,37 @@
 .main-container {
     display: flex;
     height: 850px;
+    min-height: 850px; /* 최소 높이 보장 */
     gap: 0.5rem;
     padding: 0.5rem;
     box-sizing: border-box;
-    min-height: 0;
 }
 
 /* 패널 높이 설정 - 모든 패널 동일한 높이 */
 .left-panel {
     flex: 0 0 280px;
-    height: 100%; /* 메인 컨테이너 높이를 100% 상속 */
+    height: 100%;
+    min-height: 800px; /* 최소 높이 보장 */
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     overflow: hidden;
-    min-height: 0;
 }
 
 .center-panel {
     flex: 1;
-    height: 100%; /* 메인 컨테이너 높이를 100% 상속 */
+    height: 100%;
+    min-height: 800px; /* 최소 높이 보장 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-height: 0;
 }
 
 .right-panel {
     flex: 0 0 300px;
-    height: 100%; /* 메인 컨테이너 높이를 100% 상속 */
+    height: 100%;
+    min-height: 800px; /* 최소 높이 보장 */
     overflow: hidden;
-    min-height: 0;
 }
 
 /* 모달 스타일 */

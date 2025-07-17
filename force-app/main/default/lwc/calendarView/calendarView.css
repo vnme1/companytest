@@ -4,11 +4,23 @@
     border-radius: 0.25rem;
     border: 1px solid #d8dde6;
     height: 100%;
+    min-height: 600px; /* 최소 높이 보장 */
     padding: 1rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+}
+
+/* 캘린더 내용이 모든 여백을 채우도록 설정 */
+.calendar-container .fc {
+    height: 100% !important;
+    flex: 1 !important;
+}
+
+.calendar-container .fc-view-harness {
+    height: 100% !important;
+    flex: 1 !important;
 }
 
 /* ===== FullCalendar 스타일 덮어쓰기 ===== */

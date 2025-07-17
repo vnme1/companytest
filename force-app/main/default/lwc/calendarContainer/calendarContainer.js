@@ -227,11 +227,26 @@ export default class CalendarContainer extends LightningElement {
             
             const savedEventId = await saveEventAndCosts(params);
             
-            // 캘린더 업데이트 - 이벤트 새로고침으로 중복 방지
+            // 캘린더 즉시 업데이트 - 새로고침 없이 화면에 바로 반영
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
-                // 전체 이벤트 새로고침을 통해 중복 방지
-                calendarView.refetchEvents();
+                if (this.recordId) {
+                    // 기존 이벤트 업데이트
+                    calendarView.updateEvent(this.recordId, {
+                        title: this.eventTitle,
+                        start: this.eventStartDate,
+                        end: this.eventEndDate
+                    });
+                } else {
+                    // 새 이벤트 추가
+                    calendarView.addEvent({
+                        id: savedEventId,
+                        title: this.eventTitle,
+                        start: this.eventStartDate,
+                        end: this.eventEndDate,
+                        allDay: false
+                    });
+                }
             }
             
             this.showToast('성공', '이벤트가 저장되었습니다.', 'success');
@@ -250,10 +265,10 @@ export default class CalendarContainer extends LightningElement {
         try {
             await deleteEvent({ eventId: this.recordId });
             
-            // 캘린더에서 이벤트 제거 후 전체 새로고침
+            // 캘린더에서 이벤트 즉시 제거
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
-                calendarView.refetchEvents();
+                calendarView.removeEvent(this.recordId);
             }
             
             this.showToast('성공', '일정이 삭제되었습니다.', 'success');

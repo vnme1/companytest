@@ -25,7 +25,7 @@ public with sharing class CalendarAppController {
     public static EventWrapper getEventDetails(Id eventId) {
         EventWrapper wrapper = new EventWrapper();
         wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
-        wrapper.costs = wrapper.event.Cost_Details__r;
+        wrapper.costs = wrapper.event.Cost_Details1__r; // Child Relationship Name 수정 (__r 추가)
 
         if (wrapper.event != null && wrapper.event.Related_Record_Type__c == 'Account') {
             List<Account> accs = [SELECT Name FROM Account WHERE Id = :wrapper.event.Related_Record_Id__c LIMIT 1];
@@ -100,43 +100,28 @@ public with sharing class CalendarAppController {
 
             upsert eventToSave;
             Id eventId = eventToSave.Id;
-            
-            System.debug('★★★ Event saved with ID: ' + eventId);
 
             // 기존 비용 삭제
             List<Cost_Detail__c> oldCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
             if (!oldCosts.isEmpty()) {
                 delete oldCosts;
-                System.debug('★★★ Deleted old costs: ' + oldCosts.size());
             }
 
+            // 새 비용 데이터 처리
             List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
             
             if (String.isNotBlank(costDetailsJson) && recordType != 'Personal') {
-                System.debug('★★★ Processing costDetailsJson: ' + costDetailsJson);
-                System.debug('★★★ Department: ' + department);
-                
                 try {
-                    Object parsedObject = JSON.deserializeUntyped(costDetailsJson);
-                    List<Object> parsedCosts = (List<Object>)parsedObject;
-                    
-                    System.debug('★★★ Parsed costs count: ' + parsedCosts.size());
+                    List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
                     
                     for (Object costObj : parsedCosts) {
                         Map<String, Object> costMap = (Map<String, Object>)costObj;
                         
+                        String costType = String.valueOf(costMap.get('type'));
                         Object amountObj = costMap.get('amount');
-                        Object typeObj = costMap.get('type');
                         
-                        System.debug('★★★ Processing cost - Type: ' + typeObj + ', Amount: ' + amountObj);
-                        
-                        if (amountObj == null || String.isBlank(String.valueOf(amountObj))) {
-                            System.debug('★★★ Skipping cost - empty amount');
-                            continue;
-                        }
-                        
-                        if (typeObj == null || String.isBlank(String.valueOf(typeObj))) {
-                            System.debug('★★★ Skipping cost - empty type');
+                        // 비용 타입과 금액 유효성 검사
+                        if (String.isBlank(costType) || amountObj == null) {
                             continue;
                         }
                         
@@ -144,42 +129,37 @@ public with sharing class CalendarAppController {
                         try {
                             amount = Decimal.valueOf(String.valueOf(amountObj));
                             if (amount <= 0) {
-                                System.debug('★★★ Skipping cost - amount <= 0');
                                 continue;
                             }
                         } catch (Exception e) {
-                            System.debug('★★★ Invalid amount: ' + amountObj + ', Error: ' + e.getMessage());
-                            continue;
+                            continue; // 잘못된 금액 형식은 무시
                         }
 
+                        // 부서 정보 설정
+                        String deptValue = String.isNotBlank(department) ? department : '개발부'; // 기본값
+                        
                         Cost_Detail__c newCost = new Cost_Detail__c(
                             My_Event__c = eventId,
-                            Cost_Type__c = String.valueOf(typeObj),
+                            Cost_Type__c = costType,
                             Amount__c = amount,
-                            department__c = department
+                            department__c = deptValue
                         );
                         costsToInsert.add(newCost);
-                        System.debug('★★★ Added cost to insert: ' + newCost);
                     }
                 } catch (Exception jsonEx) {
-                    System.debug('★★★ JSON parsing error: ' + jsonEx.getMessage());
                     throw new AuraHandledException('비용 데이터 파싱 중 오류가 발생했습니다: ' + jsonEx.getMessage());
                 }
             }
             
+            // 비용 데이터 저장
             if (!costsToInsert.isEmpty()) {
                 insert costsToInsert;
-                System.debug('★★★ Successfully inserted costs: ' + costsToInsert.size());
-            } else {
-                System.debug('★★★ No costs to insert');
             }
             
             return eventId;
 
         } catch (Exception e) {
-            System.debug('★★★ Save Event Error: ' + e.getMessage());
-            System.debug('★★★ Stack Trace: ' + e.getStackTraceString());
-            throw new AuraHandledException(e.getMessage() + ' | StackTrace: ' + e.getStackTraceString());
+            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
     
@@ -200,7 +180,6 @@ public with sharing class CalendarAppController {
             return 'SUCCESS';
             
         } catch (Exception e) {
-            System.debug('Update Event Dates Error: ' + e.getMessage());
             throw new AuraHandledException('일정 날짜 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
@@ -221,7 +200,6 @@ public with sharing class CalendarAppController {
             return 'SUCCESS';
             
         } catch (Exception e) {
-            System.debug('Delete Event Error: ' + e.getMessage());
             throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }

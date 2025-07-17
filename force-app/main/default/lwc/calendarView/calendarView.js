@@ -57,49 +57,82 @@ export default class CalendarView extends LightningElement {
         if (this.fullCalendarInitialized) {
             return;
         }
-        this.fullCalendarInitialized = true;
-
-        Promise.all([
-            loadStyle(this, FullCalendar + '/main.min.css'),
-            loadScript(this, FullCalendar + '/main.min.js'),
-        ])
-        .then(() => {
-            return loadScript(this, FullCalendar + '/locales/ko.js');
-        })
-        .then(() => {
+        
+        // 작은 지연을 두어 DOM이 완전히 렌더링된 후 실행
+        setTimeout(() => {
+            this.loadFullCalendar();
+        }, 100);
+    }
+    
+    async loadFullCalendar() {
+        if (this.fullCalendarInitialized) {
+            return;
+        }
+        
+        try {
+            await Promise.all([
+                loadStyle(this, FullCalendar + '/main.min.css'),
+                loadScript(this, FullCalendar + '/main.min.js'),
+            ]);
+            
+            await loadScript(this, FullCalendar + '/locales/ko.js');
+            
+            this.fullCalendarInitialized = true;
             this.initializeCalendar();
-        })
-        .catch(error => { 
-            console.error('Error loading FullCalendar:', error); 
-        });
+            
+        } catch (error) { 
+            console.error('Error loading FullCalendar:', error);
+            this.fullCalendarInitialized = false; // 실패 시 다시 시도할 수 있도록
+        }
     }
 
     initializeCalendar() {
         const calendarEl = this.template.querySelector('.calendar-container');
-        if (!calendarEl) return;
-
-        const calendar = new window.FullCalendar.Calendar(calendarEl, {
-            headerToolbar: { 
-                left: 'prev,next today', 
-                center: 'title', 
-                right: 'dayGridMonth,timeGridWeek,timeGridDay' 
-            },
-            locale: 'ko',
-            initialView: 'dayGridMonth',
-            editable: true,
-            droppable: true,
-            expandRows: true,
-            height: 'auto',
-            events: this.eventSource.bind(this),
-            drop: this.handleDrop.bind(this),
-            eventClick: this.handleEventClick.bind(this),
-            eventDrop: this.handleEventDrop.bind(this),
-            eventReceive: this.handleEventReceive.bind(this), // 외부 드래그 시 이벤트 처리
-            datesSet: this.handleDatesSet.bind(this)
-        });
+        if (!calendarEl) {
+            console.error('Calendar container not found');
+            return;
+        }
         
-        this.calendarApi = calendar;
-        calendar.render();
+        if (!window.FullCalendar) {
+            console.error('FullCalendar not loaded');
+            return;
+        }
+
+        try {
+            const calendar = new window.FullCalendar.Calendar(calendarEl, {
+                headerToolbar: { 
+                    left: 'prev,next today', 
+                    center: 'title', 
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+                },
+                locale: 'ko',
+                initialView: 'dayGridMonth',
+                editable: true,
+                droppable: true,
+                expandRows: true,
+                height: '100%',
+                contentHeight: 'auto',
+                aspectRatio: 1.35,
+                events: this.eventSource.bind(this),
+                drop: this.handleDrop.bind(this),
+                eventClick: this.handleEventClick.bind(this),
+                eventDrop: this.handleEventDrop.bind(this),
+                eventReceive: this.handleEventReceive.bind(this),
+                datesSet: this.handleDatesSet.bind(this),
+                // 이벤트 추가 후 자동 새로고침
+                eventDidMount: (info) => {
+                    console.log('Event mounted:', info.event.title);
+                }
+            });
+            
+            this.calendarApi = calendar;
+            calendar.render();
+            
+            console.log('Calendar initialized successfully');
+            
+        } catch (error) {
+            console.error('Error initializing calendar:', error);
+        }
     }
 
     eventSource(fetchInfo, successCallback, failureCallback) {

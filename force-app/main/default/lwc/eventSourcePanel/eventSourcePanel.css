@@ -7,27 +7,31 @@
     overflow: hidden;
 }
 
-/* Salesforce 구성 요소 섹션 - 상단 50% 차지 */
+/* Salesforce 구성 요소 섹션 - 정확히 50% 차지 */
 .salesforce-components-section {
     background-color: white;
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    flex: 1; /* 남은 공간을 반으로 나누기 위해 flex: 1 */
-    min-height: 0;
+    height: calc(50% - 0.25rem) !important; /* !important로 강제 적용 */
+    max-height: calc(50% - 0.25rem) !important;
+    min-height: calc(50% - 0.25rem) !important;
+    flex: none !important; /* flex 속성 제거 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 개인 활동 섹션 - 하단 50% 차지 */
+/* 개인 활동 섹션 - 나머지 50% 차지 */
 .personal-activity-section {
     background-color: white;
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    flex: 1; /* 남은 공간을 반으로 나누기 위해 flex: 1 */
-    min-height: 0;
+    height: calc(50% - 0.25rem) !important; /* !important로 강제 적용 */
+    max-height: calc(50% - 0.25rem) !important;
+    min-height: calc(50% - 0.25rem) !important;
+    flex: none !important; /* flex 속성 제거 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -66,6 +70,7 @@
 /* ===== 심플 탭셋 스타일 ===== */
 .simple-tabset {
     height: 100%;
+    max-height: 100% !important; /* 최대 높이 제한 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -75,6 +80,7 @@
 .tab-content-simple {
     background-color: white;
     height: 100%;
+    max-height: 100% !important; /* 최대 높이 제한 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -86,6 +92,7 @@
     flex: 1;
     overflow: auto;
     min-height: 0;
+    max-height: 100%; /* 부모 컨테이너 높이 제한 */
     background-color: white;
 }
 
