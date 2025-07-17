@@ -6,38 +6,38 @@
 
 .main-container {
     display: flex;
-    height: 850px; /* 100vh 대신 고정 높이 지정 (원하는 값으로 조절 가능) */
+    height: 850px;
     gap: 0.5rem;
     padding: 0.5rem;
     box-sizing: border-box;
     min-height: 0;
 }
 
-/* 2. 각 패널의 높이 설정을 제거하여 부모(.main-container)의 높이를 따르도록 합니다. */
+/* 패널 높이 설정 */
 .left-panel {
     flex: 0 0 280px;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
     overflow: hidden;
+    min-height: 0;
 }
 
 .center-panel {
     flex: 1;
-    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 .right-panel {
     flex: 0 0 300px;
-    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
     overflow: hidden;
+    min-height: 0;
 }
 
-/* 모달 포지션과 배경처리 */
+/* 모달 스타일 */
 .slds-modal {
     position: fixed;
     top: 0;
@@ -50,27 +50,58 @@
     justify-content: center;
     pointer-events: auto;
 }
+
 .slds-modal__container {
-    max-width: 40rem;
-    width: 100%;
+    max-width: 50rem;
+    width: 90%;
     background: white;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     max-height: 90vh;
     overflow: hidden;
 }
-.slds-modal__header,
-.slds-modal__footer {
+
+.slds-modal__header {
     padding: 1rem;
     background-color: #f3f2f2;
+    border-bottom: 1px solid #d8dde6;
+    position: relative;
 }
+
+.slds-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.slds-modal__title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #080707;
+    margin: 0;
+    padding-right: 3rem;
+}
+
 .slds-modal__content {
-    padding: 1rem;
+    padding: 1.5rem;
     overflow-y: auto;
     flex: 1;
 }
+
+.slds-modal__footer {
+    padding: 1rem;
+    background-color: #f3f2f2;
+    border-top: 1px solid #d8dde6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
 .slds-backdrop {
     position: fixed;
     top: 0;
@@ -78,25 +109,89 @@
     z-index: 9999;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
+/* 버튼 스타일 */
+.slds-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: all 0.2s ease;
+}
 
+.slds-button_neutral {
+    background-color: white;
+    color: #0176d3;
+    border-color: #0176d3;
+}
 
-/* ===== 반응형 처리 ===== */
+.slds-button_neutral:hover {
+    background-color: #f3f2f2;
+}
+
+.slds-button_brand {
+    background-color: #0176d3;
+    color: white;
+    border-color: #0176d3;
+}
+
+.slds-button_brand:hover {
+    background-color: #005fb2;
+    border-color: #005fb2;
+}
+
+.slds-button_destructive {
+    background-color: #d73a49;
+    color: white;
+    border-color: #d73a49;
+}
+
+.slds-button_destructive:hover {
+    background-color: #cb2431;
+    border-color: #cb2431;
+}
+
+/* 반응형 처리 */
 @media screen and (max-width: 1200px) {
-    .left-panel { flex: 0 0 260px; }
-    .right-panel { flex: 0 0 280px; }
+    .left-panel { 
+        flex: 0 0 260px; 
+    }
+    .right-panel { 
+        flex: 0 0 280px; 
+    }
 }
 
 @media screen and (max-width: 768px) {
     .main-container {
         flex-direction: column;
+        height: auto;
         gap: 0.5rem;
         padding: 0.5rem;
-    }    
-    .left-panel, .center-panel, .right-panel { flex: none; height: auto; }
-    .left-panel { height: 300px; }
-    .center-panel { height: 400px; }   
-    .right-panel { height: 300px; }
+    }
+    
+    .left-panel, .center-panel, .right-panel { 
+        flex: none; 
+        height: auto; 
+    }
+    
+    .left-panel { 
+        height: 300px; 
+    }
+    
+    .center-panel { 
+        height: 400px; 
+    }
+    
+    .right-panel { 
+        height: 300px; 
+    }
+    
+    .slds-modal__container {
+        width: 95%;
+        max-width: none;
+    }
 }

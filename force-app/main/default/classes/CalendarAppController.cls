@@ -1,7 +1,6 @@
 /**
  * @description       : Calendar App Controller with Cost Detail integration and Dynamic Picklist
  * @author            : sejin.park@dkbmc.com
- * @group             : 
  * @last modified on  : 2025-07-17
  * @last modified by  : sejin.park@dkbmc.com
 **/
@@ -69,7 +68,6 @@ public with sharing class CalendarAppController {
     public static List<Map<String, String>> getCostTypeOptions() {
         return CalendarEventSelector.selectCostTypeOptions();
     }
-
 
     @AuraEnabled
     public static String saveEventAndCosts(
@@ -227,5 +225,4 @@ public with sharing class CalendarAppController {
             throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
-    
 }

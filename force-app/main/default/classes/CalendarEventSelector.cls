@@ -21,14 +21,14 @@ public with sharing class CalendarEventSelector {
             SELECT 
                 Id, Name, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Location__c, 
                 Related_Record_Id__c, Related_Record_Type__c,
-                (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details1__r)
+                (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details__r)
             FROM My_Event__c
             WHERE Id = :eventId
             LIMIT 1
         ];
     }
 
-    // 월별 비용 합계 조회
+    // 월별 비용 합계 조회 - 수정된 버전
     public static Map<String, Decimal> selectMonthlyCostSummary(Datetime startDateTime, Datetime endDateTime) {
         Map<String, Decimal> summary = new Map<String, Decimal>();
 
@@ -44,14 +44,20 @@ public with sharing class CalendarEventSelector {
         List<AggregateResult> results = [
             SELECT Cost_Type__c, SUM(Amount__c) totalAmount
             FROM Cost_Detail__c
-            WHERE My_Event__r.Start_DateTime__c >= :startDateTime AND My_Event__r.Start_DateTime__c <= :endDateTime
+            WHERE My_Event__r.Start_DateTime__c >= :startDateTime 
+            AND My_Event__r.Start_DateTime__c <= :endDateTime
             AND My_Event__r.OwnerId = :UserInfo.getUserId()
             GROUP BY Cost_Type__c
         ];
 
         for (AggregateResult ar : results) {
-            summary.put((String)ar.get('Cost_Type__c'), (Decimal)ar.get('totalAmount'));
+            String costType = (String)ar.get('Cost_Type__c');
+            Decimal amount = (Decimal)ar.get('totalAmount');
+            if (costType != null && amount != null) {
+                summary.put(costType, amount);
+            }
         }
+        
         return summary;
     }
 
@@ -59,9 +65,11 @@ public with sharing class CalendarEventSelector {
     public static List<Account> selectAccounts() {
         return [SELECT Id, Name, Owner.Name FROM Account ORDER BY Name LIMIT 200];
     }
+    
     public static List<Contact> selectContacts() {
         return [SELECT Id, Name, Account.Name, Owner.Name FROM Contact WHERE AccountId != NULL ORDER BY Name LIMIT 200];
     }
+    
     public static List<Opportunity> selectOpportunities() {
         return [SELECT Id, Name, StageName, CloseDate, Owner.Name, Account.Name FROM Opportunity ORDER BY CloseDate DESC LIMIT 200];
     }

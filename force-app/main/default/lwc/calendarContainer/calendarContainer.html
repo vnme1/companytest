@@ -1,9 +1,6 @@
 <!--
-  @description       : 
+  @description       : 캘린더 컨테이너 메인 컴포넌트
   @author            : sejin.park@dkbmc.com
-  @group             : 
-  @last modified on  : 2025-07-17
-  @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
     <div class="main-container">
@@ -15,6 +12,8 @@
             <c-calendar-view
                 oneventclick={handleEventClick}
                 oneventdrop={handleEventDrop}
+                oneventmoved={handleEventMoved}
+                oneventerror={handleEventError}
                 ondateset={handleDatesSet}>
             </c-calendar-view>
         </div>
@@ -26,6 +25,7 @@
         </div>
     </div>
 
+    <!-- 모달 -->
     <template if:true={isModalOpen}>
         <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
             <div class="slds-modal__container">
@@ -47,10 +47,10 @@
                                 <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime-local" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime-local" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
                                 <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}></lightning-input>
@@ -84,10 +84,10 @@
                                 <lightning-input label="Activity" value={eventTitle} disabled></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime-local" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime-local" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>

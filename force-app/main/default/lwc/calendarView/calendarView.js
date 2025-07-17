@@ -1,24 +1,51 @@
 /**
- * @description       : 
+ * @description       : 캘린더 뷰 컴포넌트
  * @author            : sejin.park@dkbmc.com
- * @group             : 
- * @last modified on  : 2025-07-17
- * @last modified by  : sejin.park@dkbmc.com
-**/
+ */
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
+import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
 
 export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
-    // 부모 컴포넌트에서 이 함수를 호출하여 캘린더를 새로고침합니다.
     @api
     refetchEvents() {
         if (this.calendarApi) {
             this.calendarApi.refetchEvents();
+        }
+    }
+
+    @api
+    addEvent(eventData) {
+        if (this.calendarApi) {
+            this.calendarApi.addEvent(eventData);
+        }
+    }
+
+    @api
+    updateEvent(eventId, eventData) {
+        if (this.calendarApi) {
+            const existingEvent = this.calendarApi.getEventById(eventId);
+            if (existingEvent) {
+                existingEvent.setProp('title', eventData.title);
+                existingEvent.setStart(eventData.start);
+                existingEvent.setEnd(eventData.end);
+            }
+        }
+    }
+
+    @api
+    removeEvent(eventId) {
+        if (this.calendarApi) {
+            const eventToRemove = this.calendarApi.getEventById(eventId);
+            if (eventToRemove) {
+                eventToRemove.remove();
+            }
         }
     }
 
@@ -33,32 +60,43 @@ export default class CalendarView extends LightningElement {
             loadScript(this, FullCalendar + '/main.min.js'),
         ])
         .then(() => {
-            loadScript(this, FullCalendar + '/locales/ko.js').then(() => {
-                this.initializeCalendar();
-            });
+            return loadScript(this, FullCalendar + '/locales/ko.js');
         })
-        .catch(error => { console.error('Error loading FullCalendar:', error); });
+        .then(() => {
+            this.initializeCalendar();
+        })
+        .catch(error => { 
+            console.error('Error loading FullCalendar:', error); 
+        });
     }
 
     initializeCalendar() {
         const calendarEl = this.template.querySelector('.calendar-container');
+        if (!calendarEl) return;
+
         const calendar = new window.FullCalendar.Calendar(calendarEl, {
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+            headerToolbar: { 
+                left: 'prev,next today', 
+                center: 'title', 
+                right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+            },
             locale: 'ko',
             initialView: 'dayGridMonth',
             editable: true,
             droppable: true,
             expandRows: true,
+            height: 'auto',
             events: this.eventSource.bind(this),
             drop: this.handleDrop.bind(this),
             eventClick: this.handleEventClick.bind(this),
-            datesSet: this.handleDatesSet.bind(this) // 월 변경 시 이벤트 핸들러
+            eventDrop: this.handleEventDrop.bind(this),
+            datesSet: this.handleDatesSet.bind(this)
         });
+        
         this.calendarApi = calendar;
         calendar.render();
     }
 
-    // Apex에서 이벤트를 가져오는 함수
     eventSource(fetchInfo, successCallback, failureCallback) {
         getEvents({
             startStr: fetchInfo.start.toISOString(),
@@ -74,10 +112,12 @@ export default class CalendarView extends LightningElement {
             }));
             successCallback(events);
         })
-        .catch(error => { failureCallback(error); });
+        .catch(error => { 
+            console.error('Error fetching events:', error);
+            failureCallback(error); 
+        });
     }
 
-    // 항목이 드롭되었을 때, 부모에게 'eventdrop' 신호를 보냄
     handleDrop(info) {
         info.jsEvent.preventDefault();
         this.dispatchEvent(new CustomEvent('eventdrop', { 
@@ -88,17 +128,51 @@ export default class CalendarView extends LightningElement {
         }));
     }
 
-    // 기존 이벤트를 클릭했을 때, 부모에게 'eventclick' 신호를 보냄
     handleEventClick(info) {
         this.dispatchEvent(new CustomEvent('eventclick', { 
             detail: { eventId: info.event.id } 
         }));
     }
 
-    // 달력의 월이 변경되었을 때, 부모에게 'dateset' 신호를 보냄
+    // 드래그앤드롭으로 일정 이동 처리
+    async handleEventDrop(info) {
+        try {
+            const eventId = info.event.id;
+            const newStart = info.event.start.toISOString().slice(0, 16);
+            const newEnd = info.event.end ? info.event.end.toISOString().slice(0, 16) : newStart;
+            
+            await updateEventDates({
+                eventId: eventId,
+                newStartDate: newStart,
+                newEndDate: newEnd
+            });
+            
+            this.dispatchEvent(new CustomEvent('eventmoved', {
+                detail: {
+                    eventId: eventId,
+                    message: '일정이 성공적으로 이동되었습니다.'
+                }
+            }));
+            
+        } catch (error) {
+            console.error('Error updating event dates:', error);
+            this.dispatchEvent(new CustomEvent('eventerror', {
+                detail: {
+                    message: '일정 이동 중 오류가 발생했습니다.'
+                }
+            }));
+            
+            // 오류 발생 시 원래 위치로 되돌리기
+            info.revert();
+        }
+    }
+
     handleDatesSet(dateInfo) {
         this.dispatchEvent(new CustomEvent('dateset', {
-            detail: { start: dateInfo.start }
+            detail: { 
+                start: dateInfo.start.toISOString(),
+                end: dateInfo.end.toISOString()
+            }
         }));
     }
 }
