@@ -74,33 +74,46 @@ export default class CalendarContainer extends LightningElement {
     
     // 이벤트 드롭 처리
     handleEventDrop(event) {
-        const { draggedEl, date } = event.detail;
-        const { recordName, recordType, recordId, accountName } = draggedEl.dataset;
+        try {
+            const { draggedEl, date } = event.detail;
+            
+            if (!draggedEl || !date) {
+                throw new Error('드롭 이벤트 데이터가 유효하지 않습니다.');
+            }
+            
+            const { recordName, recordType, recordId, accountName } = draggedEl.dataset;
 
-        if (!recordName) return;
+            if (!recordName || !recordType) {
+                throw new Error('드래그된 항목의 데이터가 유효하지 않습니다.');
+            }
 
-        this.recordId = null;
-        this.eventTitle = recordName;
-        this.eventDepartment = this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
-        this.eventDescription = '';
-        this.eventLocation = '';
+            this.recordId = null;
+            this.eventTitle = recordName;
+            this.eventDepartment = this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
+            this.eventDescription = '';
+            this.eventLocation = '';
 
-        const startDate = date;
-        const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-        this.eventStartDate = isoString;
-        this.eventEndDate = isoString;
+            const startDate = date;
+            const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            this.eventStartDate = isoString;
+            this.eventEndDate = isoString;
 
-        this.newEventData = { 
-            extendedProps: { 
-                recordType, 
-                relatedId: recordId, 
-                accountName: accountName || '' 
-            } 
-        };
-        
-        this.costItems = [{ id: 0, type: '', amount: null }];
-        this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
-        this.openModal();
+            this.newEventData = { 
+                extendedProps: { 
+                    recordType, 
+                    relatedId: recordId, 
+                    accountName: accountName || '' 
+                } 
+            };
+            
+            this.costItems = [{ id: 0, type: '', amount: null }];
+            this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
+            this.openModal();
+            
+        } catch (error) {
+            console.error('이벤트 드롭 처리 오류:', error);
+            this.showToast('오류', error.message || '드래그 앤 드롭 처리 중 오류가 발생했습니다.', 'error');
+        }
     }
 
     // 이벤트 클릭 처리
@@ -204,8 +217,9 @@ export default class CalendarContainer extends LightningElement {
         }]; 
     }
     
-    // 이벤트 저장
+    // 이벤트 저장 - 핵심 로직에만 예외 처리 추가
     async saveEvent() {
+        // 기본 유효성 검사
         if (!this.eventTitle) {
             this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
             return;
@@ -240,18 +254,16 @@ export default class CalendarContainer extends LightningElement {
             
             const savedEventId = await saveEventAndCosts(params);
             
-            // 캘린더 즉시 업데이트 - 새로고침 없이 화면에 바로 반영
+            // 캘린더 업데이트
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
                 if (this.recordId) {
-                    // 기존 이벤트 업데이트
                     calendarView.updateEvent(this.recordId, {
                         title: this.eventTitle,
                         start: this.eventStartDate,
                         end: this.eventEndDate
                     });
                 } else {
-                    // 새 이벤트 추가
                     calendarView.addEvent({
                         id: savedEventId,
                         title: this.eventTitle,
@@ -265,20 +277,21 @@ export default class CalendarContainer extends LightningElement {
             this.showToast('성공', '이벤트가 저장되었습니다.', 'success');
             this.closeModal();
             this.refreshCostSummary();
+            
         } catch (error) {
-            console.error('Error saving event:', error);
-            this.showToast('저장 오류', error.body?.message || error.message, 'error');
+            console.error('이벤트 저장 오류:', error);
+            const errorMessage = error.body?.message || error.message || '이벤트 저장 중 오류가 발생했습니다.';
+            this.showToast('저장 오류', errorMessage, 'error');
         }
     }
 
-    // 이벤트 삭제
+    // 이벤트 삭제 - 핵심 로직에만 예외 처리 추가
     async handleDelete() {
         if (!this.recordId) return;
         
         try {
             await deleteEvent({ eventId: this.recordId });
             
-            // 캘린더에서 이벤트 즉시 제거
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
                 calendarView.removeEvent(this.recordId);
@@ -287,9 +300,11 @@ export default class CalendarContainer extends LightningElement {
             this.showToast('성공', '일정이 삭제되었습니다.', 'success');
             this.closeModal();
             this.refreshCostSummary();
+            
         } catch (error) {
-            console.error('Error deleting event:', error);
-            this.showToast('삭제 오류', error.body?.message || error.message, 'error');
+            console.error('이벤트 삭제 오류:', error);
+            const errorMessage = error.body?.message || error.message || '일정 삭제 중 오류가 발생했습니다.';
+            this.showToast('삭제 오류', errorMessage, 'error');
         }
     }
 

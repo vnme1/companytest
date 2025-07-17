@@ -76,12 +76,21 @@ public with sharing class CalendarAppController {
         String relatedId, String recordType, String costDetailsJson
     ) {
         try {
+            // 필수 값 검증
+            if (String.isBlank(title)) {
+                throw new AuraHandledException('제목은 필수 입력 항목입니다.');
+            }
+
             My_Event__c eventToSave;
 
             if (recordId == null) {
                 eventToSave = new My_Event__c();
             } else {
-                eventToSave = [SELECT Id FROM My_Event__c WHERE Id = :recordId LIMIT 1];
+                List<My_Event__c> events = [SELECT Id FROM My_Event__c WHERE Id = :recordId LIMIT 1];
+                if (events.isEmpty()) {
+                    throw new AuraHandledException('수정할 이벤트를 찾을 수 없습니다.');
+                }
+                eventToSave = events[0];
             }
 
             eventToSave.Name = title;
@@ -120,7 +129,6 @@ public with sharing class CalendarAppController {
                         String costType = String.valueOf(costMap.get('type'));
                         Object amountObj = costMap.get('amount');
                         
-                        // 비용 타입과 금액 유효성 검사
                         if (String.isBlank(costType) || amountObj == null) {
                             continue;
                         }
@@ -132,11 +140,10 @@ public with sharing class CalendarAppController {
                                 continue;
                             }
                         } catch (Exception e) {
-                            continue; // 잘못된 금액 형식은 무시
+                            continue;
                         }
 
-                        // 부서 정보 설정
-                        String deptValue = String.isNotBlank(department) ? department : '개발부'; // 기본값
+                        String deptValue = String.isNotBlank(department) ? department : '개발부';
                         
                         Cost_Detail__c newCost = new Cost_Detail__c(
                             My_Event__c = eventId,
@@ -147,11 +154,10 @@ public with sharing class CalendarAppController {
                         costsToInsert.add(newCost);
                     }
                 } catch (Exception jsonEx) {
-                    throw new AuraHandledException('비용 데이터 파싱 중 오류가 발생했습니다: ' + jsonEx.getMessage());
+                    throw new AuraHandledException('비용 데이터 형식이 올바르지 않습니다.');
                 }
             }
             
-            // 비용 데이터 저장
             if (!costsToInsert.isEmpty()) {
                 insert costsToInsert;
             }
@@ -159,7 +165,12 @@ public with sharing class CalendarAppController {
             return eventId;
 
         } catch (Exception e) {
-            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + e.getMessage());
+            String errorMessage = e.getMessage();
+            if (e instanceof AuraHandledException) {
+                throw e;
+            } else {
+                throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + errorMessage);
+            }
         }
     }
     
