@@ -14,9 +14,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: calc(50% - 0.25rem) !important; /* !important로 강제 적용 */
-    max-height: calc(50% - 0.25rem) !important;
-    min-height: calc(50% - 0.25rem) !important;
+    height: 400px !important; /* 고정 높이로 다시 변경 */
+    max-height: 400px !important;
+    min-height: 400px !important;
     flex: none !important; /* flex 속성 제거 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -28,9 +28,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: calc(50% - 0.25rem) !important; /* !important로 강제 적용 */
-    max-height: calc(50% - 0.25rem) !important;
-    min-height: calc(50% - 0.25rem) !important;
+    height: 400px !important; /* 고정 높이로 다시 변경 */
+    max-height: 400px !important;
+    min-height: 400px !important;
     flex: none !important; /* flex 속성 제거 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

@@ -15,20 +15,28 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     _wiredCostResult;
 
     // 현재 월의 첫 번째 날과 마지막 날 계산
+   // 현재 월의 첫 번째 날과 마지막 날 계산
     get monthRange() {
+        let currentDate;
+        
         if (!this.currentMonth) {
-            const today = new Date();
-            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
-            return {
-                start: startOfMonth.toISOString(),
-                end: endOfMonth.toISOString()
-            };
+            currentDate = new Date();
+        } else {
+            currentDate = new Date(this.currentMonth);
         }
         
-        const currentDate = new Date(this.currentMonth);
-        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        // 현재 월의 첫 번째 날 (00:00:00)
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+        
+        // 현재 월의 마지막 날 (23:59:59)
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+        
+        console.log('Month range calculation:', {
+            currentMonth: this.currentMonth,
+            currentDate: currentDate,
+            startOfMonth: startOfMonth,
+            endOfMonth: endOfMonth
+        });
         
         return {
             start: startOfMonth.toISOString(),

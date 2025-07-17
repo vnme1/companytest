@@ -164,7 +164,20 @@ export default class CalendarContainer extends LightningElement {
     
     // 날짜 변경 처리
     handleDatesSet(event) { 
-        this.currentMonthForSummary = event.detail.start;
+        // 캘린더에서 표시하는 월의 중간 날짜를 가져와서 해당 월로 설정
+        const startDate = new Date(event.detail.start);
+        const endDate = new Date(event.detail.end);
+        
+        // 캘린더 뷰의 중간 날짜 계산 (월 중간 정도)
+        const viewMiddle = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
+        
+        console.log('DatesSet event:', {
+            start: event.detail.start,
+            end: event.detail.end,
+            viewMiddle: viewMiddle.toISOString()
+        });
+        
+        this.currentMonthForSummary = viewMiddle.toISOString();
         this.refreshCostSummary();
     }
     

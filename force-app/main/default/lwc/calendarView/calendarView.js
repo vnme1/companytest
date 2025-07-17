@@ -110,16 +110,14 @@ export default class CalendarView extends LightningElement {
                 editable: true,
                 droppable: true,
                 expandRows: true,
-                height: '100%',
-                contentHeight: 'auto',
-                aspectRatio: 1.35,
+                height: 800, // 고정 높이 픽셀 단위로 설정
+                contentHeight: 700, // 컨텐츠 높이 설정
                 events: this.eventSource.bind(this),
                 drop: this.handleDrop.bind(this),
                 eventClick: this.handleEventClick.bind(this),
                 eventDrop: this.handleEventDrop.bind(this),
                 eventReceive: this.handleEventReceive.bind(this),
                 datesSet: this.handleDatesSet.bind(this),
-                // 이벤트 추가 후 자동 새로고침
                 eventDidMount: (info) => {
                     console.log('Event mounted:', info.event.title);
                 }

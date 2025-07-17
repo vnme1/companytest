@@ -3,8 +3,9 @@
     background-color: white;
     border-radius: 0.25rem;
     border: 1px solid #d8dde6;
-    height: 100%;
-    min-height: 600px; /* 최소 높이 보장 */
+    height: 840px !important; /* 고정 높이 강제 적용 */
+    min-height: 840px !important;
+    max-height: 840px !important;
     padding: 1rem;
     overflow: hidden;
     display: flex;
@@ -21,6 +22,15 @@
 .calendar-container .fc-view-harness {
     height: 100% !important;
     flex: 1 !important;
+}
+
+/* FullCalendar 스크롤그리드 높이 강제 */
+.calendar-container .fc-daygrid-body {
+    height: 100% !important;
+}
+
+.calendar-container .fc-scrollgrid-sync-table {
+    height: 100% !important;
 }
 
 /* ===== FullCalendar 스타일 덮어쓰기 ===== */
