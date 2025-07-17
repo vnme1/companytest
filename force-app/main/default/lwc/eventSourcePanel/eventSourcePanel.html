@@ -5,13 +5,13 @@
   @last modified on  : 2025-07-17
   @last modified by  : sejin.park@dkbmc.com
 -->
-<template>    
+<template>
     <div class="salesforce-components-section">
         <div class="section-header">
             <lightning-icon icon-name="standard:related_list" size="small" class="section-icon"></lightning-icon>
             <h3 class="section-title">Salesforce 구성 요소</h3>
         </div>
-                
+        
         <lightning-tabset class="simple-tabset" onactive={handleTabActive}>
             <lightning-tab label="Account" value="Account">
                 <div class="tab-content-simple">
@@ -31,7 +31,7 @@
                                         data-record-name={account.Name}
                                         data-account-name={account.Name}>
                                         <td class="table-cell">{account.Name}</td>
-                                        <td class="table-cell">{account.OwnerName}</td>
+                                        <td class="table-cell">{account.Owner.Name}</td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -39,7 +39,7 @@
                     </div>
                 </div>
             </lightning-tab>
-                    
+            
             <lightning-tab label="Contact" value="Contact">
                 <div class="tab-content-simple">
                     <div class="custom-table-container">
@@ -56,9 +56,9 @@
                                         data-record-id={contact.Id}
                                         data-record-type="Contact"
                                         data-record-name={contact.Name}
-                                        data-account-name={contact.AccountName}>
+                                        data-account-name={contact.Account.Name}>
                                         <td class="table-cell">{contact.Name}</td>
-                                        <td class="table-cell">{contact.AccountName}</td>
+                                        <td class="table-cell">{contact.Account.Name}</td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -66,7 +66,7 @@
                     </div>
                 </div>
             </lightning-tab>
-                    
+            
             <lightning-tab label="Opportunity" value="Opportunity">
                 <div class="tab-content-simple">
                     <div class="custom-table-container">
@@ -83,9 +83,9 @@
                                         data-record-id={opportunity.Id}
                                         data-record-type="Opportunity"
                                         data-record-name={opportunity.Name}
-                                        data-account-name={opportunity.AccountName}>
+                                        data-account-name={opportunity.Account.Name}>
                                         <td class="table-cell">{opportunity.Name}</td>
-                                        <td class="table-cell">{opportunity.AccountName}</td>
+                                        <td class="table-cell">{opportunity.Account.Name}</td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -95,7 +95,7 @@
             </lightning-tab>
         </lightning-tabset>
     </div>
-            
+    
     <div class="personal-activity-section">
         <div class="section-header">
             <lightning-icon icon-name="standard:event" size="small" class="section-icon"></lightning-icon>
@@ -118,7 +118,7 @@
                 <lightning-icon icon-name="utility:education" size="x-small" class="activity-icon"></lightning-icon>
                 <span class="activity-text">교육</span>
             </div>
-             <div class="activity-item" data-record-name="회의" data-record-type="Personal">
+            <div class="activity-item" data-record-name="회의" data-record-type="Personal">
                 <lightning-icon icon-name="utility:event" size="x-small" class="activity-icon"></lightning-icon>
                 <span class="activity-text">회의</span>
             </div>

@@ -1,42 +1,89 @@
-/* 컴포넌트의 기본 배경색 등을 설정합니다. */
+/* 전체 컴포넌트 스타일 */
 :host {
     display: block;
     background-color: #f3f2f2;
 }
 
-/* 메인 컨테이너 - 3분할 레이아웃의 전체 틀을 정의합니다. */
 .main-container {
     display: flex;
-    height: 850px; /* 전체 앱의 높이 (조절 가능) */
+    height: 850px; /* 100vh 대신 고정 높이 지정 (원하는 값으로 조절 가능) */
     gap: 0.5rem;
     padding: 0.5rem;
     box-sizing: border-box;
+    min-height: 0;
 }
 
-/* 좌측 패널의 너비와 기본 설정을 정의합니다. */
+/* 2. 각 패널의 높이 설정을 제거하여 부모(.main-container)의 높이를 따르도록 합니다. */
 .left-panel {
     flex: 0 0 280px;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
     overflow: hidden;
 }
 
-/* 중앙 패널이 남은 공간을 모두 차지하도록 설정합니다. */
 .center-panel {
     flex: 1;
+    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    display: flex; /* 자식인 calendar-container가 높이를 100% 채우도록 */
 }
 
-/* 우측 패널의 너비를 정의합니다. */
 .right-panel {
     flex: 0 0 300px;
+    /* height: calc(100vh - 1rem); << 이 줄 삭제 */
     overflow: hidden;
-    display: flex; /* 자식인 lightning-card가 높이를 100% 채우도록 */
 }
 
-/* 반응형 처리: 화면 크기가 작아질 때를 대비한 코드입니다. */
+/* 모달 포지션과 배경처리 */
+.slds-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+.slds-modal__container {
+    max-width: 40rem;
+    width: 100%;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
+}
+.slds-modal__header,
+.slds-modal__footer {
+    padding: 1rem;
+    background-color: #f3f2f2;
+}
+.slds-modal__content {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+.slds-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+
+
+/* ===== 반응형 처리 ===== */
 @media screen and (max-width: 1200px) {
     .left-panel { flex: 0 0 260px; }
     .right-panel { flex: 0 0 280px; }
@@ -45,11 +92,11 @@
 @media screen and (max-width: 768px) {
     .main-container {
         flex-direction: column;
-        height: auto; /* 세로로 쌓일 때는 높이를 자동으로 조절 */
-    }
-    .left-panel, .center-panel, .right-panel {
-        flex: none;
-        height: auto;
-    }
-    .center-panel { height: 500px; } /* 모바일에서는 고정 높이 지정 */
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }    
+    .left-panel, .center-panel, .right-panel { flex: none; height: auto; }
+    .left-panel { height: 300px; }
+    .center-panel { height: 400px; }   
+    .right-panel { height: 300px; }
 }

@@ -6,41 +6,102 @@
   @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
-    <div>
-        <div class="main-container">
-            <div class="left-panel">
-                <c-event-source-panel></c-event-source-panel>
-            </div>
-
-            <div class="center-panel">
-                <c-calendar-view
-                    oneventclick={handleEventClick}
-                    oneventdrop={handleEventDrop}
-                    ondateset={handleDatesSet}>
-                </c-calendar-view>
-            </div>
-
-            <div class="right-panel">
-                <c-cost-summary-panel current-month={currentMonthForSummary}></c-cost-summary-panel>
-            </div>
+    <div class="main-container">
+        <div class="left-panel">
+            <c-event-source-panel></c-event-source-panel>
         </div>
 
-        <template if:true={isModalOpen}>
-            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
-                <div class="slds-modal__container">
-                    <div class="slds-modal__header">
-                        <h1 class="slds-modal__title slds-hyphenate">{modalTitle}</h1>
-                    </div>
-                    <div class="slds-modal__content slds-p-around_medium">
-                        </div>
-                    <div class="slds-modal__footer">
-                        <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
-                        <button class="slds-button slds-button_destructive" onclick={handleDelete} if:true={recordId}>Delete</button>
-                        <button class="slds-button slds-button_brand" onclick={saveEvent}>Save</button>
-                    </div>
-                </div>
-            </section>
-            <div class="slds-backdrop slds-backdrop_open"></div>
-        </template>
+        <div class="center-panel">
+            <c-calendar-view
+                oneventclick={handleEventClick}
+                oneventdrop={handleEventDrop}
+                ondateset={handleDatesSet}>
+            </c-calendar-view>
+        </div>
+
+        <div class="right-panel">
+            <c-cost-summary-panel
+                current-month={currentMonthForSummary}>
+            </c-cost-summary-panel>
+        </div>
     </div>
+
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Cancel and close</span>
+                    </button>
+                    <h1 class="slds-modal__title slds-hyphenate">{modalTitle}</h1>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium" style="max-height: 70vh; overflow-y: auto;">
+                    
+                    <template if:true={isSalesforceObjectEvent}>
+                        <div class="slds-grid slds-gutters slds-wrap">
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-input name="eventTitle" label="Event Name" value={eventTitle} onchange={handleInputChange} required></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-combobox name="eventDepartment" label="Department" value={eventDepartment} options={departmentOptions} onchange={handleInputChange} required></lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-m-top_medium">
+                                <h3 class="slds-section-title slds-m-bottom_small">비용 입력</h3>
+                                <template for:each={costItems} for:item="cost">
+                                    <div key={cost.id} class="slds-grid slds-gutters slds-wrap slds-m-bottom_x-small">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-combobox name="type" label="Cost Type" options={costTypeOptions} value={cost.type} onchange={handleCostChange} data-id={cost.id}></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <lightning-input type="number" name="amount" label="Amount" formatter="currency" value={cost.amount} onchange={handleCostChange} data-id={cost.id}></lightning-input>
+                                        </div>
+                                    </div>
+                                </template>
+                                <lightning-button label="Add Cost" onclick={addCostItem} class="slds-m-top_small"></lightning-button>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template if:true={isPersonalActivityEvent}>
+                        <div class="slds-grid slds-gutters slds-wrap">
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-input label="Activity" value={eventTitle} disabled></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input type="datetime" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input type="datetime" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
+                    <button class="slds-button slds-button_destructive" onclick={handleDelete} if:true={recordId}>Delete</button>
+                    <button class="slds-button slds-button_brand" onclick={saveEvent}>Save</button>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 </template>

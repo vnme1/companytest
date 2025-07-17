@@ -1,4 +1,3 @@
-/* eventSourcePanel.css */
 /* Salesforce 구성 요소 섹션 */
 .salesforce-components-section {
     background-color: white;
@@ -22,4 +21,163 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* ... .section-header, .custom-table, .activity-list 등 좌측 패널 관련 스타일들 ... */
+/* ===== 공통 섹션 헤더 스타일 ===== */
+.section-header {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(to bottom, #fafafa, #f4f4f4);
+    border-bottom: 1px solid #d8dde6;
+    border-radius: 0.25rem 0.25rem 0 0;
+    flex-shrink: 0;
+}
+
+.section-icon {
+    margin-right: 0.5rem;
+    color: #0176d3;
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #514f4d;
+    margin: 0;
+}
+
+/* ===== 공통 섹션 컨텐츠 ===== */
+.section-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* ===== 심플 탭셋 스타일 ===== */
+.simple-tabset {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 탭 내용 영역 */
+.tab-content-simple {
+    background-color: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* ===== 테이블 스타일 ===== */
+.custom-table-container {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+    background-color: white;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    table-layout: fixed;
+}
+
+.custom-table thead th {
+    background-color: #f3f2f2;
+    color: #3e3e3c;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #dddbda;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-table thead th:first-child {
+    width: 60%;
+}
+.custom-table thead th:last-child {
+    width: 40%;
+}
+
+.custom-table tbody .table-row {
+    cursor: grab;
+    transition: background-color 0.2s ease-in-out;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.custom-table tbody .table-row:last-child {
+    border-bottom: none;
+}
+
+.custom-table tbody .table-row:hover {
+    background-color: #f3f2f2;
+}
+
+.custom-table .table-cell {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    color: #080707;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-table .table-cell:last-child {
+    color: #3e3e3c;
+}
+
+/* ===== 활동 목록 스타일 ===== */
+.activity-list {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+    cursor: grab;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+    border-color: #e0e5ee;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.activity-item:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.activity-item.dragging {
+    opacity: 0.6;
+    background-color: #e8f4fd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.activity-icon {
+    color: #0176d3;
+    margin-right: 0.5rem;
+}
+
+.activity-text {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #514f4d;
+}

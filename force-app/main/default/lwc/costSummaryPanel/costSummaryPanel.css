@@ -4,13 +4,12 @@
     display: flex;
     flex-direction: column;
 }
-
 .cost-summary-content {
     padding: 1rem;
     flex: 1;
     overflow-y: auto;
+    min-height: 0;
 }
-
 .cost-item {
     display: flex;
     justify-content: space-between;
@@ -21,39 +20,34 @@
     border-radius: 0.25rem;
     border: 1px solid #e0e5ee;
 }
-
 .cost-item.total-cost {
     background-color: #e8f4fd;
     border-color: #0176d3;
     font-weight: 600;
     font-size: 1.1em;
 }
-
 .cost-label {
     color: #514f4d;
     font-size: 0.875rem;
 }
-
 .cost-amount {
     color: #0176d3;
     font-weight: 600;
     font-size: 0.875rem;
 }
-
 .total-cost .cost-label,
 .total-cost .cost-amount {
     color: #0176d3;
     font-weight: 700;
 }
-
 /* 보고서 버튼 컨테이너 */
 .report-button-container {
     padding: 0;
     margin-top: 1rem;
-    display: flex; /* 버튼 중앙 정렬 */
-    justify-content: center; /* 버튼 중앙 정렬 */
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
 }
-
 .report-btn {
     text-align: center;
     white-space: normal;

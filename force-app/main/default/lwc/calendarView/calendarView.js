@@ -5,13 +5,6 @@
  * @last modified on  : 2025-07-17
  * @last modified by  : sejin.park@dkbmc.com
 **/
-/**
- *  * Project: Salesforce Development
- *  * Author: sejin.park@dkbmc.com
- *  * Description: JavaScript 기능 구현
- *  * License: Custom
- */
-
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
@@ -21,10 +14,12 @@ export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
-    // 부모 컴포넌트에서 이 함수를 호출하여 캘린더를 새로고침할 수 있습니다.
+    // 부모 컴포넌트에서 이 함수를 호출하여 캘린더를 새로고침합니다.
     @api
     refetchEvents() {
-        this.calendarApi.refetchEvents();
+        if (this.calendarApi) {
+            this.calendarApi.refetchEvents();
+        }
     }
 
     renderedCallback() {
@@ -42,9 +37,7 @@ export default class CalendarView extends LightningElement {
                 this.initializeCalendar();
             });
         })
-        .catch(error => {
-            console.error('Error loading FullCalendar:', error);
-        });
+        .catch(error => { console.error('Error loading FullCalendar:', error); });
     }
 
     initializeCalendar() {
@@ -59,9 +52,7 @@ export default class CalendarView extends LightningElement {
             events: this.eventSource.bind(this),
             drop: this.handleDrop.bind(this),
             eventClick: this.handleEventClick.bind(this),
-            datesSet: (dateInfo) => {
-            this.dispatchEvent(new CustomEvent('dateset', { detail: { start: dateInfo.start } }));
-            }
+            datesSet: this.handleDatesSet.bind(this) // 월 변경 시 이벤트 핸들러
         });
         this.calendarApi = calendar;
         calendar.render();
@@ -83,24 +74,31 @@ export default class CalendarView extends LightningElement {
             }));
             successCallback(events);
         })
-        .catch(error => {
-            console.error('Error fetching events:', error);
-            failureCallback(error);
-        });
+        .catch(error => { failureCallback(error); });
     }
 
-    // 이벤트가 드롭되었을 때, 부모에게 정보를 전달하는 이벤트 발생
+    // 항목이 드롭되었을 때, 부모에게 'eventdrop' 신호를 보냄
     handleDrop(info) {
-        info.jsEvent.preventDefault(); // 기본 동작 방지
-        const eventDetails = {
-            draggedEl: info.draggedEl,
-            date: info.date
-        };
-        this.dispatchEvent(new CustomEvent('eventdrop', { detail: eventDetails }));
+        info.jsEvent.preventDefault();
+        this.dispatchEvent(new CustomEvent('eventdrop', { 
+            detail: {
+                draggedEl: info.draggedEl,
+                date: info.date
+            }
+        }));
     }
 
-    // 기존 이벤트를 클릭했을 때, 부모에게 ID를 전달하는 이벤트 발생
+    // 기존 이벤트를 클릭했을 때, 부모에게 'eventclick' 신호를 보냄
     handleEventClick(info) {
-        this.dispatchEvent(new CustomEvent('eventclick', { detail: { eventId: info.event.id } }));
+        this.dispatchEvent(new CustomEvent('eventclick', { 
+            detail: { eventId: info.event.id } 
+        }));
+    }
+
+    // 달력의 월이 변경되었을 때, 부모에게 'dateset' 신호를 보냄
+    handleDatesSet(dateInfo) {
+        this.dispatchEvent(new CustomEvent('dateset', {
+            detail: { start: dateInfo.start }
+        }));
     }
 }

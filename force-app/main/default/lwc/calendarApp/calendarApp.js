@@ -627,7 +627,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         this[NavigationMixin.Navigate]({
             type: 'standard__webPage',
             attributes: {
-                url: '/lightning/r/Report/00OSv000003I4wHMAS/view'
+                url: '/lightning/r/Report/00OAu000005iY1WMAU/view'
             }
         });
     }

@@ -6,11 +6,9 @@
   @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
-    <!-- 우측 패널 - 동적 비용 합계 표시 -->
-    <lightning-card title="월별 Event 및 Cost" icon-name="standard:currency" class="cost-summary-card"> 
+    <lightning-card title="월별 Event 및 Cost" icon-name="standard:currency" class="cost-summary-card">
         <div class="slds-card__body slds-card__body_inner">
             <div class="cost-summary-content">
-                <!-- 동적으로 비용 타입별 합계 표시 -->
                 <template for:each={costItems} for:item="cost">
                     <div key={cost.type} class="cost-item">
                         <div class="cost-label">{cost.type}</div>
@@ -23,15 +21,15 @@
                     <div class="cost-amount">{totalAmount}</div>
                 </div>
 
-                <div class="report-button-container slds-m-top_medium"> 
-                    <lightning-button 
-                        variant="brand" 
-                        label="Matrix 보고서 보기" 
+                <div class="report-button-container slds-m-top_medium">
+                    <lightning-button
+                        variant="brand"
+                        label="부서 / 월 / 비용유형별 보고서 보기"
                         class="report-btn"
-                        onclick={handleReportClick}> 
-                    </lightning-button> 
-                </div> 
-            </div> 
-        </div> 
-    </lightning-card> 
+                        onclick={handleReportClick}>
+                    </lightning-button>
+                </div>
+            </div>
+        </div>
+    </lightning-card>
 </template>
