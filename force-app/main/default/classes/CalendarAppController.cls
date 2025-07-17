@@ -163,6 +163,51 @@ public with sharing class CalendarAppController {
             throw new AuraHandledException('이벤트 상세 정보 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
+
+    // CalendarAppController.cls에 추가할 메서드
+
+    @AuraEnabled
+    public static String updateEventDates(Id eventId, String newStartDate, String newEndDate) {
+        try {
+            My_Event__c eventToUpdate = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
+            
+            if (String.isNotBlank(newStartDate)) {
+                eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(newStartDate.replace('T', ' ') + ':00');
+            }
+            if (String.isNotBlank(newEndDate)) {
+                eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(newEndDate.replace('T', ' ') + ':00');
+            }
+            
+            update eventToUpdate;
+            
+            return 'SUCCESS';
+            
+        } catch (Exception e) {
+            System.debug('Update Event Dates Error: ' + e.getMessage());
+            throw new AuraHandledException('일정 날짜 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
+        }
+    }
+
+    @AuraEnabled
+    public static String deleteEvent(Id eventId) {
+        try {
+            // 먼저 관련된 비용 상세 삭제
+            List<Cost_Detail__c> relatedCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
+            if (!relatedCosts.isEmpty()) {
+                delete relatedCosts;
+            }
+            
+            // 이벤트 삭제
+            My_Event__c eventToDelete = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
+            delete eventToDelete;
+            
+            return 'SUCCESS';
+            
+        } catch (Exception e) {
+            System.debug('Delete Event Error: ' + e.getMessage());
+            throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
+        }
+    }
     
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccountList() {

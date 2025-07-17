@@ -1,5 +1,5 @@
 <!--
-  @description       : 
+  @description       : Calendar App with Drag & Drop functionality
   @author            : sejin.park@dkbmc.com
   @group             : 
   @last modified on  : 2025-07-17
@@ -132,7 +132,7 @@
             <div class="calendar-container" lwc:dom="manual"></div>
         </div>
 
-        <!-- 우측 패널 부분을 다음과 같이 수정 -->
+        <!-- 우측 패널 - 동적 비용 합계 표시 -->
         <div class="right-panel"> 
             <lightning-card title="월별 Event 및 Cost" icon-name="standard:currency" class="cost-summary-card"> 
                 <div class="slds-card__body slds-card__body_inner"> 
@@ -187,9 +187,19 @@
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
                             </div>
+                            
+                            <!-- 부서 선택 필드 -->
                             <div class="slds-col slds-size_1-of-1">
-                                <lightning-combobox name="eventDepartment" label="Department" options={departmentOptions} value={eventDepartment} onchange={handleInputChange} required> </lightning-combobox>
+                                <lightning-combobox 
+                                    name="eventDepartment" 
+                                    label="Department" 
+                                    options={departmentOptions} 
+                                    value={eventDepartment} 
+                                    onchange={handleInputChange}
+                                    required>
+                                </lightning-combobox>
                             </div>
+                            
                             <div class="slds-col slds-size_1-of-2">
                                 <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
@@ -250,8 +260,12 @@
                     </template>
 
                 </div>
+                <!-- 삭제 버튼이 추가된 모달 푸터 -->
                 <div class="slds-modal__footer">
                     <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
+                    <template if:true={recordId}>
+                        <button class="slds-button slds-button_destructive" onclick={deleteEvent}>Delete</button>
+                    </template>
                     <button class="slds-button slds-button_brand" onclick={saveEvent}>Save</button>
                 </div>
             </div>

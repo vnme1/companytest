@@ -5,12 +5,6 @@
  * @last modified on  : 2025-07-17
  * @last modified by  : sejin.park@dkbmc.com
 **/
-/**
- *  * Project: Salesforce Development
- *  * Author: sejin.park@dkbmc.com
- *  * Description: JavaScript 기능 구현
- *  * License: Custom
- */
 import { LightningElement, wire, track } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
@@ -25,6 +19,8 @@ import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDeta
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
 import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
+import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
+import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 
 // 동적 Picklist import
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
@@ -233,6 +229,10 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
+                // height: '100%',
+                // expandRows: true,
+                // contentHeight: 'auto', // contentHeight 제거하거나 auto로 설정
+                // aspectRatio: false,
                 events: (fetchInfo, successCallback, failureCallback) => {
                     getEvents({
                         startStr: fetchInfo.start.toISOString(),
@@ -256,6 +256,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 drop: this.handleDrop.bind(this),
                 eventReceive: (info) => { info.event.remove(); },
                 eventClick: this.handleEventClick.bind(this),
+                eventDrop: this.handleEventDrop.bind(this),
                 datesSet: () => {
                     this.updateCostSummary();
                 }
@@ -268,6 +269,30 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
             this.initializeExternalDraggables();
         } catch (e) {
             console.error('Error initializing Calendar:', e);
+        }
+    }
+
+    // 드래그앤드롭으로 일정 이동 시 처리
+    async handleEventDrop(info) {
+        try {
+            const eventId = info.event.id;
+            const newStart = info.event.start.toISOString().slice(0, 16);
+            const newEnd = info.event.end ? info.event.end.toISOString().slice(0, 16) : newStart;
+            
+            await updateEventDates({
+                eventId: eventId,
+                newStartDate: newStart,
+                newEndDate: newEnd
+            });
+            
+            this.showToast('성공', '일정이 성공적으로 이동되었습니다.', 'success');
+            
+        } catch (error) {
+            console.error('Error updating event dates:', error);
+            this.showToast('오류', '일정 이동 중 오류가 발생했습니다.', 'error');
+            
+            // 오류 발생 시 원래 위치로 되돌리기
+            info.revert();
         }
     }
 
@@ -550,6 +575,34 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
             const errorMessage = error.body ? error.body.message : error.message;
             console.error('Save Event Error:', JSON.stringify(error));
             this.showToast('저장 오류', errorMessage, 'error');
+        }
+    }
+
+    // 일정 삭제 함수
+    async deleteEvent() {
+        try {
+            if (!this.recordId) {
+                this.showToast('오류', '삭제할 일정을 찾을 수 없습니다.', 'error');
+                return;
+            }
+
+            await deleteEvent({ eventId: this.recordId });
+            
+            // 캘린더에서 이벤트 제거
+            const eventToRemove = this.calendarApi.getEventById(this.recordId);
+            if (eventToRemove) {
+                eventToRemove.remove();
+            }
+            
+            // 비용 합계 업데이트
+            this.updateCostSummary();
+            
+            this.showToast('성공', '일정이 성공적으로 삭제되었습니다.', 'success');
+            this.closeModal();
+            
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            this.showToast('오류', '일정 삭제 중 오류가 발생했습니다.', 'error');
         }
     }
 
