@@ -26,18 +26,20 @@
     </div>
 
     <!-- 모달 -->
+    <!-- 모달 - calendarApp에서 가져온 스타일 -->
     <template if:true={isModalOpen}>
-        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small">
             <div class="slds-modal__container">
+                <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
+                    <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                    <span class="slds-assistive-text">Cancel and close</span>
+                </button>
                 <div class="slds-modal__header">
-                    <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
-                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
-                        <span class="slds-assistive-text">Cancel and close</span>
-                    </button>
-                    <h1 class="slds-modal__title slds-hyphenate">{modalTitle}</h1>
+                    <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">{modalTitle}</h1>
                 </div>
-                <div class="slds-modal__content slds-p-around_medium" style="max-height: 70vh; overflow-y: auto;">
-                    
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="max-height: 70vh; overflow-y: auto;">
+
+                    <!--salesforce오브젝트 모달창-->
                     <template if:true={isSalesforceObjectEvent}>
                         <div class="slds-grid slds-gutters slds-wrap">
                             <div class="slds-col slds-size_1-of-1">
@@ -46,62 +48,89 @@
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
                             </div>
+                            
+                            <!-- 부서 선택 필드 -->
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-combobox 
+                                    name="eventDepartment" 
+                                    label="Department" 
+                                    options={departmentOptions} 
+                                    value={eventDepartment} 
+                                    onchange={handleInputChange}
+                                    required>
+                                </lightning-combobox>
+                            </div>
+                            
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime-local" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime-local" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
-                            <div class="slds-col slds-size_1-of-2">
-                                <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}></lightning-input>
-                            </div>
-                            <div class="slds-col slds-size_1-of-2">
-                                <lightning-combobox name="eventDepartment" label="Department" value={eventDepartment} options={departmentOptions} onchange={handleInputChange} required></lightning-combobox>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}> </lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>
                             </div>
+
+                            <!--비용 입력 필드-->
                             <div class="slds-col slds-size_1-of-1 slds-m-top_medium">
                                 <h3 class="slds-section-title slds-m-bottom_small">비용 입력</h3>
+                                
                                 <template for:each={costItems} for:item="cost">
                                     <div key={cost.id} class="slds-grid slds-gutters slds-wrap slds-m-bottom_x-small">
+                                        
                                         <div class="slds-col slds-size_1-of-2">
-                                            <lightning-combobox name="type" label="Cost Type" options={costTypeOptions} value={cost.type} onchange={handleCostChange} data-id={cost.id}></lightning-combobox>
+                                            <lightning-combobox name="type"  label="Cost Type" options={costTypeOptions} value={cost.type} onchange={handleCostChange} data-id={cost.id}>
+                                            </lightning-combobox>
                                         </div>
+
                                         <div class="slds-col slds-size_1-of-2">
-                                            <lightning-input type="number" name="amount" label="Amount" formatter="currency" value={cost.amount} onchange={handleCostChange} data-id={cost.id}></lightning-input>
+                                            <lightning-input type="number" name="amount" label="Amount" formatter="currency" value={cost.amount} onchange={handleCostChange} data-id={cost.id}>
+                                            </lightning-input>
                                         </div>
                                     </div>
                                 </template>
-                                <lightning-button label="Add Cost" onclick={addCostItem} class="slds-m-top_small"></lightning-button>
-                            </div>
+                            
+                            <lightning-button 
+                                label="Add Cost" 
+                                onclick={addCostItem} 
+                                class="slds-m-top_small">
+                            </lightning-button>
+                        </div>
                         </div>
                     </template>
 
+                    <!--개인&활동 모달창-->
                     <template if:true={isPersonalActivityEvent}>
                         <div class="slds-grid slds-gutters slds-wrap">
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input label="Activity" value={eventTitle} disabled></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime-local" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime-local" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>
                             </div>
                         </div>
                     </template>
+
                 </div>
+                <!-- 삭제 버튼이 추가된 모달 푸터 -->
                 <div class="slds-modal__footer">
                     <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
-                    <button class="slds-button slds-button_destructive" onclick={handleDelete} if:true={recordId}>Delete</button>
+                    <template if:true={recordId}>
+                        <button class="slds-button slds-button_destructive" onclick={handleDelete}>Delete</button>
+                    </template>
                     <button class="slds-button slds-button_brand" onclick={saveEvent}>Save</button>
                 </div>
             </div>
         </section>
-        <div class="slds-backdrop slds-backdrop_open"></div>
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
     </template>
 </template>

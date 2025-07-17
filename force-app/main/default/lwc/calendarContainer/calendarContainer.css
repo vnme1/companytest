@@ -49,79 +49,17 @@
     overflow: hidden;
 }
 
-/* 모달 스타일 */
-.slds-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 10000;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: auto;
+/* 삭제 버튼 스타일 - calendarApp에서 가져옴 */
+.slds-button_destructive {
+    background-color: #d73a49;
+    border-color: #d73a49;
+    color: white;
+    margin-left: 0.5rem;
 }
 
-.slds-modal__container {
-    max-width: 50rem;
-    width: 90%;
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-    overflow: hidden;
-}
-
-.slds-modal__header {
-    padding: 1rem;
-    background-color: #f3f2f2;
-    border-bottom: 1px solid #d8dde6;
-    position: relative;
-}
-
-.slds-modal__close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.slds-modal__title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #080707;
-    margin: 0;
-    padding-right: 3rem;
-}
-
-.slds-modal__content {
-    padding: 1.5rem;
-    overflow-y: auto;
-    flex: 1;
-}
-
-.slds-modal__footer {
-    padding: 1rem;
-    background-color: #f3f2f2;
-    border-top: 1px solid #d8dde6;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-}
-
-.slds-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 9999;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+.slds-button_destructive:hover {
+    background-color: #cb2431;
+    border-color: #cb2431;
 }
 
 /* 버튼 스타일 */
