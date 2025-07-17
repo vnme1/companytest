@@ -23,7 +23,11 @@ export default class CalendarView extends LightningElement {
     @api
     addEvent(eventData) {
         if (this.calendarApi) {
-            this.calendarApi.addEvent(eventData);
+            // 중복 이벤트 방지: 같은 ID의 이벤트가 이미 있는지 확인
+            const existingEvent = this.calendarApi.getEventById(eventData.id);
+            if (!existingEvent) {
+                this.calendarApi.addEvent(eventData);
+            }
         }
     }
 
@@ -90,6 +94,7 @@ export default class CalendarView extends LightningElement {
             drop: this.handleDrop.bind(this),
             eventClick: this.handleEventClick.bind(this),
             eventDrop: this.handleEventDrop.bind(this),
+            eventReceive: this.handleEventReceive.bind(this), // 외부 드래그 시 이벤트 처리
             datesSet: this.handleDatesSet.bind(this)
         });
         
@@ -126,6 +131,12 @@ export default class CalendarView extends LightningElement {
                 date: info.date
             }
         }));
+    }
+
+    // 외부에서 드래그한 이벤트가 캘린더에 추가될 때 처리
+    handleEventReceive(info) {
+        // 외부에서 드래그한 이벤트는 임시로 제거하고 저장 후 다시 추가
+        info.event.remove();
     }
 
     handleEventClick(info) {

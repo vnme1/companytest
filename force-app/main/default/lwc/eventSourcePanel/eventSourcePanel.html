@@ -1,126 +1,125 @@
 <!--
-  @description       : 
+  @description       : 이벤트 소스 패널 컴포넌트
   @author            : sejin.park@dkbmc.com
-  @group             : 
-  @last modified on  : 2025-07-17
-  @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
-    <div class="salesforce-components-section">
-        <div class="section-header">
-            <lightning-icon icon-name="standard:related_list" size="small" class="section-icon"></lightning-icon>
-            <h3 class="section-title">Salesforce 구성 요소</h3>
+    <div class="event-source-panel">
+        <div class="salesforce-components-section">
+            <div class="section-header">
+                <lightning-icon icon-name="standard:related_list" size="small" class="section-icon"></lightning-icon>
+                <h3 class="section-title">Salesforce 구성 요소</h3>
+            </div>
+            
+            <lightning-tabset class="simple-tabset" onactive={handleTabActive}>
+                <lightning-tab label="Account" value="Account">
+                    <div class="tab-content-simple">
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Account Name</th>
+                                        <th>Owner Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={accountData} for:item="account">
+                                        <tr key={account.Id} class="table-row"
+                                            data-record-id={account.Id}
+                                            data-record-type="Account"
+                                            data-record-name={account.Name}
+                                            data-account-name={account.Name}>
+                                            <td class="table-cell">{account.Name}</td>
+                                            <td class="table-cell">{account.Owner.Name}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </lightning-tab>
+                
+                <lightning-tab label="Contact" value="Contact">
+                    <div class="tab-content-simple">
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Account Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={contactData} for:item="contact">
+                                        <tr key={contact.Id} class="table-row"
+                                            data-record-id={contact.Id}
+                                            data-record-type="Contact"
+                                            data-record-name={contact.Name}
+                                            data-account-name={contact.Account.Name}>
+                                            <td class="table-cell">{contact.Name}</td>
+                                            <td class="table-cell">{contact.Account.Name}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </lightning-tab>
+                
+                <lightning-tab label="Opportunity" value="Opportunity">
+                    <div class="tab-content-simple">
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Opportunity Name</th>
+                                        <th>Account Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={opportunityData} for:item="opportunity">
+                                        <tr key={opportunity.Id} class="table-row"
+                                            data-record-id={opportunity.Id}
+                                            data-record-type="Opportunity"
+                                            data-record-name={opportunity.Name}
+                                            data-account-name={opportunity.Account.Name}>
+                                            <td class="table-cell">{opportunity.Name}</td>
+                                            <td class="table-cell">{opportunity.Account.Name}</td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </lightning-tab>
+            </lightning-tabset>
         </div>
         
-        <lightning-tabset class="simple-tabset" onactive={handleTabActive}>
-            <lightning-tab label="Account" value="Account">
-                <div class="tab-content-simple">
-                    <div class="custom-table-container">
-                        <table class="custom-table">
-                            <thead>
-                                <tr>
-                                    <th>Account Name</th>
-                                    <th>Owner Name</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template for:each={accountData} for:item="account">
-                                    <tr key={account.Id} class="table-row"
-                                        data-record-id={account.Id}
-                                        data-record-type="Account"
-                                        data-record-name={account.Name}
-                                        data-account-name={account.Name}>
-                                        <td class="table-cell">{account.Name}</td>
-                                        <td class="table-cell">{account.Owner.Name}</td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
+        <div class="personal-activity-section">
+            <div class="section-header">
+                <lightning-icon icon-name="standard:event" size="small" class="section-icon"></lightning-icon>
+                <h3 class="section-title">개인 & 활동</h3>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item" data-record-name="휴가" data-record-type="Personal">
+                    <lightning-icon icon-name="utility:away" size="x-small" class="activity-icon"></lightning-icon>
+                    <span class="activity-text">휴가</span>
                 </div>
-            </lightning-tab>
-            
-            <lightning-tab label="Contact" value="Contact">
-                <div class="tab-content-simple">
-                    <div class="custom-table-container">
-                        <table class="custom-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Account Name</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template for:each={contactData} for:item="contact">
-                                    <tr key={contact.Id} class="table-row"
-                                        data-record-id={contact.Id}
-                                        data-record-type="Contact"
-                                        data-record-name={contact.Name}
-                                        data-account-name={contact.Account.Name}>
-                                        <td class="table-cell">{contact.Name}</td>
-                                        <td class="table-cell">{contact.Account.Name}</td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="activity-item" data-record-name="병가" data-record-type="Personal">
+                    <lightning-icon icon-name="utility:priority" size="x-small" class="activity-icon"></lightning-icon>
+                    <span class="activity-text">병가</span>
                 </div>
-            </lightning-tab>
-            
-            <lightning-tab label="Opportunity" value="Opportunity">
-                <div class="tab-content-simple">
-                    <div class="custom-table-container">
-                        <table class="custom-table">
-                            <thead>
-                                <tr>
-                                    <th>Opportunity Name</th>
-                                    <th>Account Name</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template for:each={opportunityData} for:item="opportunity">
-                                    <tr key={opportunity.Id} class="table-row"
-                                        data-record-id={opportunity.Id}
-                                        data-record-type="Opportunity"
-                                        data-record-name={opportunity.Name}
-                                        data-account-name={opportunity.Account.Name}>
-                                        <td class="table-cell">{opportunity.Name}</td>
-                                        <td class="table-cell">{opportunity.Account.Name}</td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="activity-item" data-record-name="출장" data-record-type="Personal">
+                    <lightning-icon icon-name="utility:offline_briefcase" size="x-small" class="activity-icon"></lightning-icon>
+                    <span class="activity-text">출장</span>
                 </div>
-            </lightning-tab>
-        </lightning-tabset>
-    </div>
-    
-    <div class="personal-activity-section">
-        <div class="section-header">
-            <lightning-icon icon-name="standard:event" size="small" class="section-icon"></lightning-icon>
-            <h3 class="section-title">개인 & 활동</h3>
-        </div>
-        <div class="activity-list">
-            <div class="activity-item" data-record-name="휴가" data-record-type="Personal">
-                <lightning-icon icon-name="utility:away" size="x-small" class="activity-icon"></lightning-icon>
-                <span class="activity-text">휴가</span>
-            </div>
-            <div class="activity-item" data-record-name="병가" data-record-type="Personal">
-                <lightning-icon icon-name="utility:priority" size="x-small" class="activity-icon"></lightning-icon>
-                <span class="activity-text">병가</span>
-            </div>
-            <div class="activity-item" data-record-name="출장" data-record-type="Personal">
-                <lightning-icon icon-name="utility:offline_briefcase" size="x-small" class="activity-icon"></lightning-icon>
-                <span class="activity-text">출장</span>
-            </div>
-            <div class="activity-item" data-record-name="교육" data-record-type="Personal">
-                <lightning-icon icon-name="utility:education" size="x-small" class="activity-icon"></lightning-icon>
-                <span class="activity-text">교육</span>
-            </div>
-            <div class="activity-item" data-record-name="회의" data-record-type="Personal">
-                <lightning-icon icon-name="utility:event" size="x-small" class="activity-icon"></lightning-icon>
-                <span class="activity-text">회의</span>
+                <div class="activity-item" data-record-name="교육" data-record-type="Personal">
+                    <lightning-icon icon-name="utility:education" size="x-small" class="activity-icon"></lightning-icon>
+                    <span class="activity-text">교육</span>
+                </div>
+                <div class="activity-item" data-record-name="회의" data-record-type="Personal">
+                    <lightning-icon icon-name="utility:event" size="x-small" class="activity-icon"></lightning-icon>
+                    <span class="activity-text">회의</span>
+                </div>
             </div>
         </div>
     </div>

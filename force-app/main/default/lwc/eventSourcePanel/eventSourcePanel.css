@@ -1,23 +1,33 @@
-/* Salesforce 구성 요소 섹션 */
+/* 전체 이벤트 소스 패널 컨테이너 */
+.event-source-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+/* Salesforce 구성 요소 섹션 - 상단 50% 차지 */
 .salesforce-components-section {
     background-color: white;
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    flex: 1;
+    flex: 1; /* 남은 공간을 반으로 나누기 위해 flex: 1 */
     min-height: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* 개인 활동 섹션 */
+/* 개인 활동 섹션 - 하단 50% 차지 */
 .personal-activity-section {
     background-color: white;
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    flex: 0 0 240px; /* 고정 높이 */
+    flex: 1; /* 남은 공간을 반으로 나누기 위해 flex: 1 */
+    min-height: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
