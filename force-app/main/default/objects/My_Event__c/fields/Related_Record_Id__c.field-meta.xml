@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Related_Record_Id__c</fullName>
+    <description>드래그한 Salesforce 레코드의 ID (예: Account, Contact)</description>
+    <externalId>false</externalId>
+    <label>Related Record Id</label>
+    <length>18</length>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

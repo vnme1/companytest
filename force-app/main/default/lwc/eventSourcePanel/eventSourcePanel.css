@@ -1,0 +1,25 @@
+/* eventSourcePanel.css */
+/* Salesforce 구성 요소 섹션 */
+.salesforce-components-section {
+    background-color: white;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 개인 활동 섹션 */
+.personal-activity-section {
+    background-color: white;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 0 0 240px; /* 고정 높이 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ... .section-header, .custom-table, .activity-list 등 좌측 패널 관련 스타일들 ... */

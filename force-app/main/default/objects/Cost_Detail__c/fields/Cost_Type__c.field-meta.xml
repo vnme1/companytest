@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cost_Type__c</fullName>
+    <description>비용 유형 선택</description>
+    <label>Cost Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>교통비</fullName>
+                <default>false</default>
+                <label>교통비</label>
+            </value>
+            <value>
+                <fullName>교육비</fullName>
+                <default>false</default>
+                <label>교육비</label>
+            </value>
+            <value>
+                <fullName>주유비</fullName>
+                <default>false</default>
+                <label>주유비</label>
+            </value>
+            <value>
+                <fullName>식대</fullName>
+                <default>false</default>
+                <label>식대</label>
+            </value>
+            <value>
+                <fullName>톨게이트</fullName>
+                <default>false</default>
+                <label>톨게이트</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

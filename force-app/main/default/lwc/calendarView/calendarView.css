@@ -1,0 +1,87 @@
+/* ===== 캘린더 컨테이너 스타일 ===== */
+.calendar-container {
+    background-color: white;
+    border-radius: 0.25rem;
+    border: 1px solid #d8dde6;
+    height: 100%;
+    padding: 1rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* ===== FullCalendar 스타일 덮어쓰기 ===== */
+.fc-theme-standard .fc-scrollgrid {
+    border-color: #d8dde6;
+}
+
+.fc-theme-standard th {
+    border-color: #d8dde6;
+    background-color: #f8f9fa;
+    color: #514f4d;
+    font-weight: 600;
+}
+
+.fc-theme-standard td {
+    border-color: #e5e5e5;
+}
+
+/* FullCalendar 버튼 스타일 */
+.fc .fc-button {
+    background: #0176d3 !important;
+    color: white !important;
+    border: 1px solid #0176d3 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    padding: 0.375rem 0.75rem !important;
+    border-radius: 0.25rem !important;
+    font-weight: 400 !important;
+    margin: 0 0.25rem !important;
+}
+
+.fc .fc-button:hover {
+    background: #005fb2 !important;
+    border-color: #005fb2 !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: #005fb2 !important;
+    border-color: #005fb2 !important;
+}
+
+.fc .fc-button:disabled {
+    background: #f1f1f1 !important;
+    color: #a8a8a8 !important;
+    border-color: #d8dde6 !important;
+}
+
+/* 달력 헤더 툴바 여백 조정 */
+.fc .fc-toolbar {
+    margin-bottom: 1rem !important;
+    flex-shrink: 0 !important;
+}
+
+.fc .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+}
+
+.fc .fc-toolbar-title {
+    margin: 0 1rem !important;
+}
+
+/* 달력 이벤트 스타일 */
+.fc-event {
+    background-color: #0176d3;
+    border-color: #0176d3;
+    color: white;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+}
+
+.fc-event:hover {
+    background-color: #005fb2;
+    border-color: #005fb2;
+}

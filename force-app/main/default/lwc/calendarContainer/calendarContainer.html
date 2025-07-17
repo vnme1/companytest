@@ -1,0 +1,46 @@
+<!--
+  @description       : 
+  @author            : sejin.park@dkbmc.com
+  @group             : 
+  @last modified on  : 2025-07-17
+  @last modified by  : sejin.park@dkbmc.com
+-->
+<template>
+    <div>
+        <div class="main-container">
+            <div class="left-panel">
+                <c-event-source-panel></c-event-source-panel>
+            </div>
+
+            <div class="center-panel">
+                <c-calendar-view
+                    oneventclick={handleEventClick}
+                    oneventdrop={handleEventDrop}
+                    ondateset={handleDatesSet}>
+                </c-calendar-view>
+            </div>
+
+            <div class="right-panel">
+                <c-cost-summary-panel current-month={currentMonthForSummary}></c-cost-summary-panel>
+            </div>
+        </div>
+
+        <template if:true={isModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__header">
+                        <h1 class="slds-modal__title slds-hyphenate">{modalTitle}</h1>
+                    </div>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        </div>
+                    <div class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closeModal}>Cancel</button>
+                        <button class="slds-button slds-button_destructive" onclick={handleDelete} if:true={recordId}>Delete</button>
+                        <button class="slds-button slds-button_brand" onclick={saveEvent}>Save</button>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </div>
+</template>
