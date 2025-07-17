@@ -1,10 +1,16 @@
 /**
- * @description       : Calendar App with Drag & Drop functionality
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-16
+ * @last modified on  : 2025-07-17
  * @last modified by  : sejin.park@dkbmc.com
 **/
+/**
+ *  * Project: Salesforce Development
+ *  * Author: sejin.park@dkbmc.com
+ *  * Description: JavaScript 기능 구현
+ *  * License: Custom
+ */
 import { LightningElement, wire, track } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
@@ -18,6 +24,11 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDetails';
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
+import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
+
+// 동적 Picklist import
+import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
+import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
 const accountColumns = [
     { label: 'Account Name', fieldName: 'Name', type: 'text' },
@@ -55,12 +66,55 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
     @track eventEndDate = '';
     @track eventDescription = '';
     @track eventLocation  = '';
+    @track eventDepartment = '';
     @track draggedItemTitle = '';
+    
+    // 비용 합계 데이터
+    @track costSummaryData = {};
+
+    // 동적 Picklist 데이터
+    @track departmentPicklistOptions = [];
+    @track costTypePicklistOptions = [];
 
     // 좌측 패널 데이터 로딩
     @wire(getAccountList) wiredAccounts;
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
+
+    // 동적 Picklist 데이터 로딩
+    @wire(getDepartmentOptions) 
+    wiredDepartmentOptions({ error, data }) {
+        if (data) {
+            this.departmentPicklistOptions = data;
+            console.log('Department options loaded:', data);
+        } else if (error) {
+            console.error('Error loading department options:', error);
+            // fallback options
+            this.departmentPicklistOptions = [
+                { label: '개발부', value: '개발부' },
+                { label: '영업부', value: '영업부' },
+                { label: '마케팅부', value: '마케팅부' }
+            ];
+        }
+    }
+
+    @wire(getCostTypeOptions)
+    wiredCostTypeOptions({ error, data }) {
+        if (data) {
+            this.costTypePicklistOptions = data;
+            console.log('Cost type options loaded:', data);
+        } else if (error) {
+            console.error('Error loading cost type options:', error);
+            // fallback options
+            this.costTypePicklistOptions = [
+                { label: '교통비', value: '교통비' },
+                { label: '식대', value: '식대' },
+                { label: '주유비', value: '주유비' },
+                { label: '톨게이트', value: '톨게이트' },
+                { label: '교육비', value: '교육비' }
+            ];
+        }
+    }
 
     // Account 데이터 연결
     get accountData() {
@@ -79,7 +133,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
             if (this.wiredContacts.data && Array.isArray(this.wiredContacts.data)) {
                 return this.wiredContacts.data.map(contact => ({
                     ...contact,
-                    AccountName: contact?.Account?.Name || 'N/A'  // Optional chaining 사용
+                    AccountName: contact?.Account?.Name || 'N/A'
                 }));
             }
             return [];
@@ -95,7 +149,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
             if (this.wiredOpportunities.data && Array.isArray(this.wiredOpportunities.data)) {
                 return this.wiredOpportunities.data.map(opportunity => ({
                     ...opportunity,
-                    AccountName: opportunity?.Account?.Name || 'N/A'  // Optional chaining 사용
+                    AccountName: opportunity?.Account?.Name || 'N/A'
                 }));
             }
             return [];
@@ -107,7 +161,6 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
 
     // 드래그 드롭 요소가 salesforce 오브젝트 레코드인지 확인
     get isSalesforceObjectEvent(){
-        //record type이 personal이 아니면
         return this.newEventData && this.newEventData.extendedProps && this.newEventData.extendedProps.recordType !== 'Personal';
     }
 
@@ -116,7 +169,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         return this.newEventData && this.newEventData.extendedProps && this.newEventData.extendedProps.recordType === 'Personal';
     }
 
-    //accoutn명 가져오기
+    // account명 가져오기
     get displayAccountName() {
         if (this.newEventData && this.newEventData.extendedProps) {
             return this.newEventData.extendedProps.accountName || '';
@@ -124,14 +177,31 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         return '';
     }
 
+    // 동적 Picklist 옵션들
+    get departmentOptions() {
+        return this.departmentPicklistOptions;
+    }
+
     get costTypeOptions() {
-        return [
-            { label: '교통비', value: '교통비' },
-            { label: '식대', value: '식대' },
-            { label: '주유비', value: '주유비' },
-            { label: '톨게이트', value: '톨게이트' },
-            { label: '교육비', value: '교육비' },
-        ];
+        return this.costTypePicklistOptions;
+    }
+
+    // 비용 합계 표시를 위한 getter
+    get costSummaryItems() {
+        if (!this.costSummaryData) return [];
+        
+        return Object.keys(this.costSummaryData)
+            .filter(key => key !== '총계')
+            .map(key => ({
+                key: key,
+                label: key,
+                amount: this.costSummaryData[key] || 0
+            }));
+    }
+
+    // 총계 금액을 위한 getter
+    get totalCostAmount() {
+        return this.costSummaryData?.총계 || 0;
     }
 
     // 컴포넌트가 렌더링된 후 FullCalendar 라이브러리 로드
@@ -174,7 +244,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                             title: event.Title__c,
                             start: event.Start_DateTime__c,
                             end: event.End_DateTime__c,
-                            allDay: false // 종일 일정이 아니라고 가정
+                            allDay: false
                         }));
                         successCallback(events);
                     })
@@ -185,22 +255,24 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 },
                 drop: this.handleDrop.bind(this),
                 eventReceive: (info) => { info.event.remove(); },
-                eventClick: this.handleEventClick.bind(this)
-
+                eventClick: this.handleEventClick.bind(this),
+                datesSet: () => {
+                    this.updateCostSummary();
+                }
             });
             
             this.calendarApi = calendar;
             calendar.render();
-            // 처음 로드 시 드래그 기능 적용
+            
+            this.updateCostSummary();
             this.initializeExternalDraggables();
         } catch (e) {
             console.error('Error initializing Calendar:', e);
         }
     }
 
-    // PSeo: 탭 전환 시 드래그 기능 적용을 위한 핸들러
+    // 탭 전환 시 드래그 기능 적용을 위한 핸들러
     handleTabActive() {
-        // LWC 렌더링 사이클을 기다린 후 실행하여 안정성 확보
         Promise.resolve().then(() => {
             this.initializeExternalDraggables();
         });
@@ -238,7 +310,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                         return {
                             title: eventEl.dataset.recordName,
                             extendedProps: {
-                                relatedId: eventEl.dataset.recordId, // 개인 활동은 ID가 없으므로 null이 됨
+                                relatedId: eventEl.dataset.recordId,
                                 recordType: eventEl.dataset.recordType
                             }
                         };
@@ -259,10 +331,12 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
 
         if (!title) { return; }
 
-        // 모달 데이터 초기화
         this.recordId = null;
         this.draggedItemTitle = title;
         this.eventTitle = title;
+        
+        // 첫 번째 부서 옵션을 기본값으로 설정
+        this.eventDepartment = this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
         
         const startDate = info.date;
         const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
@@ -270,6 +344,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         this.eventStartDate = isoString;
         this.eventEndDate = isoString;
         this.eventDescription = '';
+        this.eventLocation = '';
         
         this.newEventData = {
             extendedProps: {
@@ -295,9 +370,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         try {
             const result = await getEventDetails({ eventId: this.recordId });
 
-            // 개별 변수에 직접 값을 할당
             this.eventTitle = result.event.Title__c;
-            // ▼▼▼ 날짜 형식을 'YYYY-MM-DDTHH:MM'으로 변환하는 코드 추가 ▼▼▼
             if (result.event.Start_DateTime__c) {
                 this.eventStartDate = result.event.Start_DateTime__c.slice(0, 16);
             }
@@ -305,7 +378,15 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 this.eventEndDate = result.event.End_DateTime__c.slice(0, 16);
             }
             this.eventDescription = result.event.Description__c;
+            this.eventLocation = result.event.Location__c;
             this.draggedItemTitle = result.event.Title__c;
+            
+            // 부서 정보 로딩 (첫 번째 Cost Detail의 부서 정보 사용)
+            if (result.costs && result.costs.length > 0 && result.costs[0].department__c) {
+                this.eventDepartment = result.costs[0].department__c;
+            } else {
+                this.eventDepartment = this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
+            }
             
             this.newEventData = {
                 extendedProps: {
@@ -338,39 +419,89 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         this[event.target.name] = event.target.value;
     }
 
-    // 비용 추가관련 함수
+    // 현재 월의 비용 합계를 가져오는 함수
+    async updateCostSummary() {
+        try {
+            const currentDate = this.calendarApi.getDate();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const startOfMonth = new Date(year, month, 1);
+            const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59);
+
+            const result = await getMonthlyCostSummary({
+                startDate: startOfMonth.toISOString(),
+                endDate: endOfMonth.toISOString()
+            });
+
+            // 동적으로 비용 합계 데이터 구성
+            let totalAmount = 0;
+            const summaryData = {};
+            
+            // 모든 비용 타입에 대해 합계 설정
+            for (const [costType, amount] of Object.entries(result)) {
+                summaryData[costType] = amount || 0;
+                totalAmount += (amount || 0);
+            }
+            
+            // 총계 추가
+            summaryData['총계'] = totalAmount;
+            
+            this.costSummaryData = summaryData;
+
+        } catch (error) {
+            console.error('비용 합계 조회 오류:', error);
+            this.costSummaryData = {
+                '총계': 0
+            };
+        }
+    }
+
+    // 비용 추가 함수
     addCostItem(){
         const newId = this.costItems.length;
         this.costItems.push({id:newId, type:'',amount:null});
     }
-    // 이 함수를 추가하세요
+
+    // 비용 제거 함수
     removeCostItem(event) {
-        if (this.costItems.length <= 1) return; // 마지막 한 줄은 삭제 방지
+        if (this.costItems.length <= 1) return;
         const itemIdToRemove = parseInt(event.target.dataset.id, 10);
         this.costItems = this.costItems.filter(item => item.id !== itemIdToRemove);
     }
+
     handleCostChange(event){
         const itemId = parseInt(event.target.dataset.id, 10);
         const fieldName = event.target.name;
         const value = event.target.value;
 
         this.costItems = this.costItems.map(item => {
-        if (item.id === itemId) {
-            // id가 일치하는 항목을 찾으면, 해당 속성만 수정한 새 객체를 반환합니다.
-            return { ...item, [fieldName]: value };
-        }
-        // 다른 항목들은 그대로 반환합니다.
-        return item;
+            if (item.id === itemId) {
+                return { ...item, [fieldName]: value };
+            }
+            return item;
         });
     }
 
     async saveEvent() {
-        // ▼ try 블록을 함수 최상단으로 이동하여 모든 로직을 감쌉니다.
         try {
             if (!this.eventTitle) {
                 this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
                 return;
             }
+
+            // 부서 필드 유효성 검사 추가
+            if (!this.eventDepartment && this.isSalesforceObjectEvent) {
+                this.showToast('입력 오류', '부서는 필수 선택 항목입니다.', 'error');
+                return;
+            }
+
+            const cleanedCostItems = this.costItems
+                .filter(item => item.type && item.amount && Number(item.amount) > 0)
+                .map(item => ({
+                    type: String(item.type),
+                    amount: Number(item.amount)
+                }));
 
             const params = {
                 recordId: this.recordId,
@@ -379,33 +510,52 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
                 endDate: this.eventEndDate,
                 description: this.eventDescription,
                 location: this.eventLocation,
+                department: this.eventDepartment,
                 relatedId: this.newEventData?.extendedProps?.relatedId,
                 recordType: this.newEventData?.extendedProps?.recordType,
-                costDetailsJson: JSON.stringify(this.costItems)
+                costDetailsJson: JSON.stringify(cleanedCostItems)
             };
-            //로그
+
             console.log('데이터 전송');
             console.log(JSON.stringify(params, null, 2));
 
-            // Apex 호출
-            await saveEventAndCosts(params);
+            const savedEventId = await saveEventAndCosts(params);
+
+            // 캘린더 이벤트 즉시 추가/업데이트
+            if (this.recordId) {
+                const existingEvent = this.calendarApi.getEventById(this.recordId);
+                if (existingEvent) {
+                    existingEvent.setProp('title', this.eventTitle);
+                    existingEvent.setStart(this.eventStartDate);
+                    existingEvent.setEnd(this.eventEndDate);
+                }
+            } else {
+                this.calendarApi.addEvent({
+                    id: savedEventId,
+                    title: this.eventTitle,
+                    start: this.eventStartDate,
+                    end: this.eventEndDate,
+                    allDay: false
+                });
+            }
+
+            // 우측 패널 비용 합계 업데이트
+            this.updateCostSummary();
 
             // 성공 시 로직
             this.showToast('성공', '이벤트가 성공적으로 저장되었습니다.', 'success');
             this.closeModal();
-            this.calendarApi.refetchEvents();
 
         } catch (error) {
-            // ▼ 이제 모든 JS 오류와 Apex 오류가 여기서 잡힙니다. ▼
             const errorMessage = error.body ? error.body.message : error.message;
-            // 디버깅을 위해 전체 에러를 콘솔에 출력합니다.
             console.error('Save Event Error:', JSON.stringify(error));
             this.showToast('저장 오류', errorMessage, 'error');
         }
     }
 
-    // --- 모달 관련 함수 ---
+    // 모달 관련 함수
     openModal() { this.isModalOpen = true; }
+    
     closeModal() {
         this.isModalOpen = false; 
         this.recordId = null;
@@ -414,6 +564,7 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
         this.eventEndDate = '';
         this.eventDescription = '';
         this.eventLocation = '';
+        this.eventDepartment = '';
         this.newEventData = { extendedProps: {} };
         this.costItems = [];
     }
@@ -423,11 +574,10 @@ export default class CalendarApp extends NavigationMixin(LightningElement) {
     }
 
     handleReportClick() {
-        // standard__report 대신 standard__webPage 타입으로 직접 URL을 호출해봅니다.
         this[NavigationMixin.Navigate]({
             type: 'standard__webPage',
-            attributes: { // 만든matrix 보고서 url(id)
-                url: '/lightning/r/Report/00OSv000003GzhVMAS/view'
+            attributes: {
+                url: '/lightning/r/Report/00OSv000003I4wHMAS/view'
             }
         });
     }

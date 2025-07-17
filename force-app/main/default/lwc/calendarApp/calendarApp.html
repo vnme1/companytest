@@ -2,7 +2,7 @@
   @description       : 
   @author            : sejin.park@dkbmc.com
   @group             : 
-  @last modified on  : 2025-07-16
+  @last modified on  : 2025-07-17
   @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
@@ -132,34 +132,25 @@
             <div class="calendar-container" lwc:dom="manual"></div>
         </div>
 
+        <!-- 우측 패널 부분을 다음과 같이 수정 -->
         <div class="right-panel"> 
             <lightning-card title="월별 Event 및 Cost" icon-name="standard:currency" class="cost-summary-card"> 
                 <div class="slds-card__body slds-card__body_inner"> 
                     <div class="cost-summary-content"> 
-                        <div class="cost-item"> 
-                            <div class="cost-label">교통비</div> 
-                            <div class="cost-amount">$500,000</div> 
-                        </div> 
-                        <div class="cost-item"> 
-                            <div class="cost-label">교육비</div> 
-                            <div class="cost-amount">$300,000</div> 
-                        </div> 
-                        <div class="cost-item"> 
-                            <div class="cost-label">주유비</div> 
-                            <div class="cost-amount">$200,000</div> 
-                        </div> 
-                        <div class="cost-item"> 
-                            <div class="cost-label">식대</div> 
-                            <div class="cost-amount">$600,000</div> 
-                        </div> 
-                        <div class="cost-item"> 
-                            <div class="cost-label">톨게이트</div> 
-                            <div class="cost-amount">$600,000</div> 
-                        </div> 
+                        <!-- 동적으로 비용 타입별 합계 표시 -->
+                        <template for:each={costSummaryItems} for:item="item">
+                            <div key={item.key} class="cost-item">
+                                <div class="cost-label">{item.label}</div>
+                                <div class="cost-amount">₩{item.amount}</div>
+                            </div>
+                        </template>
+                        
+                        <!-- 총계는 별도로 표시 -->
                         <div class="cost-item total-cost"> 
                             <div class="cost-label">총계</div> 
-                            <div class="cost-amount">$1,600,000</div> 
+                            <div class="cost-amount">₩{totalCostAmount}</div> 
                         </div> 
+
                         <div class="report-button-container slds-m-top_medium"> 
                             <lightning-button 
                                 variant="brand" 
@@ -195,6 +186,9 @@
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-combobox name="eventDepartment" label="Department" options={departmentOptions} value={eventDepartment} onchange={handleInputChange} required> </lightning-combobox>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
                                 <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
