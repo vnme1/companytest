@@ -1,7 +1,7 @@
 /**
  * @description       : Calendar App Controller with Cost Detail integration and Dynamic Picklist
  * @author            : sejin.park@dkbmc.com
- * @last modified on  : 2025-07-17
+ * @last modified on  : 2025-07-18
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarAppController {
@@ -21,11 +21,12 @@ public with sharing class CalendarAppController {
         );
     }
 
-    @AuraEnabled(cacheable=true)
+    // 🔥 캐시 제거: 이벤트 상세 정보는 실시간으로 가져와야 함
+    @AuraEnabled
     public static EventWrapper getEventDetails(Id eventId) {
         EventWrapper wrapper = new EventWrapper();
         wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
-        wrapper.costs = wrapper.event.Cost_Details1__r; // Child Relationship Name 수정 (__r 추가)
+        wrapper.costs = wrapper.event.Cost_Details1__r;
 
         if (wrapper.event != null && wrapper.event.Related_Record_Type__c == 'Account') {
             List<Account> accs = [SELECT Name FROM Account WHERE Id = :wrapper.event.Related_Record_Id__c LIMIT 1];

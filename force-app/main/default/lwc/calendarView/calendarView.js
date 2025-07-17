@@ -1,7 +1,10 @@
 /**
- * @description       : 캘린더 뷰 컴포넌트
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-18
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -139,18 +142,26 @@ export default class CalendarView extends LightningElement {
             endStr: fetchInfo.end.toISOString()
         })
         .then(result => {
-            const events = result.map(event => ({
-                id: event.Id,
-                title: event.Title__c,
-                start: event.Start_DateTime__c,
-                end: event.End_DateTime__c,
-                allDay: false
-            }));
-            successCallback(events);
+            try {
+                const events = result.map(event => ({
+                    id: event.Id,
+                    title: event.Title__c || '제목 없음',
+                    start: event.Start_DateTime__c,
+                    end: event.End_DateTime__c,
+                    allDay: false
+                }));
+                successCallback(events);
+            } catch (mappingError) {
+                console.error('Error mapping events:', mappingError);
+                failureCallback(mappingError);
+            }
         })
         .catch(error => { 
             console.error('Error fetching events:', error);
-            failureCallback(error); 
+            this.dispatchEvent(new CustomEvent('eventerror', {
+                detail: { message: '이벤트를 불러오는 중 오류가 발생했습니다.' }
+            }));
+            failureCallback(error);
         });
     }
 
@@ -166,7 +177,7 @@ export default class CalendarView extends LightningElement {
 
     // 외부에서 드래그한 이벤트가 캘린더에 추가될 때 처리
     handleEventReceive(info) {
-        // 외부에서 드래그한 이벤트는 임시로 제거하고 저장 후 다시 추가
+        //드래그한 이벤트 임시로 제거하고 저장 후 다시 추가
         info.event.remove();
     }
 

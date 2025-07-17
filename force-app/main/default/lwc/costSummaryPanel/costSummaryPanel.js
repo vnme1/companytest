@@ -1,7 +1,10 @@
 /**
- * @description       : 비용 요약 패널 컴포넌트
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-18
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
@@ -14,7 +17,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     
     _wiredCostResult;
 
-    // 현재 월의 첫 번째 날과 마지막 날 계산
    // 현재 월의 첫 번째 날과 마지막 날 계산
     get monthRange() {
         let currentDate;
@@ -25,10 +27,10 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
             currentDate = new Date(this.currentMonth);
         }
         
-        // 현재 월의 첫 번째 날 (00:00:00)
+        // 현재 월의 첫 번째 날
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
         
-        // 현재 월의 마지막 날 (23:59:59)
+        // 현재 월의 마지막 날
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
         
         console.log('Month range calculation:', {
@@ -60,21 +62,44 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     }
 
     processCostData(data) {
-        let total = 0;
-        this.costItems = [];
-        
-        // 비용 타입별 데이터 처리
-        Object.keys(data).forEach(costType => {
-            const amount = data[costType] || 0;
-            total += amount;
+        try {
+            if (!data || typeof data !== 'object') {
+                console.warn('Invalid cost data received:', data);
+                this.costItems = [];
+                this.totalAmount = this.formatCurrency(0);
+                return;
+            }
+
+            let total = 0;
+            this.costItems = [];
             
-            this.costItems.push({
-                type: costType,
-                amount: this.formatCurrency(amount)
+            Object.keys(data).forEach(costType => {
+                try {
+                    const amount = data[costType] || 0;
+                    
+                    // 숫자 유효성 검사
+                    if (typeof amount === 'number' && !isNaN(amount)) {
+                        total += amount;
+                        
+                        this.costItems.push({
+                            type: costType,
+                            amount: this.formatCurrency(amount)
+                        });
+                    } else {
+                        console.warn(`Invalid amount for cost type ${costType}:`, amount);
+                    }
+                } catch (itemError) {
+                    console.error(`Error processing cost item ${costType}:`, itemError);
+                }
             });
-        });
-        
-        this.totalAmount = this.formatCurrency(total);
+            
+            this.totalAmount = this.formatCurrency(total);
+            
+        } catch (error) {
+            console.error('Error processing cost data:', error);
+            this.costItems = [];
+            this.totalAmount = this.formatCurrency(0);
+        }
     }
 
     @api

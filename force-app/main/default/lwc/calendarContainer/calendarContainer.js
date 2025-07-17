@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 메인 컴포넌트
+ * @description       : 캘린더 컨테이너 메인 컴포넌트 - 상태 동기화 개선
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -30,6 +30,9 @@ export default class CalendarContainer extends LightningElement {
     
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
+    
+    // 🔥 로컬 이벤트 캐시 추가
+    @track localEventCache = new Map();
     
     get isSalesforceObjectEvent() { 
         return this.newEventData?.extendedProps?.recordType !== 'Personal'; 
@@ -116,13 +119,22 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 이벤트 클릭 처리
+    // 🔥 이벤트 클릭 처리 개선 - 로컬 캐시 우선 사용
     async handleEventClick(event) {
         this.recordId = event.detail.eventId;
         if (!this.recordId) return;
 
         try {
-            const result = await getEventDetails({ eventId: this.recordId });
+            // 로컬 캐시에서 먼저 확인
+            let result = this.localEventCache.get(this.recordId);
+            
+            if (!result) {
+                // 캐시에 없으면 서버에서 가져오기
+                result = await getEventDetails({ eventId: this.recordId });
+                // 캐시에 저장
+                this.localEventCache.set(this.recordId, result);
+            }
+            
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
@@ -166,6 +178,12 @@ export default class CalendarContainer extends LightningElement {
 
     // 이벤트 이동 성공 처리
     handleEventMoved(event) {
+        // 🔥 로컬 캐시 무효화
+        const eventId = event.detail.eventId;
+        if (eventId) {
+            this.localEventCache.delete(eventId);
+        }
+        
         this.showToast('성공', event.detail.message, 'success');
         this.refreshCostSummary();
     }
@@ -177,18 +195,10 @@ export default class CalendarContainer extends LightningElement {
     
     // 날짜 변경 처리
     handleDatesSet(event) { 
-        // 캘린더에서 표시하는 월의 중간 날짜를 가져와서 해당 월로 설정
         const startDate = new Date(event.detail.start);
         const endDate = new Date(event.detail.end);
         
-        // 캘린더 뷰의 중간 날짜 계산 (월 중간 정도)
         const viewMiddle = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
-        
-        console.log('DatesSet event:', {
-            start: event.detail.start,
-            end: event.detail.end,
-            viewMiddle: viewMiddle.toISOString()
-        });
         
         this.currentMonthForSummary = viewMiddle.toISOString();
         this.refreshCostSummary();
@@ -217,9 +227,8 @@ export default class CalendarContainer extends LightningElement {
         }]; 
     }
     
-    // 이벤트 저장 - 핵심 로직에만 예외 처리 추가
+    // 🔥 이벤트 저장 개선 - 로컬 캐시 업데이트
     async saveEvent() {
-        // 기본 유효성 검사
         if (!this.eventTitle) {
             this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
             return;
@@ -231,7 +240,6 @@ export default class CalendarContainer extends LightningElement {
         }
 
         try {
-            // 유효한 비용 항목만 필터링
             const validCostItems = this.costItems
                 .filter(item => item.type && item.amount && Number(item.amount) > 0)
                 .map(item => ({
@@ -253,6 +261,12 @@ export default class CalendarContainer extends LightningElement {
             };
             
             const savedEventId = await saveEventAndCosts(params);
+            
+            // 🔥 로컬 캐시 업데이트
+            if (this.recordId) {
+                // 기존 이벤트 수정 시 캐시 무효화
+                this.localEventCache.delete(this.recordId);
+            }
             
             // 캘린더 업데이트
             const calendarView = this.template.querySelector('c-calendar-view');
@@ -285,12 +299,15 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 이벤트 삭제 - 핵심 로직에만 예외 처리 추가
+    // 🔥 이벤트 삭제 개선 - 로컬 캐시 정리
     async handleDelete() {
         if (!this.recordId) return;
         
         try {
             await deleteEvent({ eventId: this.recordId });
+            
+            // 🔥 로컬 캐시에서 삭제
+            this.localEventCache.delete(this.recordId);
             
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
