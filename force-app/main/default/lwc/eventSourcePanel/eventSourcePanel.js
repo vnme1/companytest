@@ -1,10 +1,7 @@
 /**
- * @description       : 
+ * @description       : 이벤트 소스 패널 컴포넌트
  * @author            : sejin.park@dkbmc.com
- * @group             : 
- * @last modified on  : 2025-07-17
- * @last modified by  : sejin.park@dkbmc.com
-**/
+ */
 import { LightningElement, wire } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';

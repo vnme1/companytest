@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 메인 컴포넌트 - 상태 동기화 개선 + 바 형태 표시
+ * @description       : 캘린더 컨테이너 메인 컴포넌트
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -30,9 +30,6 @@ export default class CalendarContainer extends LightningElement {
     
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
-    
-    // 🔥 로컬 이벤트 캐시 추가
-    @track localEventCache = new Map();
     
     get isSalesforceObjectEvent() { 
         return this.newEventData?.extendedProps?.recordType !== 'Personal'; 
@@ -75,7 +72,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
     
-    // 🔥 이벤트 드롭 처리 - 날짜 처리 개선
+    // 이벤트 드롭 처리
     handleEventDrop(event) {
         try {
             const { draggedEl, date } = event.detail;
@@ -96,14 +93,8 @@ export default class CalendarContainer extends LightningElement {
             this.eventDescription = '';
             this.eventLocation = '';
 
-            // 🔥 날짜 처리 개선 - 로컬 타임존 고려
-            const startDate = new Date(date);
-            // 로컬 시간으로 변환 (타임존 오프셋 제거하지 않음)
-            const year = startDate.getFullYear();
-            const month = String(startDate.getMonth() + 1).padStart(2, '0');
-            const day = String(startDate.getDate()).padStart(2, '0');
-            const isoString = `${year}-${month}-${day}T09:00`; // 기본 오전 9시로 설정
-            
+            const startDate = date;
+            const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
             this.eventStartDate = isoString;
             this.eventEndDate = isoString;
 
@@ -125,43 +116,18 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 🔥 이벤트 클릭 처리 개선 - 날짜 표시 수정
+    // 이벤트 클릭 처리
     async handleEventClick(event) {
         this.recordId = event.detail.eventId;
         if (!this.recordId) return;
 
         try {
-            // 로컬 캐시에서 먼저 확인
-            let result = this.localEventCache.get(this.recordId);
-            
-            if (!result) {
-                // 캐시에 없으면 서버에서 가져오기
-                result = await getEventDetails({ eventId: this.recordId });
-                // 캐시에 저장
-                this.localEventCache.set(this.recordId, result);
-            }
-            
+            const result = await getEventDetails({ eventId: this.recordId });
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
-            
-            // 🔥 날짜 표시 개선 - 로컬 시간으로 변환
-            if (evt.Start_DateTime__c) {
-                const startDate = new Date(evt.Start_DateTime__c);
-                // 로컬 시간으로 표시 (YYYY-MM-DDTHH:MM 형식)
-                this.eventStartDate = new Date(startDate.getTime()).toISOString().slice(0, 16);
-            } else {
-                this.eventStartDate = '';
-            }
-            
-            if (evt.End_DateTime__c) {
-                const endDate = new Date(evt.End_DateTime__c);
-                // 로컬 시간으로 표시
-                this.eventEndDate = new Date(endDate.getTime()).toISOString().slice(0, 16);
-            } else {
-                this.eventEndDate = '';
-            }
-            
+            this.eventStartDate = evt.Start_DateTime__c ? evt.Start_DateTime__c.slice(0, 16) : '';
+            this.eventEndDate = evt.End_DateTime__c ? evt.End_DateTime__c.slice(0, 16) : '';
             this.eventDescription = evt.Description__c || '';
             this.eventLocation = evt.Location__c || '';
             
@@ -200,12 +166,6 @@ export default class CalendarContainer extends LightningElement {
 
     // 이벤트 이동 성공 처리
     handleEventMoved(event) {
-        // 🔥 로컬 캐시 무효화
-        const eventId = event.detail.eventId;
-        if (eventId) {
-            this.localEventCache.delete(eventId);
-        }
-        
         this.showToast('성공', event.detail.message, 'success');
         this.refreshCostSummary();
     }
@@ -217,10 +177,18 @@ export default class CalendarContainer extends LightningElement {
     
     // 날짜 변경 처리
     handleDatesSet(event) { 
+        // 캘린더에서 표시하는 월의 중간 날짜를 가져와서 해당 월로 설정
         const startDate = new Date(event.detail.start);
         const endDate = new Date(event.detail.end);
         
+        // 캘린더 뷰의 중간 날짜 계산 (월 중간 정도)
         const viewMiddle = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
+        
+        console.log('DatesSet event:', {
+            start: event.detail.start,
+            end: event.detail.end,
+            viewMiddle: viewMiddle.toISOString()
+        });
         
         this.currentMonthForSummary = viewMiddle.toISOString();
         this.refreshCostSummary();
@@ -249,7 +217,7 @@ export default class CalendarContainer extends LightningElement {
         }]; 
     }
     
-    // 🔥 이벤트 저장 개선 - 로컬 캐시 업데이트 + 바 형태 표시
+    // 이벤트 저장 - 핵심 로직에만 예외 처리 추가
     async saveEvent() {
         // 기본 유효성 검사
         if (!this.eventTitle) {
@@ -286,63 +254,22 @@ export default class CalendarContainer extends LightningElement {
             
             const savedEventId = await saveEventAndCosts(params);
             
-            // 🔥 로컬 캐시 업데이트
-            if (this.recordId) {
-                // 기존 이벤트 수정 시 캐시 무효화
-                this.localEventCache.delete(this.recordId);
-            }
-            
-            // 🔥 캘린더 업데이트 - 색상 정보 포함
+            // 캘린더 업데이트
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
-                const recordType = this.newEventData?.extendedProps?.recordType;
-                
                 if (this.recordId) {
                     calendarView.updateEvent(this.recordId, {
                         title: this.eventTitle,
                         start: this.eventStartDate,
-                        end: this.eventEndDate,
-                        recordType: recordType
+                        end: this.eventEndDate
                     });
                 } else {
-                    // 새 이벤트 색상 설정
-                    const colorMap = {
-                        'Personal': '#28a745',      // 초록색 - 개인활동
-                        'Account': '#0176d3',       // 파란색 - Account 관련
-                        'Contact': '#ff6b35',       // 주황색 - Contact 관련  
-                        'Opportunity': '#6f42c1'    // 보라색 - Opportunity 관련
-                    };
-                    const color = colorMap[recordType] || '#6c757d';
-                    
-                    // 🔥 새 이벤트 추가 시 바 형태로 표시
-                    const startDate = new Date(this.eventStartDate);
-                    const endDate = new Date(this.eventEndDate);
-                    
-                    // 하루 일정인지 확인
-                    const isAllDay = startDate.toDateString() === endDate.toDateString();
-                    
-                    let eventStart, eventEnd;
-                    if (isAllDay) {
-                        // 하루 일정은 allDay로 설정
-                        eventStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-                        eventEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
-                    } else {
-                        eventStart = this.eventStartDate;
-                        eventEnd = this.eventEndDate;
-                    }
-                    
                     calendarView.addEvent({
                         id: savedEventId,
                         title: this.eventTitle,
-                        start: eventStart,
-                        end: eventEnd,
-                        allDay: isAllDay,
-                        backgroundColor: color,
-                        borderColor: color,
-                        textColor: '#ffffff',
-                        extendedProps: {
-                            recordType: recordType
-                        }
+                        start: this.eventStartDate,
+                        end: this.eventEndDate,
+                        allDay: false
                     });
                 }
             }
@@ -358,15 +285,12 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 🔥 이벤트 삭제 개선 - 로컬 캐시 정리
+    // 이벤트 삭제 - 핵심 로직에만 예외 처리 추가
     async handleDelete() {
         if (!this.recordId) return;
         
         try {
             await deleteEvent({ eventId: this.recordId });
-            
-            // 🔥 로컬 캐시에서 삭제
-            this.localEventCache.delete(this.recordId);
             
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {

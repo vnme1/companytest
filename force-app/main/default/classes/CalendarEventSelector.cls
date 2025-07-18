@@ -4,10 +4,10 @@
  */
 public with sharing class CalendarEventSelector {
 
-    // 🔥 색상 구분을 위해 Related_Record_Type__c 필드 추가
+    // 특정 기간의 이벤트 목록 조회
     public static List<My_Event__c> selectEventsByDateRange(Datetime startDt, Datetime endDt) {
         return [
-            SELECT Id, Title__c, Start_DateTime__c, End_DateTime__c, Related_Record_Type__c
+            SELECT Id, Title__c, Start_DateTime__c, End_DateTime__c
             FROM My_Event__c
             WHERE Start_DateTime__c <= :endDt AND End_DateTime__c >= :startDt
             AND OwnerId = :UserInfo.getUserId()
