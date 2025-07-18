@@ -93,17 +93,60 @@
     margin: 0 1rem !important;
 }
 
-/* 달력 이벤트 스타일 */
+/* 🔥 달력 이벤트 스타일 - 색상별 구분 (새로 수정된 부분) */
 .fc-event {
-    background-color: #0176d3;
-    border-color: #0176d3;
-    color: white;
     border-radius: 0.25rem;
     padding: 0.125rem 0.25rem;
     font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.fc-event:hover {
-    background-color: #005fb2;
-    border-color: #005fb2;
+/* 개인활동 이벤트 (초록색) */
+.fc-event[style*="rgb(40, 167, 69)"] {
+    box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3);
+}
+
+.fc-event[style*="rgb(40, 167, 69)"]:hover {
+    background-color: #218838 !important;
+    border-color: #218838 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.4);
+}
+
+/* Account 이벤트 (파란색) */
+.fc-event[style*="rgb(1, 118, 211)"] {
+    box-shadow: 0 1px 3px rgba(1, 118, 211, 0.3);
+}
+
+.fc-event[style*="rgb(1, 118, 211)"]:hover {
+    background-color: #005fb2 !important;
+    border-color: #005fb2 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(1, 118, 211, 0.4);
+}
+
+/* Contact 이벤트 (주황색) */
+.fc-event[style*="rgb(255, 107, 53)"] {
+    box-shadow: 0 1px 3px rgba(255, 107, 53, 0.3);
+}
+
+.fc-event[style*="rgb(255, 107, 53)"]:hover {
+    background-color: #e55a2b !important;
+    border-color: #e55a2b !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(255, 107, 53, 0.4);
+}
+
+/* Opportunity 이벤트 (보라색) */
+.fc-event[style*="rgb(111, 66, 193)"] {
+    box-shadow: 0 1px 3px rgba(111, 66, 193, 0.3);
+}
+
+.fc-event[style*="rgb(111, 66, 193)"]:hover {
+    background-color: #5a3a9a !important;
+    border-color: #5a3a9a !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(111, 66, 193, 0.4);
 }

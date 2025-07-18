@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 메인 컴포넌트 - 상태 동기화 개선
+ * @description       : 캘린더 컨테이너 메인 컴포넌트 - 상태 동기화 개선 + 바 형태 표시
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -75,7 +75,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
     
-    // 이벤트 드롭 처리
+    // 🔥 이벤트 드롭 처리 - 날짜 처리 개선
     handleEventDrop(event) {
         try {
             const { draggedEl, date } = event.detail;
@@ -96,8 +96,14 @@ export default class CalendarContainer extends LightningElement {
             this.eventDescription = '';
             this.eventLocation = '';
 
-            const startDate = date;
-            const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            // 🔥 날짜 처리 개선 - 로컬 타임존 고려
+            const startDate = new Date(date);
+            // 로컬 시간으로 변환 (타임존 오프셋 제거하지 않음)
+            const year = startDate.getFullYear();
+            const month = String(startDate.getMonth() + 1).padStart(2, '0');
+            const day = String(startDate.getDate()).padStart(2, '0');
+            const isoString = `${year}-${month}-${day}T09:00`; // 기본 오전 9시로 설정
+            
             this.eventStartDate = isoString;
             this.eventEndDate = isoString;
 
@@ -119,7 +125,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 🔥 이벤트 클릭 처리 개선 - 로컬 캐시 우선 사용
+    // 🔥 이벤트 클릭 처리 개선 - 날짜 표시 수정
     async handleEventClick(event) {
         this.recordId = event.detail.eventId;
         if (!this.recordId) return;
@@ -138,8 +144,24 @@ export default class CalendarContainer extends LightningElement {
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
-            this.eventStartDate = evt.Start_DateTime__c ? evt.Start_DateTime__c.slice(0, 16) : '';
-            this.eventEndDate = evt.End_DateTime__c ? evt.End_DateTime__c.slice(0, 16) : '';
+            
+            // 🔥 날짜 표시 개선 - 로컬 시간으로 변환
+            if (evt.Start_DateTime__c) {
+                const startDate = new Date(evt.Start_DateTime__c);
+                // 로컬 시간으로 표시 (YYYY-MM-DDTHH:MM 형식)
+                this.eventStartDate = new Date(startDate.getTime()).toISOString().slice(0, 16);
+            } else {
+                this.eventStartDate = '';
+            }
+            
+            if (evt.End_DateTime__c) {
+                const endDate = new Date(evt.End_DateTime__c);
+                // 로컬 시간으로 표시
+                this.eventEndDate = new Date(endDate.getTime()).toISOString().slice(0, 16);
+            } else {
+                this.eventEndDate = '';
+            }
+            
             this.eventDescription = evt.Description__c || '';
             this.eventLocation = evt.Location__c || '';
             
@@ -227,8 +249,9 @@ export default class CalendarContainer extends LightningElement {
         }]; 
     }
     
-    // 🔥 이벤트 저장 개선 - 로컬 캐시 업데이트
+    // 🔥 이벤트 저장 개선 - 로컬 캐시 업데이트 + 바 형태 표시
     async saveEvent() {
+        // 기본 유효성 검사
         if (!this.eventTitle) {
             this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
             return;
@@ -240,6 +263,7 @@ export default class CalendarContainer extends LightningElement {
         }
 
         try {
+            // 유효한 비용 항목만 필터링
             const validCostItems = this.costItems
                 .filter(item => item.type && item.amount && Number(item.amount) > 0)
                 .map(item => ({
@@ -268,22 +292,57 @@ export default class CalendarContainer extends LightningElement {
                 this.localEventCache.delete(this.recordId);
             }
             
-            // 캘린더 업데이트
+            // 🔥 캘린더 업데이트 - 색상 정보 포함
             const calendarView = this.template.querySelector('c-calendar-view');
             if (calendarView) {
+                const recordType = this.newEventData?.extendedProps?.recordType;
+                
                 if (this.recordId) {
                     calendarView.updateEvent(this.recordId, {
                         title: this.eventTitle,
                         start: this.eventStartDate,
-                        end: this.eventEndDate
+                        end: this.eventEndDate,
+                        recordType: recordType
                     });
                 } else {
+                    // 새 이벤트 색상 설정
+                    const colorMap = {
+                        'Personal': '#28a745',      // 초록색 - 개인활동
+                        'Account': '#0176d3',       // 파란색 - Account 관련
+                        'Contact': '#ff6b35',       // 주황색 - Contact 관련  
+                        'Opportunity': '#6f42c1'    // 보라색 - Opportunity 관련
+                    };
+                    const color = colorMap[recordType] || '#6c757d';
+                    
+                    // 🔥 새 이벤트 추가 시 바 형태로 표시
+                    const startDate = new Date(this.eventStartDate);
+                    const endDate = new Date(this.eventEndDate);
+                    
+                    // 하루 일정인지 확인
+                    const isAllDay = startDate.toDateString() === endDate.toDateString();
+                    
+                    let eventStart, eventEnd;
+                    if (isAllDay) {
+                        // 하루 일정은 allDay로 설정
+                        eventStart = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+                        eventEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
+                    } else {
+                        eventStart = this.eventStartDate;
+                        eventEnd = this.eventEndDate;
+                    }
+                    
                     calendarView.addEvent({
                         id: savedEventId,
                         title: this.eventTitle,
-                        start: this.eventStartDate,
-                        end: this.eventEndDate,
-                        allDay: false
+                        start: eventStart,
+                        end: eventEnd,
+                        allDay: isAllDay,
+                        backgroundColor: color,
+                        borderColor: color,
+                        textColor: '#ffffff',
+                        extendedProps: {
+                            recordType: recordType
+                        }
                     });
                 }
             }

@@ -70,6 +70,7 @@ public with sharing class CalendarAppController {
         return CalendarEventSelector.selectCostTypeOptions();
     }
 
+    // 🔥 saveEventAndCosts 메서드의 날짜 처리 부분 수정
     @AuraEnabled
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
@@ -101,11 +102,47 @@ public with sharing class CalendarAppController {
             eventToSave.Related_Record_Id__c = relatedId;
             eventToSave.Related_Record_Type__c = recordType;
 
+            // 🔥 날짜 처리 개선 - 로컬 시간 그대로 저장
             if (String.isNotBlank(startDate)) {
-                eventToSave.Start_DateTime__c = Datetime.valueOfGmt(startDate.replace('T', ' ') + ':00');
+                try {
+                    // LWC에서 전달된 로컬 시간 문자열을 그대로 사용
+                    String cleanStartDate = startDate;
+                    if (!cleanStartDate.contains('T')) {
+                        cleanStartDate += 'T00:00:00';
+                    }
+                    
+                    // 로컬 시간으로 파싱 (GMT 변환 없이)
+                    DateTime parsedStartDate = DateTime.valueOf(cleanStartDate.replace('T', ' '));
+                    eventToSave.Start_DateTime__c = parsedStartDate;
+                    
+                    System.debug('Start Date Input: ' + startDate);
+                    System.debug('Parsed Start Date: ' + parsedStartDate);
+                    
+                } catch (Exception e) {
+                    System.debug('Date parsing error: ' + e.getMessage());
+                    // 폴백: 기존 방식
+                    eventToSave.Start_DateTime__c = Datetime.valueOfGmt(startDate.replace('T', ' ') + ':00');
+                }
             }
+            
             if (String.isNotBlank(endDate)) {
-                eventToSave.End_DateTime__c = Datetime.valueOfGmt(endDate.replace('T', ' ') + ':00');
+                try {
+                    String cleanEndDate = endDate;
+                    if (!cleanEndDate.contains('T')) {
+                        cleanEndDate += 'T23:59:59';
+                    }
+                    
+                    DateTime parsedEndDate = DateTime.valueOf(cleanEndDate.replace('T', ' '));
+                    eventToSave.End_DateTime__c = parsedEndDate;
+                    
+                    System.debug('End Date Input: ' + endDate);
+                    System.debug('Parsed End Date: ' + parsedEndDate);
+                    
+                } catch (Exception e) {
+                    System.debug('Date parsing error: ' + e.getMessage());
+                    // 폴백: 기존 방식
+                    eventToSave.End_DateTime__c = Datetime.valueOfGmt(endDate.replace('T', ' ') + ':00');
+                }
             }
 
             upsert eventToSave;

@@ -1,10 +1,7 @@
 /**
- * @description       : 
+ * @description       : 캘린더 뷰 컴포넌트 - 이벤트 색상 구분 기능 추가
  * @author            : sejin.park@dkbmc.com
- * @group             : 
- * @last modified on  : 2025-07-18
- * @last modified by  : sejin.park@dkbmc.com
-**/
+ */
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -16,6 +13,18 @@ export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
+    // 🔥 이벤트 타입별 색상 정의 - 새로 추가된 메서드
+    getEventColor(recordType) {
+        const colorMap = {
+            'Personal': '#28a745',      // 초록색 - 개인활동
+            'Account': '#0176d3',       // 파란색 - Account 관련
+            'Contact': '#ff6b35',       // 주황색 - Contact 관련  
+            'Opportunity': '#6f42c1'    // 보라색 - Opportunity 관련
+        };
+        
+        return colorMap[recordType] || '#6c757d'; // 기본 회색
+    }
+
     @api
     refetchEvents() {
         if (this.calendarApi) {
@@ -26,7 +35,6 @@ export default class CalendarView extends LightningElement {
     @api
     addEvent(eventData) {
         if (this.calendarApi) {
-            // 중복 이벤트 방지: 같은 ID의 이벤트가 이미 있는지 확인
             const existingEvent = this.calendarApi.getEventById(eventData.id);
             if (!existingEvent) {
                 this.calendarApi.addEvent(eventData);
@@ -42,6 +50,13 @@ export default class CalendarView extends LightningElement {
                 existingEvent.setProp('title', eventData.title);
                 existingEvent.setStart(eventData.start);
                 existingEvent.setEnd(eventData.end);
+                
+                // 🔥 색상도 업데이트 - 새로 추가된 부분
+                if (eventData.recordType) {
+                    const color = this.getEventColor(eventData.recordType);
+                    existingEvent.setProp('backgroundColor', color);
+                    existingEvent.setProp('borderColor', color);
+                }
             }
         }
     }
@@ -61,7 +76,6 @@ export default class CalendarView extends LightningElement {
             return;
         }
         
-        // 작은 지연을 두어 DOM이 완전히 렌더링된 후 실행
         setTimeout(() => {
             this.loadFullCalendar();
         }, 100);
@@ -85,7 +99,7 @@ export default class CalendarView extends LightningElement {
             
         } catch (error) { 
             console.error('Error loading FullCalendar:', error);
-            this.fullCalendarInitialized = false; // 실패 시 다시 시도할 수 있도록
+            this.fullCalendarInitialized = false;
         }
     }
 
@@ -113,8 +127,8 @@ export default class CalendarView extends LightningElement {
                 editable: true,
                 droppable: true,
                 expandRows: true,
-                height: 800, // 고정 높이 픽셀 단위로 설정
-                contentHeight: 700, // 컨텐츠 높이 설정
+                height: 800,
+                contentHeight: 700,
                 events: this.eventSource.bind(this),
                 drop: this.handleDrop.bind(this),
                 eventClick: this.handleEventClick.bind(this),
@@ -136,32 +150,66 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // 🔥 이벤트 소스 - 타임존 문제 완전 해결
     eventSource(fetchInfo, successCallback, failureCallback) {
         getEvents({
             startStr: fetchInfo.start.toISOString(),
             endStr: fetchInfo.end.toISOString()
         })
         .then(result => {
-            try {
-                const events = result.map(event => ({
+            const events = result.map(event => {
+                // 🔥 이벤트 타입에 따른 색상 설정
+                const recordType = event.Related_Record_Type__c;
+                const color = this.getEventColor(recordType);
+                
+                // 🔥 날짜 처리 완전 개선 - 서버 날짜를 날짜만 추출
+                const startDateTimeStr = event.Start_DateTime__c; // "2025-07-08T23:00:00.000Z"
+                const endDateTimeStr = event.End_DateTime__c;     // "2025-07-10T14:00:00.000Z"
+                
+                // ISO 문자열에서 날짜 부분만 추출하여 로컬 Date 객체 생성
+                const startDatePart = startDateTimeStr.substring(0, 10); // "2025-07-08"
+                const endDatePart = endDateTimeStr.substring(0, 10);     // "2025-07-10"
+                
+                // 날짜만으로 Date 객체 생성 (시간은 00:00:00으로 설정)
+                const startDate = new Date(startDatePart + 'T00:00:00');
+                let endDate = new Date(endDatePart + 'T00:00:00');
+                
+                // FullCalendar에서 allDay 이벤트의 종료일은 다음날이어야 함
+                endDate.setDate(endDate.getDate() + 1);
+                
+                console.log('Event processing:', {
+                    title: event.Title__c,
+                    originalStart: startDateTimeStr,
+                    originalEnd: endDateTimeStr,
+                    displayStart: startDate,
+                    displayEnd: endDate,
+                    startDatePart: startDatePart,
+                    endDatePart: endDatePart
+                });
+                
+                return {
                     id: event.Id,
-                    title: event.Title__c || '제목 없음',
-                    start: event.Start_DateTime__c,
-                    end: event.End_DateTime__c,
-                    allDay: false
-                }));
-                successCallback(events);
-            } catch (mappingError) {
-                console.error('Error mapping events:', mappingError);
-                failureCallback(mappingError);
-            }
+                    title: event.Title__c,
+                    start: startDate,
+                    end: endDate,
+                    allDay: true, // 🔥 모든 이벤트를 allDay로 설정하여 바 형태로 표시
+                    // 🔥 색상 속성 추가
+                    backgroundColor: color,
+                    borderColor: color,
+                    textColor: '#ffffff',
+                    // 추가 데이터
+                    extendedProps: {
+                        recordType: recordType
+                    }
+                };
+            });
+            
+            console.log('Final events for calendar:', events);
+            successCallback(events);
         })
         .catch(error => { 
             console.error('Error fetching events:', error);
-            this.dispatchEvent(new CustomEvent('eventerror', {
-                detail: { message: '이벤트를 불러오는 중 오류가 발생했습니다.' }
-            }));
-            failureCallback(error);
+            failureCallback(error); 
         });
     }
 
@@ -175,9 +223,7 @@ export default class CalendarView extends LightningElement {
         }));
     }
 
-    // 외부에서 드래그한 이벤트가 캘린더에 추가될 때 처리
     handleEventReceive(info) {
-        //드래그한 이벤트 임시로 제거하고 저장 후 다시 추가
         info.event.remove();
     }
 
@@ -187,7 +233,6 @@ export default class CalendarView extends LightningElement {
         }));
     }
 
-    // 드래그앤드롭으로 일정 이동 처리
     async handleEventDrop(info) {
         try {
             const eventId = info.event.id;
@@ -215,7 +260,6 @@ export default class CalendarView extends LightningElement {
                 }
             }));
             
-            // 오류 발생 시 원래 위치로 되돌리기
             info.revert();
         }
     }
