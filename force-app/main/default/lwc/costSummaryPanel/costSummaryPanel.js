@@ -17,29 +17,18 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     
     _wiredCostResult;
 
-   // 현재 월의 첫 번째 날과 마지막 날 계산
     get monthRange() {
         let currentDate;
-        
+
         if (!this.currentMonth) {
             currentDate = new Date();
         } else {
             currentDate = new Date(this.currentMonth);
         }
-        
-        // 현재 월의 첫 번째 날
+
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
-        
-        // 현재 월의 마지막 날
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        
-        console.log('Month range calculation:', {
-            currentMonth: this.currentMonth,
-            currentDate: currentDate,
-            startOfMonth: startOfMonth,
-            endOfMonth: endOfMonth
-        });
-        
+
         return {
             start: startOfMonth.toISOString(),
             end: endOfMonth.toISOString()
@@ -55,7 +44,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         if (result.data) {
             this.processCostData(result.data);
         } else if (result.error) {
-            console.error('비용 합계 조회 오류:', result.error);
             this.costItems = [];
             this.totalAmount = '₩0';
         }
@@ -64,18 +52,16 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     processCostData(data) {
         let total = 0;
         this.costItems = [];
-        
-        // 비용 타입별 데이터 처리
+
         Object.keys(data).forEach(costType => {
             const amount = data[costType] || 0;
             total += amount;
-            
             this.costItems.push({
                 type: costType,
                 amount: this.formatCurrency(amount)
             });
         });
-        
+
         this.totalAmount = this.formatCurrency(total);
     }
 
@@ -83,12 +69,12 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     refreshSummary() {
         return refreshApex(this._wiredCostResult);
     }
-    
+
     @api
     updateMonth(newMonth) {
         this.currentMonth = newMonth;
     }
-    
+
     formatCurrency(amount) {
         return new Intl.NumberFormat('ko-KR', { 
             style: 'currency', 
