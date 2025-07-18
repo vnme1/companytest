@@ -90,11 +90,11 @@ export default class CalendarView extends LightningElement {
                     right: 'dayGridMonth,timeGridWeek,timeGridDay' 
                 },
                 locale: 'ko',
-                timeZone: 'Asia/Seoul',
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
                 expandRows: true,
+                displayEventTime: false,
                 height: 800, // 고정 높이 픽셀 단위로 설정
                 contentHeight: 700, // 컨텐츠 높이 설정
                 events: this.eventSource.bind(this),
@@ -127,9 +127,9 @@ export default class CalendarView extends LightningElement {
             const events = result.map(event => ({
                 id: event.Id,
                 title: event.Title__c,
-                start: event.Start_DateTime__c,
-                end: event.End_DateTime__c,
-                allDay: false
+                start: event.Start_Date__c,
+                end: event.End_Date__c,
+                allDay: true
             }));
             successCallback(events);
         })

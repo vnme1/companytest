@@ -118,8 +118,8 @@ export default class CalendarContainer extends LightningElement {
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
-            this.eventStartDate = evt.Start_DateTime__c;
-            this.eventEndDate = evt.End_DateTime__c;
+            this.eventStartDate = evt.Start_Date__c;
+            this.eventEndDate = evt.End_Date__c;
             this.eventDescription = evt.Description__c || '';
             this.eventLocation = evt.Location__c || '';
 
@@ -236,8 +236,8 @@ export default class CalendarContainer extends LightningElement {
             const params = {
                 recordId: this.recordId,
                 title: this.eventTitle,
-                startDate: new Date(this.eventStartDate).toISOString(),
-                endDate: new Date(this.eventEndDate).toISOString(),
+                startDate: this.eventStartDate,
+                endDate: this.eventEndDate, 
                 description: this.eventDescription,
                 location: this.eventLocation,
                 department: this.eventDepartment,
