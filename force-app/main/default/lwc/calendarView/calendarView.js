@@ -53,20 +53,36 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    // 컴포넌트가 렌더링된 후 FullCalendar 라이브러리 로드
-    async renderedCallback() {
-        if (this.fullCalendarInitialized) { return; }
-        this.fullCalendarInitialized = true;
- 
+    renderedCallback() {
+        if (this.fullCalendarInitialized) {
+            return;
+        }
+        
+        // 작은 지연을 두어 DOM이 완전히 렌더링된 후 실행
+        setTimeout(() => {
+            this.loadFullCalendar();
+        }, 100);
+    }
+    
+    async loadFullCalendar() {
+        if (this.fullCalendarInitialized) {
+            return;
+        }
+        
         try {
             await Promise.all([
                 loadStyle(this, FullCalendar + '/main.min.css'),
                 loadScript(this, FullCalendar + '/main.min.js'),
             ]);
+            
             await loadScript(this, FullCalendar + '/locales/ko.js');
+            
+            this.fullCalendarInitialized = true;
             this.initializeCalendar();
-        } catch (e) {
-            console.error('Error loading FullCalendar:', e);
+            
+        } catch (error) { 
+            console.error('Error loading FullCalendar:', error);
+            this.fullCalendarInitialized = false; // 실패 시 다시 시도할 수 있도록
         }
     }
 
@@ -94,7 +110,6 @@ export default class CalendarView extends LightningElement {
                 editable: true,
                 droppable: true,
                 expandRows: true,
-                displayEventTime: false,
                 height: 800, // 고정 높이 픽셀 단위로 설정
                 contentHeight: 700, // 컨텐츠 높이 설정
                 events: this.eventSource.bind(this),
@@ -127,9 +142,9 @@ export default class CalendarView extends LightningElement {
             const events = result.map(event => ({
                 id: event.Id,
                 title: event.Title__c,
-                start: event.Start_Date__c,
-                end: event.End_Date__c,
-                allDay: true
+                start: event.Start_DateTime__c,
+                end: event.End_DateTime__c,
+                allDay: false
             }));
             successCallback(events);
         })
@@ -165,8 +180,8 @@ export default class CalendarView extends LightningElement {
     async handleEventDrop(info) {
         try {
             const eventId = info.event.id;
-            const newStart = info.event.start.toISOString();
-            const newEnd = info.event.end ? info.event.end.toISOString() : newStart;
+            const newStart = info.event.start.toISOString().slice(0, 16);
+            const newEnd = info.event.end ? info.event.end.toISOString().slice(0, 16) : newStart;
             
             await updateEventDates({
                 eventId: eventId,
