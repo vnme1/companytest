@@ -25,7 +25,7 @@ public with sharing class CalendarAppController {
     public static EventWrapper getEventDetails(Id eventId) {
         EventWrapper wrapper = new EventWrapper();
         wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
-        wrapper.costs = wrapper.event.Cost_Details1__r; // Child Relationship Name 수정 (__r 추가)
+        wrapper.costs = wrapper.event.Cost_Details1__r;
 
         if (wrapper.event != null && wrapper.event.Related_Record_Type__c == 'Account') {
             List<Account> accs = [SELECT Name FROM Account WHERE Id = :wrapper.event.Related_Record_Id__c LIMIT 1];
@@ -100,11 +100,30 @@ public with sharing class CalendarAppController {
             eventToSave.Related_Record_Id__c = relatedId;
             eventToSave.Related_Record_Type__c = recordType;
 
+            // 날짜 처리 개선 - GMT 변환 시 정확한 처리
             if (String.isNotBlank(startDate)) {
-                eventToSave.Start_DateTime__c = Datetime.valueOfGmt(startDate.replace('T', ' ') + ':00');
+                // 클라이언트에서 보낸 로컬 시간을 GMT로 변환
+                try {
+                    // YYYY-MM-DDTHH:MM 형식으로 들어온 문자열을 GMT Datetime으로 변환
+                    String formattedStartDate = startDate.contains('T') ? startDate + ':00' : startDate + 'T00:00:00';
+                    eventToSave.Start_DateTime__c = Datetime.valueOfGmt(formattedStartDate.replace('T', ' '));
+                } catch (Exception dateEx) {
+                    System.debug('Start date parsing error: ' + dateEx.getMessage());
+                    // 기본값으로 현재 시간 설정
+                    eventToSave.Start_DateTime__c = Datetime.now();
+                }
             }
+            
             if (String.isNotBlank(endDate)) {
-                eventToSave.End_DateTime__c = Datetime.valueOfGmt(endDate.replace('T', ' ') + ':00');
+                try {
+                    // YYYY-MM-DDTHH:MM 형식으로 들어온 문자열을 GMT Datetime으로 변환
+                    String formattedEndDate = endDate.contains('T') ? endDate + ':00' : endDate + 'T00:00:00';
+                    eventToSave.End_DateTime__c = Datetime.valueOfGmt(formattedEndDate.replace('T', ' '));
+                } catch (Exception dateEx) {
+                    System.debug('End date parsing error: ' + dateEx.getMessage());
+                    // 기본값으로 시작 시간과 동일하게 설정
+                    eventToSave.End_DateTime__c = eventToSave.Start_DateTime__c;
+                }
             }
 
             upsert eventToSave;
@@ -166,6 +185,9 @@ public with sharing class CalendarAppController {
 
         } catch (Exception e) {
             String errorMessage = e.getMessage();
+            System.debug('Save Event Error: ' + errorMessage);
+            System.debug('Save Event Stack Trace: ' + e.getStackTraceString());
+            
             if (e instanceof AuraHandledException) {
                 throw e;
             } else {
@@ -179,11 +201,23 @@ public with sharing class CalendarAppController {
         try {
             My_Event__c eventToUpdate = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
             
+            // 날짜 처리 개선
             if (String.isNotBlank(newStartDate)) {
-                eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(newStartDate.replace('T', ' ') + ':00');
+                try {
+                    String formattedStartDate = newStartDate.contains('T') ? newStartDate + ':00' : newStartDate + 'T00:00:00';
+                    eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(formattedStartDate.replace('T', ' '));
+                } catch (Exception dateEx) {
+                    System.debug('Start date update error: ' + dateEx.getMessage());
+                }
             }
+            
             if (String.isNotBlank(newEndDate)) {
-                eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(newEndDate.replace('T', ' ') + ':00');
+                try {
+                    String formattedEndDate = newEndDate.contains('T') ? newEndDate + ':00' : newEndDate + 'T00:00:00';
+                    eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(formattedEndDate.replace('T', ' '));
+                } catch (Exception dateEx) {
+                    System.debug('End date update error: ' + dateEx.getMessage());
+                }
             }
             
             update eventToUpdate;
@@ -191,6 +225,7 @@ public with sharing class CalendarAppController {
             return 'SUCCESS';
             
         } catch (Exception e) {
+            System.debug('Update Event Dates Error: ' + e.getMessage());
             throw new AuraHandledException('일정 날짜 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
@@ -211,6 +246,7 @@ public with sharing class CalendarAppController {
             return 'SUCCESS';
             
         } catch (Exception e) {
+            System.debug('Delete Event Error: ' + e.getMessage());
             throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
