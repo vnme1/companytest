@@ -26,7 +26,6 @@
     </div>
 
     <!-- 모달 -->
-    <!-- 모달 - calendarApp에서 가져온 스타일 -->
     <template if:true={isModalOpen}>
         <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small">
             <div class="slds-modal__container">
@@ -62,10 +61,10 @@
                             </div>
                             
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="date" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="date" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}> </lightning-input>
@@ -109,10 +108,10 @@
                                 <lightning-input label="Activity" value={eventTitle} disabled></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="date" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="date" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>

@@ -9,6 +9,17 @@ import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
 import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
 
+function toYMD(date) {
+    try {
+        const offsetMs = date.getTimezoneOffset() * 60000;
+        const localDate = new Date(date.getTime() - offsetMs);
+        return localDate.toISOString().slice(0, 10); // YYYY-MM-DD
+    } catch (e) {
+        console.error('날짜 변환 오류:', e);
+        return '';
+    }
+}
+
 export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
@@ -133,19 +144,28 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    
+
     eventSource(fetchInfo, successCallback, failureCallback) {
         getEvents({
-            startStr: fetchInfo.start.toISOString(),
-            endStr: fetchInfo.end.toISOString()
+            startStr: toYMD(fetchInfo.start),
+            endStr: toYMD(fetchInfo.end)
         })
         .then(result => {
-            const events = result.map(event => ({
+            const events = result.map(event => {
+            const startDate = event.Start_Date__c;
+            const endDate = new Date(event.End_Date__c);
+            endDate.setDate(endDate.getDate() + 1); // ⬅️ 종료일에 1일 추가
+
+            return {
                 id: event.Id,
                 title: event.Title__c,
-                start: event.Start_DateTime__c,
-                end: event.End_DateTime__c,
+                start: startDate,
+                end: endDate.toISOString().slice(0, 10), // YYYY-MM-DD 형식으로
                 allDay: false
-            }));
+            };
+        });
+
             successCallback(events);
         })
         .catch(error => { 
@@ -180,22 +200,29 @@ export default class CalendarView extends LightningElement {
     async handleEventDrop(info) {
         try {
             const eventId = info.event.id;
-            const newStart = info.event.start.toISOString().slice(0, 16);
-            const newEnd = info.event.end ? info.event.end.toISOString().slice(0, 16) : newStart;
-            
+            const newStart = toYMD(info.event.start);
+
+            // 🔽 FullCalendar는 end를 "다음날 00:00"로 주므로 하루 빼야 정확한 종료일
+            let newEnd = newStart;
+            if (info.event.end) {
+                const adjustedEnd = new Date(info.event.end);
+                adjustedEnd.setDate(adjustedEnd.getDate() - 1); // ⬅️ 여기서 하루 빼기
+                newEnd = toYMD(adjustedEnd);
+            }
+
             await updateEventDates({
                 eventId: eventId,
                 newStartDate: newStart,
                 newEndDate: newEnd
             });
-            
+
             this.dispatchEvent(new CustomEvent('eventmoved', {
                 detail: {
                     eventId: eventId,
                     message: '일정이 성공적으로 이동되었습니다.'
                 }
             }));
-            
+
         } catch (error) {
             console.error('Error updating event dates:', error);
             this.dispatchEvent(new CustomEvent('eventerror', {
@@ -203,11 +230,12 @@ export default class CalendarView extends LightningElement {
                     message: '일정 이동 중 오류가 발생했습니다.'
                 }
             }));
-            
+
             // 오류 발생 시 원래 위치로 되돌리기
             info.revert();
         }
     }
+
 
     handleDatesSet(dateInfo) {
         this.dispatchEvent(new CustomEvent('dateset', {

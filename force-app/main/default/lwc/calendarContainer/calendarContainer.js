@@ -12,6 +12,12 @@ import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
 import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
+function addOneDay(ymdStr) {
+    const date = new Date(ymdStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+}
+
 export default class CalendarContainer extends LightningElement {
     @track isModalOpen = false;
     @track modalTitle = '';
@@ -94,9 +100,12 @@ export default class CalendarContainer extends LightningElement {
             this.eventLocation = '';
 
             const startDate = date;
-            const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-            this.eventStartDate = isoString;
-            this.eventEndDate = isoString;
+            const localYMD = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))
+                    .toISOString()
+                    .slice(0, 10); // 'YYYY-MM-DD'
+
+            this.eventStartDate = localYMD;
+            this.eventEndDate = localYMD;
 
             this.newEventData = { 
                 extendedProps: { 
@@ -126,8 +135,8 @@ export default class CalendarContainer extends LightningElement {
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
-            this.eventStartDate = evt.Start_DateTime__c ? evt.Start_DateTime__c.slice(0, 16) : '';
-            this.eventEndDate = evt.End_DateTime__c ? evt.End_DateTime__c.slice(0, 16) : '';
+            this.eventStartDate = evt.Start_Date__c || '';
+            this.eventEndDate = evt.End_Date__c || '';
             this.eventDescription = evt.Description__c || '';
             this.eventLocation = evt.Location__c || '';
             
@@ -259,16 +268,16 @@ export default class CalendarContainer extends LightningElement {
             if (calendarView) {
                 if (this.recordId) {
                     calendarView.updateEvent(this.recordId, {
-                        title: this.eventTitle,
+                         title: this.eventTitle,
                         start: this.eventStartDate,
-                        end: this.eventEndDate
+                        end: addOneDay(this.eventEndDate)
                     });
                 } else {
                     calendarView.addEvent({
                         id: savedEventId,
                         title: this.eventTitle,
                         start: this.eventStartDate,
-                        end: this.eventEndDate,
+                        end: addOneDay(this.eventEndDate),
                         allDay: false
                     });
                 }

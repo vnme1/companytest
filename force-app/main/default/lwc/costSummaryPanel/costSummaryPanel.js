@@ -31,7 +31,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
         
         // 현재 월의 마지막 날
-        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         
         console.log('Month range calculation:', {
             currentMonth: this.currentMonth,
