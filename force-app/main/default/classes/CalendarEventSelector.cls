@@ -4,55 +4,32 @@
  */
 public with sharing class CalendarEventSelector {
 
-    // 특정 기간의 이벤트 목록 조회 - SOQL 문법 수정
+    // 특정 기간의 이벤트 목록 조회
     public static List<My_Event__c> selectEventsByDateRange(Datetime startDt, Datetime endDt) {
-        System.debug('Selecting events between: ' + startDt + ' and ' + endDt);
-        
-        List<My_Event__c> events = [
+        return [
             SELECT Id, Title__c, Start_DateTime__c, End_DateTime__c
             FROM My_Event__c
-            WHERE ((Start_DateTime__c >= :startDt AND Start_DateTime__c <= :endDt)
-               OR (End_DateTime__c >= :startDt AND End_DateTime__c <= :endDt)
-               OR (Start_DateTime__c <= :startDt AND End_DateTime__c >= :endDt))
+            WHERE Start_DateTime__c <= :endDt AND End_DateTime__c >= :startDt
             AND OwnerId = :UserInfo.getUserId()
-            ORDER BY Start_DateTime__c 
-            LIMIT 200
+            ORDER BY Start_DateTime__c LIMIT 200
         ];
-        
-        System.debug('Found ' + events.size() + ' events');
-        for (My_Event__c event : events) {
-            System.debug('Event: ' + event.Title__c + ', Start: ' + event.Start_DateTime__c + ', End: ' + event.End_DateTime__c);
-        }
-        
-        return events;
     }
 
-    // 이벤트 상세 정보와 관련 비용 동시 조회
+    // 이벤트 상세 정보와 관련 비용 동시 조회 - Child Relationship Name 수정
     public static My_Event__c selectEventDetailsById(Id eventId) {
-        try {
-            My_Event__c event = [
-                SELECT 
-                    Id, Name, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Location__c, 
-                    Related_Record_Id__c, Related_Record_Type__c,
-                    (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details1__r)
-                FROM My_Event__c
-                WHERE Id = :eventId
-                LIMIT 1
-            ];
-            
-            System.debug('Event details: ' + event.Title__c + ', Start: ' + event.Start_DateTime__c);
-            
-            return event;
-        } catch (Exception e) {
-            System.debug('Error selecting event details: ' + e.getMessage());
-            throw new AuraHandledException('이벤트 상세 정보를 조회할 수 없습니다: ' + e.getMessage());
-        }
+        return [
+            SELECT 
+                Id, Name, Title__c, Start_DateTime__c, End_DateTime__c, Description__c, Location__c, 
+                Related_Record_Id__c, Related_Record_Type__c,
+                (SELECT Id, Cost_Type__c, Amount__c, department__c FROM Cost_Details1__r)
+            FROM My_Event__c
+            WHERE Id = :eventId
+            LIMIT 1
+        ];
     }
 
-    // 월별 비용 합계 조회
+    // 월별 비용 합계 조회 - 수정된 버전
     public static Map<String, Decimal> selectMonthlyCostSummary(Datetime startDateTime, Datetime endDateTime) {
-        System.debug('Selecting cost summary between: ' + startDateTime + ' and ' + endDateTime);
-        
         Map<String, Decimal> summary = new Map<String, Decimal>();
 
         // 모든 비용 타입에 대해 0으로 초기화
@@ -73,14 +50,11 @@ public with sharing class CalendarEventSelector {
             GROUP BY Cost_Type__c
         ];
 
-        System.debug('Cost summary results: ' + results.size() + ' entries');
-        
         for (AggregateResult ar : results) {
             String costType = (String)ar.get('Cost_Type__c');
             Decimal amount = (Decimal)ar.get('totalAmount');
             if (costType != null && amount != null) {
                 summary.put(costType, amount);
-                System.debug('Cost type: ' + costType + ', Amount: ' + amount);
             }
         }
         
