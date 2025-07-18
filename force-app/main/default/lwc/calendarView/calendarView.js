@@ -12,26 +12,42 @@ import updateEventDates from '@salesforce/apex/CalendarAppController.updateEvent
 export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
+    lastRefetchTime = 0; // 마지막 새로고침 시간 추적
 
     @api
     refetchEvents() {
         if (this.calendarApi) {
-            console.log('Refetching events...');
-            // 강제로 이벤트 캐시 클리어 후 새로고침
+            // 중복 호출 방지 (100ms 내)
+            const now = Date.now();
+            if (now - this.lastRefetchTime < 100) {
+                console.log('Refetch 중복 호출 방지');
+                return;
+            }
+            this.lastRefetchTime = now;
+            
+            console.log('Events refetch 시작:', new Date().toLocaleTimeString());
+            
+            // 캐시 클리어를 위해 이벤트 소스를 완전히 새로고침
+            this.calendarApi.getEventSources().forEach(eventSource => {
+                eventSource.refetch();
+            });
+            
+            // 추가로 전체 캘린더 refetch
             this.calendarApi.refetchEvents();
+            
+            console.log('Events refetch 완료');
         }
     }
 
     @api
     addEvent(eventData) {
         if (this.calendarApi) {
-            // 중복 이벤트 방지: 같은 ID의 이벤트가 이미 있는지 확인
             const existingEvent = this.calendarApi.getEventById(eventData.id);
             if (!existingEvent) {
-                console.log('Adding new event:', eventData);
+                console.log('새 이벤트 추가:', eventData);
                 this.calendarApi.addEvent(eventData);
             } else {
-                console.log('Event already exists, updating instead:', eventData);
+                console.log('기존 이벤트 업데이트:', eventData);
                 this.updateEvent(eventData.id, eventData);
             }
         }
@@ -42,16 +58,11 @@ export default class CalendarView extends LightningElement {
         if (this.calendarApi) {
             const existingEvent = this.calendarApi.getEventById(eventId);
             if (existingEvent) {
-                console.log('Updating existing event:', eventId, eventData);
+                console.log('이벤트 업데이트:', eventId, eventData);
                 existingEvent.setProp('title', eventData.title);
                 existingEvent.setStart(eventData.start);
                 existingEvent.setEnd(eventData.end);
-                
-                // 강제로 캘린더 다시 렌더링
                 this.calendarApi.render();
-            } else {
-                console.log('Event not found for update, adding as new:', eventData);
-                this.addEvent({ id: eventId, ...eventData });
             }
         }
     }
@@ -61,7 +72,7 @@ export default class CalendarView extends LightningElement {
         if (this.calendarApi) {
             const eventToRemove = this.calendarApi.getEventById(eventId);
             if (eventToRemove) {
-                console.log('Removing event:', eventId);
+                console.log('이벤트 제거:', eventId);
                 eventToRemove.remove();
             }
         }
@@ -72,7 +83,6 @@ export default class CalendarView extends LightningElement {
             return;
         }
         
-        // 작은 지연을 두어 DOM이 완전히 렌더링된 후 실행
         setTimeout(() => {
             this.loadFullCalendar();
         }, 100);
@@ -96,19 +106,14 @@ export default class CalendarView extends LightningElement {
             
         } catch (error) { 
             console.error('Error loading FullCalendar:', error);
-            this.fullCalendarInitialized = false; // 실패 시 다시 시도할 수 있도록
+            this.fullCalendarInitialized = false;
         }
     }
 
     initializeCalendar() {
         const calendarEl = this.template.querySelector('.calendar-container');
-        if (!calendarEl) {
-            console.error('Calendar container not found');
-            return;
-        }
-        
-        if (!window.FullCalendar) {
-            console.error('FullCalendar not loaded');
+        if (!calendarEl || !window.FullCalendar) {
+            console.error('Calendar container 또는 FullCalendar 라이브러리를 찾을 수 없습니다');
             return;
         }
 
@@ -127,25 +132,12 @@ export default class CalendarView extends LightningElement {
                 height: 800,
                 contentHeight: 700,
                 
-                // 타임존 설정 - 로컬 타임존 사용
-                timeZone: 'local',
+                // 타임존 설정
+                timeZone: 'Asia/Seoul', // 한국 시간대 명시적 설정
                 
-                // 이벤트 소스 설정 - 캐싱 완전 비활성화
-                events: {
-                    url: this.eventSource.bind(this),
-                    extraParams: () => ({
-                        _cache_bust: Date.now() // 캐시 방지
-                    })
-                },
-                
-                // 커스텀 이벤트 소스 함수
-                events: this.eventSource.bind(this),
-                
-                eventSourceSuccess: () => {
-                    console.log('Events loaded successfully');
-                },
-                eventSourceFailure: (error) => {
-                    console.error('Failed to load events:', error);
+                // 이벤트 소스 - 캐시 방지를 위한 동적 파라미터
+                events: (fetchInfo, successCallback, failureCallback) => {
+                    this.loadEventsWithNoCaching(fetchInfo, successCallback, failureCallback);
                 },
                 
                 drop: this.handleDrop.bind(this),
@@ -153,84 +145,88 @@ export default class CalendarView extends LightningElement {
                 eventDrop: this.handleEventDrop.bind(this),
                 eventReceive: this.handleEventReceive.bind(this),
                 datesSet: this.handleDatesSet.bind(this),
+                
                 eventDidMount: (info) => {
-                    console.log('Event mounted:', info.event.title, 'Start:', info.event.start);
+                    console.log('이벤트 마운트:', info.event.title, '시작시간:', info.event.start);
                 },
                 
-                // 이벤트 표시 개선
+                // 이벤트 색상 및 스타일
+                eventColor: '#0176d3',
+                eventTextColor: '#ffffff',
                 dayMaxEvents: false,
                 eventDisplay: 'auto',
                 
-                // 날짜 표시 포맷 설정
+                // 날짜 헤더 포맷
                 dayHeaderFormat: { weekday: 'short' },
                 
-                // 이벤트 색상 설정
-                eventColor: '#0176d3',
-                eventTextColor: '#ffffff',
-                
-                // 뷰 변경 시 이벤트 새로고침
+                // 뷰 변경 시 강제 새로고침
                 viewDidMount: () => {
-                    console.log('View mounted, refreshing events');
+                    console.log('뷰 마운트 - 이벤트 새로고침');
                     setTimeout(() => {
-                        if (this.calendarApi) {
-                            this.calendarApi.refetchEvents();
-                        }
-                    }, 100);
+                        this.refetchEvents();
+                    }, 50);
                 }
             });
             
             this.calendarApi = calendar;
             calendar.render();
             
-            console.log('Calendar initialized successfully');
+            console.log('FullCalendar 초기화 완료');
             
         } catch (error) {
-            console.error('Error initializing calendar:', error);
+            console.error('캘린더 초기화 오류:', error);
         }
     }
 
-    eventSource(fetchInfo, successCallback, failureCallback) {
-        console.log('Loading events for date range:', {
-            start: fetchInfo.start,
-            end: fetchInfo.end,
-            startISO: fetchInfo.start.toISOString(),
-            endISO: fetchInfo.end.toISOString()
+    // 캐시 방지를 위한 이벤트 로딩 함수
+    loadEventsWithNoCaching(fetchInfo, successCallback, failureCallback) {
+        const startISO = fetchInfo.start.toISOString();
+        const endISO = fetchInfo.end.toISOString();
+        
+        console.log('이벤트 로딩 시작:', {
+            start: startISO,
+            end: endISO,
+            cacheBust: Date.now()
         });
         
         getEvents({
-            startStr: fetchInfo.start.toISOString(),
-            endStr: fetchInfo.end.toISOString()
+            startStr: startISO,
+            endStr: endISO
         })
         .then(result => {
-            console.log('Raw event data from server:', result);
+            console.log('서버에서 받은 원본 이벤트 데이터:', result);
             
             const events = result.map(event => {
-                // 서버에서 받은 UTC 시간을 로컬 시간으로 처리
-                const eventStart = new Date(event.Start_DateTime__c);
-                const eventEnd = new Date(event.End_DateTime__c);
+                // 서버의 UTC 시간을 한국 시간으로 변환
+                const startUTC = new Date(event.Start_DateTime__c);
+                const endUTC = new Date(event.End_DateTime__c);
                 
-                console.log('Processing event:', {
+                // 한국 시간대로 변환 (UTC+9)
+                const startKST = new Date(startUTC.getTime() + (9 * 60 * 60 * 1000));
+                const endKST = new Date(endUTC.getTime() + (9 * 60 * 60 * 1000));
+                
+                console.log('이벤트 시간 변환:', {
                     title: event.Title__c,
-                    rawStart: event.Start_DateTime__c,
-                    rawEnd: event.End_DateTime__c,
-                    processedStart: eventStart,
-                    processedEnd: eventEnd
+                    originalStart: event.Start_DateTime__c,
+                    originalEnd: event.End_DateTime__c,
+                    convertedStart: startKST,
+                    convertedEnd: endKST
                 });
                 
                 return {
                     id: event.Id,
                     title: event.Title__c,
-                    start: eventStart,
-                    end: eventEnd,
+                    start: startKST,
+                    end: endKST,
                     allDay: false
                 };
             });
             
-            console.log('Processed events for calendar:', events);
+            console.log('캘린더에 표시될 최종 이벤트:', events);
             successCallback(events);
         })
         .catch(error => { 
-            console.error('Error fetching events:', error);
+            console.error('이벤트 로딩 오류:', error);
             failureCallback(error); 
         });
     }
@@ -238,34 +234,38 @@ export default class CalendarView extends LightningElement {
     handleDrop(info) {
         info.jsEvent.preventDefault();
         
-        // 드롭된 날짜를 로컬 시간대로 정확히 처리
+        // 드롭된 날짜를 정확히 처리
         const dropDate = info.date;
         
-        console.log('Drop event:', {
+        console.log('드롭 이벤트 상세:', {
             originalDate: dropDate,
-            dateString: dropDate.toString(),
-            isoString: dropDate.toISOString(),
-            localeDateString: dropDate.toLocaleDateString(),
-            draggedElement: info.draggedEl.dataset
+            year: dropDate.getFullYear(),
+            month: dropDate.getMonth() + 1,
+            date: dropDate.getDate(),
+            day: dropDate.getDay(),
+            hours: dropDate.getHours(),
+            minutes: dropDate.getMinutes(),
+            timezone: dropDate.getTimezoneOffset(),
+            toString: dropDate.toString(),
+            toDateString: dropDate.toDateString(),
+            toISOString: dropDate.toISOString()
         });
         
         this.dispatchEvent(new CustomEvent('eventdrop', { 
             detail: {
                 draggedEl: info.draggedEl,
-                date: dropDate // Date 객체 그대로 전달
+                date: dropDate
             }
         }));
     }
 
-    // 외부에서 드래그한 이벤트가 캘린더에 추가될 때 처리
     handleEventReceive(info) {
-        console.log('Event received from external source:', info.event.title);
-        // 외부에서 드래그한 이벤트는 임시로 제거하고 저장 후 다시 추가
+        console.log('외부 이벤트 수신:', info.event.title);
         info.event.remove();
     }
 
     handleEventClick(info) {
-        console.log('Event clicked:', {
+        console.log('이벤트 클릭:', {
             eventId: info.event.id,
             title: info.event.title,
             start: info.event.start,
@@ -282,20 +282,24 @@ export default class CalendarView extends LightningElement {
         try {
             const eventId = info.event.id;
             
-            // 이동된 날짜를 정확히 처리
+            // 이동된 날짜를 정확히 처리 - 한국 시간으로
             const newStart = info.event.start;
             const newEnd = info.event.end || newStart;
             
-            // 로컬 시간으로 포맷
-            const newStartISO = this.formatDateToLocal(newStart);
-            const newEndISO = this.formatDateToLocal(newEnd);
+            // 한국 시간을 UTC로 변환하여 서버에 전송
+            const startUTC = new Date(newStart.getTime() - (9 * 60 * 60 * 1000));
+            const endUTC = new Date(newEnd.getTime() - (9 * 60 * 60 * 1000));
             
-            console.log('Event dropped:', {
+            const newStartISO = this.formatDateForServer(startUTC);
+            const newEndISO = this.formatDateForServer(endUTC);
+            
+            console.log('이벤트 이동 처리:', {
                 eventId,
-                newStart,
-                newEnd,
-                newStartISO,
-                newEndISO
+                localStart: newStart,
+                localEnd: newEnd,
+                utcStart: startUTC,
+                utcEnd: endUTC,
+                serverFormat: { start: newStartISO, end: newEndISO }
             });
             
             await updateEventDates({
@@ -312,7 +316,7 @@ export default class CalendarView extends LightningElement {
             }));
             
         } catch (error) {
-            console.error('Error updating event dates:', error);
+            console.error('이벤트 이동 오류:', error);
             this.dispatchEvent(new CustomEvent('eventerror', {
                 detail: {
                     message: '일정 이동 중 오류가 발생했습니다.'
@@ -324,8 +328,8 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    // 날짜를 로컬 시간대로 포맷하는 함수
-    formatDateToLocal(date) {
+    // 서버 전송용 날짜 포맷
+    formatDateForServer(date) {
         if (!date) return '';
         
         const year = date.getFullYear();
@@ -338,7 +342,7 @@ export default class CalendarView extends LightningElement {
     }
 
     handleDatesSet(dateInfo) {
-        console.log('Dates set:', {
+        console.log('날짜 범위 변경:', {
             start: dateInfo.start,
             end: dateInfo.end,
             startISO: dateInfo.start.toISOString(),

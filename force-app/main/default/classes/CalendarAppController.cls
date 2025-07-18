@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller with Cost Detail integration and Dynamic Picklist
+ * @description       : Calendar App Controller with timezone-aware date handling
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-18
  * @last modified by  : sejin.park@dkbmc.com
@@ -15,14 +15,21 @@ public with sharing class CalendarAppController {
 
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
-        return CalendarEventSelector.selectEventsByDateRange(
+        System.debug('getEvents 호출됨 - Start: ' + startStr + ', End: ' + endStr);
+        
+        List<My_Event__c> events = CalendarEventSelector.selectEventsByDateRange(
             (Datetime)JSON.deserialize('"' + startStr + '"', Datetime.class),
             (Datetime)JSON.deserialize('"' + endStr + '"', Datetime.class)
         );
+        
+        System.debug('조회된 이벤트 수: ' + events.size());
+        return events;
     }
 
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
+        System.debug('getEventDetails 호출됨 - EventId: ' + eventId);
+        
         EventWrapper wrapper = new EventWrapper();
         wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
         wrapper.costs = wrapper.event.Cost_Details1__r;
@@ -33,6 +40,11 @@ public with sharing class CalendarAppController {
                 wrapper.accountName = accs[0].Name;
             }
         }
+        
+        System.debug('이벤트 상세 정보: ' + wrapper.event.Title__c + 
+                    ', Start: ' + wrapper.event.Start_DateTime__c + 
+                    ', End: ' + wrapper.event.End_DateTime__c);
+        
         return wrapper;
     }
 
@@ -69,12 +81,61 @@ public with sharing class CalendarAppController {
         return CalendarEventSelector.selectCostTypeOptions();
     }
 
+    // 현재 사용자의 시간대 정보를 가져오는 메서드
+    @AuraEnabled(cacheable=true)
+    public static String getUserTimeZone() {
+        User currentUser = [SELECT TimeZoneSidKey FROM User WHERE Id = :UserInfo.getUserId() LIMIT 1];
+        System.debug('사용자 시간대: ' + currentUser.TimeZoneSidKey);
+        return currentUser.TimeZoneSidKey;
+    }
+
+    // 조직의 시간대 정보를 가져오는 메서드  
+    @AuraEnabled(cacheable=true)
+    public static String getOrgTimeZone() {
+        Organization org = [SELECT TimeZoneSidKey FROM Organization LIMIT 1];
+        System.debug('조직 시간대: ' + org.TimeZoneSidKey);
+        return org.TimeZoneSidKey;
+    }
+
+    // 클라이언트에서 받은 로컬 시간 문자열을 정확하게 처리
+    private static Datetime parseClientDateTime(String clientDateTimeStr) {
+        if (String.isBlank(clientDateTimeStr)) {
+            return null;
+        }
+        
+        try {
+            // YYYY-MM-DDTHH:MM 형식의 문자열을 파싱
+            String formattedStr = clientDateTimeStr.contains('T') ? 
+                clientDateTimeStr + ':00' : clientDateTimeStr + 'T00:00:00';
+            
+            // GMT Datetime으로 직접 파싱 (클라이언트에서 이미 적절히 변환된 값이라고 가정)
+            Datetime result = Datetime.valueOfGmt(formattedStr.replace('T', ' '));
+            
+            System.debug('날짜 파싱: ' + clientDateTimeStr + ' → ' + result);
+            
+            return result;
+            
+        } catch (Exception e) {
+            System.debug('날짜 파싱 오류: ' + e.getMessage() + ', 입력값: ' + clientDateTimeStr);
+            return Datetime.now();
+        }
+    }
+
     @AuraEnabled
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
         String description, String location, String department,
         String relatedId, String recordType, String costDetailsJson
     ) {
+        System.debug('saveEventAndCosts 호출됨');
+        System.debug('Parameters: recordId=' + recordId + ', title=' + title + 
+                    ', startDate=' + startDate + ', endDate=' + endDate + 
+                    ', recordType=' + recordType);
+        
+        // 디버깅을 위해 시간대 정보도 출력
+        System.debug('사용자 시간대: ' + getUserTimeZone());
+        System.debug('조직 시간대: ' + getOrgTimeZone());
+        
         try {
             // 필수 값 검증
             if (String.isBlank(title)) {
@@ -85,12 +146,14 @@ public with sharing class CalendarAppController {
 
             if (recordId == null) {
                 eventToSave = new My_Event__c();
+                System.debug('새 이벤트 생성');
             } else {
                 List<My_Event__c> events = [SELECT Id FROM My_Event__c WHERE Id = :recordId LIMIT 1];
                 if (events.isEmpty()) {
                     throw new AuraHandledException('수정할 이벤트를 찾을 수 없습니다.');
                 }
                 eventToSave = events[0];
+                System.debug('기존 이벤트 수정: ' + recordId);
             }
 
             eventToSave.Name = title;
@@ -100,39 +163,27 @@ public with sharing class CalendarAppController {
             eventToSave.Related_Record_Id__c = relatedId;
             eventToSave.Related_Record_Type__c = recordType;
 
-            // 날짜 처리 개선 - GMT 변환 시 정확한 처리
+            // 날짜 처리 - 클라이언트에서 전송된 값을 그대로 사용
             if (String.isNotBlank(startDate)) {
-                // 클라이언트에서 보낸 로컬 시간을 GMT로 변환
-                try {
-                    // YYYY-MM-DDTHH:MM 형식으로 들어온 문자열을 GMT Datetime으로 변환
-                    String formattedStartDate = startDate.contains('T') ? startDate + ':00' : startDate + 'T00:00:00';
-                    eventToSave.Start_DateTime__c = Datetime.valueOfGmt(formattedStartDate.replace('T', ' '));
-                } catch (Exception dateEx) {
-                    System.debug('Start date parsing error: ' + dateEx.getMessage());
-                    // 기본값으로 현재 시간 설정
-                    eventToSave.Start_DateTime__c = Datetime.now();
-                }
+                eventToSave.Start_DateTime__c = parseClientDateTime(startDate);
             }
             
             if (String.isNotBlank(endDate)) {
-                try {
-                    // YYYY-MM-DDTHH:MM 형식으로 들어온 문자열을 GMT Datetime으로 변환
-                    String formattedEndDate = endDate.contains('T') ? endDate + ':00' : endDate + 'T00:00:00';
-                    eventToSave.End_DateTime__c = Datetime.valueOfGmt(formattedEndDate.replace('T', ' '));
-                } catch (Exception dateEx) {
-                    System.debug('End date parsing error: ' + dateEx.getMessage());
-                    // 기본값으로 시작 시간과 동일하게 설정
-                    eventToSave.End_DateTime__c = eventToSave.Start_DateTime__c;
-                }
+                eventToSave.End_DateTime__c = parseClientDateTime(endDate);
             }
 
             upsert eventToSave;
             Id eventId = eventToSave.Id;
+            
+            System.debug('이벤트 저장 완료: ' + eventId + 
+                        ', Start: ' + eventToSave.Start_DateTime__c + 
+                        ', End: ' + eventToSave.End_DateTime__c);
 
             // 기존 비용 삭제
             List<Cost_Detail__c> oldCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
             if (!oldCosts.isEmpty()) {
                 delete oldCosts;
+                System.debug('기존 비용 ' + oldCosts.size() + '개 삭제됨');
             }
 
             // 새 비용 데이터 처리
@@ -141,6 +192,7 @@ public with sharing class CalendarAppController {
             if (String.isNotBlank(costDetailsJson) && recordType != 'Personal') {
                 try {
                     List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
+                    System.debug('비용 데이터 파싱: ' + parsedCosts.size() + '개 항목');
                     
                     for (Object costObj : parsedCosts) {
                         Map<String, Object> costMap = (Map<String, Object>)costObj;
@@ -173,20 +225,23 @@ public with sharing class CalendarAppController {
                         costsToInsert.add(newCost);
                     }
                 } catch (Exception jsonEx) {
+                    System.debug('비용 데이터 JSON 파싱 오류: ' + jsonEx.getMessage());
                     throw new AuraHandledException('비용 데이터 형식이 올바르지 않습니다.');
                 }
             }
             
             if (!costsToInsert.isEmpty()) {
                 insert costsToInsert;
+                System.debug('새 비용 ' + costsToInsert.size() + '개 저장됨');
             }
             
+            System.debug('saveEventAndCosts 완료: ' + eventId);
             return eventId;
 
         } catch (Exception e) {
             String errorMessage = e.getMessage();
-            System.debug('Save Event Error: ' + errorMessage);
-            System.debug('Save Event Stack Trace: ' + e.getStackTraceString());
+            System.debug('saveEventAndCosts 오류: ' + errorMessage);
+            System.debug('Stack Trace: ' + e.getStackTraceString());
             
             if (e instanceof AuraHandledException) {
                 throw e;
@@ -198,55 +253,57 @@ public with sharing class CalendarAppController {
     
     @AuraEnabled
     public static String updateEventDates(Id eventId, String newStartDate, String newEndDate) {
+        System.debug('updateEventDates 호출됨: ' + eventId + 
+                    ', newStart: ' + newStartDate + ', newEnd: ' + newEndDate);
+        
         try {
             My_Event__c eventToUpdate = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
             
-            // 날짜 처리 개선
+            // 날짜 처리 - 클라이언트에서 전송된 값을 그대로 사용
             if (String.isNotBlank(newStartDate)) {
-                try {
-                    String formattedStartDate = newStartDate.contains('T') ? newStartDate + ':00' : newStartDate + 'T00:00:00';
-                    eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(formattedStartDate.replace('T', ' '));
-                } catch (Exception dateEx) {
-                    System.debug('Start date update error: ' + dateEx.getMessage());
-                }
+                eventToUpdate.Start_DateTime__c = parseClientDateTime(newStartDate);
             }
             
             if (String.isNotBlank(newEndDate)) {
-                try {
-                    String formattedEndDate = newEndDate.contains('T') ? newEndDate + ':00' : newEndDate + 'T00:00:00';
-                    eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(formattedEndDate.replace('T', ' '));
-                } catch (Exception dateEx) {
-                    System.debug('End date update error: ' + dateEx.getMessage());
-                }
+                eventToUpdate.End_DateTime__c = parseClientDateTime(newEndDate);
             }
             
             update eventToUpdate;
             
+            System.debug('이벤트 날짜 업데이트 완료: ' + eventId + 
+                        ', Start: ' + eventToUpdate.Start_DateTime__c + 
+                        ', End: ' + eventToUpdate.End_DateTime__c);
+            
             return 'SUCCESS';
             
         } catch (Exception e) {
-            System.debug('Update Event Dates Error: ' + e.getMessage());
+            System.debug('updateEventDates 오류: ' + e.getMessage());
             throw new AuraHandledException('일정 날짜 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
     @AuraEnabled
     public static String deleteEvent(Id eventId) {
+        System.debug('deleteEvent 호출됨: ' + eventId);
+        
         try {
             // 먼저 관련된 비용 상세 삭제
             List<Cost_Detail__c> relatedCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
             if (!relatedCosts.isEmpty()) {
                 delete relatedCosts;
+                System.debug('관련 비용 ' + relatedCosts.size() + '개 삭제됨');
             }
             
             // 이벤트 삭제
             My_Event__c eventToDelete = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
             delete eventToDelete;
             
+            System.debug('이벤트 삭제 완료: ' + eventId);
+            
             return 'SUCCESS';
             
         } catch (Exception e) {
-            System.debug('Delete Event Error: ' + e.getMessage());
+            System.debug('deleteEvent 오류: ' + e.getMessage());
             throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
