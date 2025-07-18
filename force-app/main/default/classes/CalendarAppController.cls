@@ -1,7 +1,7 @@
 /**
  * @description       : Calendar App Controller with Cost Detail integration and Dynamic Picklist
  * @author            : sejin.park@dkbmc.com
- * @last modified on  : 2025-07-17
+ * @last modified on  : 2025-07-18
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarAppController {
@@ -180,10 +180,10 @@ public with sharing class CalendarAppController {
             My_Event__c eventToUpdate = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
             
             if (String.isNotBlank(newStartDate)) {
-                eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(newStartDate.replace('T', ' ') + ':00');
+                eventToUpdate.Start_DateTime__c = (Datetime)JSON.deserialize('"' + newStartDate + '"', Datetime.class);
             }
             if (String.isNotBlank(newEndDate)) {
-                eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(newEndDate.replace('T', ' ') + ':00');
+                eventToUpdate.End_DateTime__c = (Datetime)JSON.deserialize('"' + newEndDate + '"', Datetime.class);
             }
             
             update eventToUpdate;

@@ -53,36 +53,20 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    renderedCallback() {
-        if (this.fullCalendarInitialized) {
-            return;
-        }
-        
-        // 작은 지연을 두어 DOM이 완전히 렌더링된 후 실행
-        setTimeout(() => {
-            this.loadFullCalendar();
-        }, 100);
-    }
-    
-    async loadFullCalendar() {
-        if (this.fullCalendarInitialized) {
-            return;
-        }
-        
+    // 컴포넌트가 렌더링된 후 FullCalendar 라이브러리 로드
+    async renderedCallback() {
+        if (this.fullCalendarInitialized) { return; }
+        this.fullCalendarInitialized = true;
+ 
         try {
             await Promise.all([
                 loadStyle(this, FullCalendar + '/main.min.css'),
                 loadScript(this, FullCalendar + '/main.min.js'),
             ]);
-            
             await loadScript(this, FullCalendar + '/locales/ko.js');
-            
-            this.fullCalendarInitialized = true;
             this.initializeCalendar();
-            
-        } catch (error) { 
-            console.error('Error loading FullCalendar:', error);
-            this.fullCalendarInitialized = false; // 실패 시 다시 시도할 수 있도록
+        } catch (e) {
+            console.error('Error loading FullCalendar:', e);
         }
     }
 
@@ -106,6 +90,7 @@ export default class CalendarView extends LightningElement {
                     right: 'dayGridMonth,timeGridWeek,timeGridDay' 
                 },
                 locale: 'ko',
+                timeZone: 'Asia/Seoul',
                 initialView: 'dayGridMonth',
                 editable: true,
                 droppable: true,
@@ -180,8 +165,8 @@ export default class CalendarView extends LightningElement {
     async handleEventDrop(info) {
         try {
             const eventId = info.event.id;
-            const newStart = info.event.start.toISOString().slice(0, 16);
-            const newEnd = info.event.end ? info.event.end.toISOString().slice(0, 16) : newStart;
+            const newStart = info.event.start.toISOString();
+            const newEnd = info.event.end ? info.event.end.toISOString() : newStart;
             
             await updateEventDates({
                 eventId: eventId,

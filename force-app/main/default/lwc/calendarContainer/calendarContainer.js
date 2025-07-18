@@ -93,19 +93,11 @@ export default class CalendarContainer extends LightningElement {
             this.eventDescription = '';
             this.eventLocation = '';
 
-            const startDate = date;
-            const isoString = new Date(startDate.getTime() - (startDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-            this.eventStartDate = isoString;
-            this.eventEndDate = isoString;
+            // 👇 복잡한 변환 로직을 모두 제거하고, 받은 date 객체를 바로 GMT 표준 시간으로 변환.
+            this.eventStartDate = date.toISOString();
+            this.eventEndDate = date.toISOString();
 
-            this.newEventData = { 
-                extendedProps: { 
-                    recordType, 
-                    relatedId: recordId, 
-                    accountName: accountName || '' 
-                } 
-            };
-            
+            this.newEventData = { extendedProps: { recordType, relatedId: recordId, accountName: accountName || '' } };
             this.costItems = [{ id: 0, type: '', amount: null }];
             this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
             this.openModal();
@@ -126,10 +118,12 @@ export default class CalendarContainer extends LightningElement {
             const evt = result.event;
 
             this.eventTitle = evt.Title__c || '';
-            this.eventStartDate = evt.Start_DateTime__c ? evt.Start_DateTime__c.slice(0, 16) : '';
-            this.eventEndDate = evt.End_DateTime__c ? evt.End_DateTime__c.slice(0, 16) : '';
+            this.eventStartDate = evt.Start_DateTime__c;
+            this.eventEndDate = evt.End_DateTime__c;
             this.eventDescription = evt.Description__c || '';
             this.eventLocation = evt.Location__c || '';
+
+            console.log('Value passed to modal:', this.eventStartDate);
             
             // 부서 정보 설정
             if (result.costs && result.costs.length > 0 && result.costs[0].department__c) {
@@ -242,8 +236,8 @@ export default class CalendarContainer extends LightningElement {
             const params = {
                 recordId: this.recordId,
                 title: this.eventTitle,
-                startDate: this.eventStartDate,
-                endDate: this.eventEndDate,
+                startDate: new Date(this.eventStartDate).toISOString(),
+                endDate: new Date(this.eventEndDate).toISOString(),
                 description: this.eventDescription,
                 location: this.eventLocation,
                 department: this.eventDepartment,

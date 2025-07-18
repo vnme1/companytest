@@ -62,10 +62,10 @@
                             </div>
                             
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange} timezone="Asia/Seoul"></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange} timezone="Asia/Seoul"></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input name="eventLocation" label="Location" value={eventLocation} onchange={handleInputChange}> </lightning-input>
@@ -109,10 +109,10 @@
                                 <lightning-input label="Activity" value={eventTitle} disabled></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventStartDate" label="Start Date" value={eventStartDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventStartDate" label="Start DateTime" value={eventStartDate} onchange={handleInputChange} timezone="Asia/Seoul"></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-2">
-                                <lightning-input type="datetime" name="eventEndDate" label="End Date" value={eventEndDate} onchange={handleInputChange}></lightning-input>
+                                <lightning-input type="datetime" name="eventEndDate" label="End DateTime" value={eventEndDate} onchange={handleInputChange} timezone="Asia/Seoul"></lightning-input>
                             </div>
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-textarea name="eventDescription" label="Description" value={eventDescription} onchange={handleInputChange}></lightning-textarea>

@@ -1,0 +1,22 @@
+<!--
+  @description       : 
+  @author            : sejin.park@dkbmc.com
+  @group             : 
+  @last modified on  : 2025-07-18
+  @last modified by  : sejin.park@dkbmc.com
+-->
+<template>
+    <lightning-card title="Timezone Isolation Test" icon-name="utility:clock">
+        <div class="slds-p-around_medium">
+            <p class="slds-m-bottom_small">
+                이 필드에 "2025년 7월 18일 오전 10:00"이 표시되어야 합니다.
+            </p>
+            <lightning-input
+                type="datetime"
+                label="Test KST DateTime"
+                value={gmtTimeValue}
+                timezone="Asia/Seoul">
+            </lightning-input>
+        </div>
+    </lightning-card>
+</template>
