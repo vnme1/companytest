@@ -1,14 +1,35 @@
 /**
- * @description       : 
+ * @description       : 비용 요약 패널 컴포넌트 (간결하게 리팩토링)
  * @author            : sejin.park@dkbmc.com
- * @group             : 
- * @last modified on  : 2025-07-18
- * @last modified by  : sejin.park@dkbmc.com
-**/
+ */
 import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
 import { refreshApex } from '@salesforce/apex';
+
+// 날짜 유틸리티
+const DateUtils = {
+    getMonthRange: (currentMonth) => {
+        const currentDate = currentMonth ? new Date(currentMonth) : new Date();
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        
+        return {
+            start: startOfMonth.toISOString(),
+            end: endOfMonth.toISOString()
+        };
+    }
+};
+
+// 통화 포맷터
+const CurrencyFormatter = {
+    format: (amount) => {
+        return new Intl.NumberFormat('ko-KR', { 
+            style: 'currency', 
+            currency: 'KRW' 
+        }).format(amount || 0);
+    }
+};
 
 export default class CostSummaryPanel extends NavigationMixin(LightningElement) {
     @api currentMonth;
@@ -18,21 +39,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     _wiredCostResult;
 
     get monthRange() {
-        let currentDate;
-
-        if (!this.currentMonth) {
-            currentDate = new Date();
-        } else {
-            currentDate = new Date(this.currentMonth);
-        }
-
-        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0);
-        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-        return {
-            start: startOfMonth.toISOString(),
-            end: endOfMonth.toISOString()
-        };
+        return DateUtils.getMonthRange(this.currentMonth);
     }
 
     @wire(getMonthlyCostSummary, { 
@@ -44,8 +51,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         if (result.data) {
             this.processCostData(result.data);
         } else if (result.error) {
-            this.costItems = [];
-            this.totalAmount = '₩0';
+            this.resetCostData();
         }
     }
 
@@ -58,11 +64,16 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
             total += amount;
             this.costItems.push({
                 type: costType,
-                amount: this.formatCurrency(amount)
+                amount: CurrencyFormatter.format(amount)
             });
         });
 
-        this.totalAmount = this.formatCurrency(total);
+        this.totalAmount = CurrencyFormatter.format(total);
+    }
+
+    resetCostData() {
+        this.costItems = [];
+        this.totalAmount = '₩0';
     }
 
     @api
@@ -73,13 +84,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     @api
     updateMonth(newMonth) {
         this.currentMonth = newMonth;
-    }
-
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('ko-KR', { 
-            style: 'currency', 
-            currency: 'KRW' 
-        }).format(amount || 0);
     }
 
     handleReportClick() {
