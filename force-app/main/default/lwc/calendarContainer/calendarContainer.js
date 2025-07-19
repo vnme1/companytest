@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 (최적화 버전 - 불필요한 로직 제거)
+ * @description       : 캘린더 컨테이너 (색상 코드 제거 - 깔끔한 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -26,7 +26,7 @@ const ERROR_MESSAGES = {
     LOAD_EVENT_ERROR: '이벤트 정보를 불러오는 데 실패했습니다.'
 };
 
-// === 유틸리티 함수 (필수만) ===
+// === 유틸리티 함수 ===
 function addOneDay(ymdStr) {
     const date = new Date(ymdStr);
     date.setDate(date.getDate() + 1);
@@ -111,7 +111,6 @@ export default class CalendarContainer extends LightningElement {
                 throw new Error(ERROR_MESSAGES.INVALID_DRAG_DATA);
             }
 
-            // 직접 인라인 처리 (과도한 메서드 분리 제거)
             this.recordId = null;
             this.eventTitle = recordName;
             this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
@@ -143,7 +142,6 @@ export default class CalendarContainer extends LightningElement {
             .then(result => {
                 const evt = result.event;
                 
-                // 직접 인라인 처리 (과도한 분리 제거)
                 this.eventTitle = evt.Title__c || '';
                 this.eventStartDate = evt.Start_Date__c || '';
                 this.eventEndDate = evt.End_Date__c || '';
@@ -169,15 +167,13 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', ERROR_MESSAGES.LOAD_EVENT_ERROR, 'error'));
     }
 
-    // === 이벤트 저장 (검증 로직을 Apex에 위임) ===
+    // === 이벤트 저장 ===
     saveEvent() {
-        // 기본 클라이언트 검증만 (서버사이드 검증은 Apex에서)
         if (!this.eventTitle) {
             this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
             return;
         }
 
-        // 비용 데이터를 객체 배열로 전달 (JSON 직렬화는 Apex에서)
         const costData = this.costItems
             .filter(item => item.type && item.amount && Number(item.amount) > 0)
             .map(item => ({ type: item.type, amount: Number(item.amount) }));
@@ -192,7 +188,7 @@ export default class CalendarContainer extends LightningElement {
             department: this.eventDepartment,
             relatedId: this.newEventData?.extendedProps?.relatedId,
             recordType: this.newEventData?.extendedProps?.recordType,
-            costDetailsJson: JSON.stringify(costData) // 임시로 유지 (Apex 개선 후 제거 예정)
+            costDetailsJson: JSON.stringify(costData)
         };
 
         saveEventAndCosts(saveParams)
@@ -266,24 +262,24 @@ export default class CalendarContainer extends LightningElement {
         }];
     }
 
-    // === 헬퍼 메서드들 (필수만) ===
+    // === 캘린더 업데이트 (색상 제거) ===
     updateCalendarView(savedEventId) {
         const calendarView = this.template.querySelector('c-calendar-view');
         if (!calendarView) return;
 
+        const eventData = {
+            title: this.eventTitle,
+            start: this.eventStartDate,
+            end: addOneDay(this.eventEndDate),
+            allDay: true
+        };
+
         if (this.recordId) {
-            calendarView.updateEvent(this.recordId, {
-                title: this.eventTitle,
-                start: this.eventStartDate,
-                end: addOneDay(this.eventEndDate)
-            });
+            calendarView.updateEvent(this.recordId, eventData);
         } else {
             calendarView.addEvent({
                 id: savedEventId,
-                title: this.eventTitle,
-                start: this.eventStartDate,
-                end: addOneDay(this.eventEndDate),
-                allDay: false
+                ...eventData
             });
         }
     }
