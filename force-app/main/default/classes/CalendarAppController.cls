@@ -1,7 +1,7 @@
 /**
  * @description       : Calendar App Controller with Cost Detail integration and Dynamic Picklist
  * @author            : sejin.park@dkbmc.com
- * @last modified on  : 2025-07-17
+ * @last modified on  : 2025-07-18
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarAppController {
@@ -15,11 +15,16 @@ public with sharing class CalendarAppController {
 
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
-        return CalendarEventSelector.selectEventsByDateRange(
-            (Datetime)JSON.deserialize('"' + startStr + '"', Datetime.class),
-            (Datetime)JSON.deserialize('"' + endStr + '"', Datetime.class)
-        );
+        try {
+            Date startDate = Date.valueOf(startStr);
+            Date endDate = Date.valueOf(endStr);
+            return [SELECT Id, Title__c, Start_Date__c, End_Date__c FROM My_Event__c
+                    WHERE Start_Date__c >= :startDate AND End_Date__c <= :endDate];
+        } catch (Exception e) {
+            throw new AuraHandledException('이벤트 조회 중 오류 발생: ' + e.getMessage());
+        }
     }
+
 
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
@@ -36,12 +41,15 @@ public with sharing class CalendarAppController {
         return wrapper;
     }
 
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled(cacheable=true) 
     public static Map<String, Decimal> getMonthlyCostSummary(String startDate, String endDate) {
-        return CalendarEventSelector.selectMonthlyCostSummary(
-            (Datetime)JSON.deserialize('"' + startDate + '"', Datetime.class),
-            (Datetime)JSON.deserialize('"' + endDate + '"', Datetime.class)
-        );
+        try {
+            Date start = Date.valueOf(startDate);
+            Date endDateObj = Date.valueOf(endDate);
+            return CalendarEventSelector.selectMonthlyCostSummary(start, endDateObj);
+        } catch (Exception e) {
+            throw new AuraHandledException('비용 요약 조회 중 오류 발생: ' + e.getMessage());
+        }
     }
 
     @AuraEnabled(cacheable=true)
@@ -78,7 +86,7 @@ public with sharing class CalendarAppController {
         try {
             // 필수 값 검증
             if (String.isBlank(title)) {
-                throw new AuraHandledException('제목은 필수 입력 항목입니다.');
+                throw new AuraHandledException(Label.LABEL_REQUIRED_TITLE);
             }
 
             My_Event__c eventToSave;
@@ -88,7 +96,7 @@ public with sharing class CalendarAppController {
             } else {
                 List<My_Event__c> events = [SELECT Id FROM My_Event__c WHERE Id = :recordId LIMIT 1];
                 if (events.isEmpty()) {
-                    throw new AuraHandledException('수정할 이벤트를 찾을 수 없습니다.');
+                    throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
                 }
                 eventToSave = events[0];
             }
@@ -101,10 +109,10 @@ public with sharing class CalendarAppController {
             eventToSave.Related_Record_Type__c = recordType;
 
             if (String.isNotBlank(startDate)) {
-                eventToSave.Start_DateTime__c = Datetime.valueOfGmt(startDate.replace('T', ' ') + ':00');
+                eventToSave.Start_Date__c = Date.valueOf(startDate);
             }
             if (String.isNotBlank(endDate)) {
-                eventToSave.End_DateTime__c = Datetime.valueOfGmt(endDate.replace('T', ' ') + ':00');
+                eventToSave.End_Date__c = Date.valueOf(endDate);
             }
 
             upsert eventToSave;
@@ -154,7 +162,7 @@ public with sharing class CalendarAppController {
                         costsToInsert.add(newCost);
                     }
                 } catch (Exception jsonEx) {
-                    throw new AuraHandledException('비용 데이터 형식이 올바르지 않습니다.');
+                    throw new AuraHandledException(Label.LABEL_INVALID_COST_JSON);
                 }
             }
             
@@ -169,7 +177,7 @@ public with sharing class CalendarAppController {
             if (e instanceof AuraHandledException) {
                 throw e;
             } else {
-                throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + errorMessage);
+                throw new AuraHandledException(String.format(Label.LABEL_EVENT_SAVE_ERROR, new String[]{ errorMessage }));
             }
         }
     }
@@ -179,19 +187,15 @@ public with sharing class CalendarAppController {
         try {
             My_Event__c eventToUpdate = [SELECT Id FROM My_Event__c WHERE Id = :eventId LIMIT 1];
             
-            if (String.isNotBlank(newStartDate)) {
-                eventToUpdate.Start_DateTime__c = Datetime.valueOfGmt(newStartDate.replace('T', ' ') + ':00');
-            }
-            if (String.isNotBlank(newEndDate)) {
-                eventToUpdate.End_DateTime__c = Datetime.valueOfGmt(newEndDate.replace('T', ' ') + ':00');
-            }
-            
+            if (String.isNotBlank(newStartDate)) { eventToUpdate.Start_Date__c = Date.valueOf(newStartDate); }
+            if (String.isNotBlank(newEndDate)) { eventToUpdate.End_Date__c = Date.valueOf(newEndDate); }
+
             update eventToUpdate;
             
             return 'SUCCESS';
             
         } catch (Exception e) {
-            throw new AuraHandledException('일정 날짜 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException(String.format(Label.LABEL_EVENT_UPDATE_ERROR, new String[]{ e.getMessage() }));
         }
     }
 
@@ -211,7 +215,7 @@ public with sharing class CalendarAppController {
             return 'SUCCESS';
             
         } catch (Exception e) {
-            throw new AuraHandledException('일정 삭제 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException(String.format(Label.LABEL_EVENT_DELETE_ERROR, new String[]{ e.getMessage() }));
         }
     }
 }
