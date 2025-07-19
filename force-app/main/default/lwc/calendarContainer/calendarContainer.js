@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 메인 컴포넌트 (Promise 방식으로 통일)
+ * @description       : 캘린더 컨테이너 메인 컴포넌트 (간결하게 리팩토링)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -11,27 +11,48 @@ import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
 import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
-// 날짜 처리 유틸리티 함수
-const DateUtils = {
-    addOneDay: (ymdStr) => {
-        const date = new Date(ymdStr);
-        date.setDate(date.getDate() + 1);
-        return date.toISOString().slice(0, 10);
-    },
-    
-    toLocalYMD: (date) => {
-        const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-        return localDate.toISOString().slice(0, 10);
-    }
+// === 상수 정의 ===
+const RECORD_TYPES = {
+    PERSONAL: 'Personal',
+    ACCOUNT: 'Account',
+    CONTACT: 'Contact',
+    OPPORTUNITY: 'Opportunity'
 };
 
+const ERROR_MESSAGES = {
+    TITLE_REQUIRED: '제목은 필수 입력 항목입니다.',
+    DEPARTMENT_REQUIRED: '부서는 필수 선택 항목입니다.',
+    INVALID_DROP_DATA: '드롭 이벤트 데이터가 유효하지 않습니다.',
+    INVALID_DRAG_DATA: '드래그된 항목의 데이터가 유효하지 않습니다.',
+    LOAD_OPTIONS_ERROR: '옵션을 불러오는 데 실패했습니다.',
+    LOAD_EVENT_ERROR: '이벤트 정보를 불러오는 데 실패했습니다.'
+};
+
+// === 유틸리티 함수들 ===
+function addOneDay(ymdStr) {
+    const date = new Date(ymdStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+}
+
+function toLocalYMD(date) {
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return localDate.toISOString().slice(0, 10);
+}
+
+function isValidDropData(draggedEl, date) {
+    if (!draggedEl || !date) return false;
+    const { recordName, recordType } = draggedEl.dataset;
+    return recordName && recordType;
+}
+
 export default class CalendarContainer extends LightningElement {
-    // 모달 상태 관리
+    // === 상태 관리 ===
     @track isModalOpen = false;
     @track modalTitle = '';
     @track currentMonthForSummary;
 
-    // 이벤트 데이터
+    // === 이벤트 데이터 ===
     @track recordId = null;
     @track eventTitle = '';
     @track eventStartDate = '';
@@ -42,17 +63,17 @@ export default class CalendarContainer extends LightningElement {
     @track costItems = [];
     @track newEventData = { extendedProps: {} };
 
-    // 피클리스트 옵션
+    // === 피클리스트 옵션 ===
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
 
-    // Getter 메서드들
+    // === Computed Properties ===
     get isSalesforceObjectEvent() {
-        return this.newEventData?.extendedProps?.recordType !== 'Personal';
+        return this.newEventData?.extendedProps?.recordType !== RECORD_TYPES.PERSONAL;
     }
 
     get isPersonalActivityEvent() {
-        return this.newEventData?.extendedProps?.recordType === 'Personal';
+        return this.newEventData?.extendedProps?.recordType === RECORD_TYPES.PERSONAL;
     }
 
     get displayAccountName() {
@@ -67,62 +88,216 @@ export default class CalendarContainer extends LightningElement {
         return this.costTypePicklistOptions;
     }
 
+    // === 라이프사이클 ===
     connectedCallback() {
         const today = new Date();
         this.currentMonthForSummary = today.toISOString();
         this.loadPicklistOptions();
     }
 
-    // Promise 방식으로 통일된 피클리스트 로드
+    // === 피클리스트 로드 ===
     loadPicklistOptions() {
-        Promise.all([
-            getDepartmentOptions(),
-            getCostTypeOptions()
-        ])
-        .then(([departmentOptions, costTypeOptions]) => {
-            this.departmentPicklistOptions = departmentOptions;
-            this.costTypePicklistOptions = costTypeOptions;
-        })
-        .catch(error => {
-            this.showToast('오류', '옵션을 불러오는 데 실패했습니다.', 'error');
-        });
+        Promise.all([getDepartmentOptions(), getCostTypeOptions()])
+            .then(([departmentOptions, costTypeOptions]) => {
+                this.departmentPicklistOptions = departmentOptions;
+                this.costTypePicklistOptions = costTypeOptions;
+            })
+            .catch(() => this.showError(ERROR_MESSAGES.LOAD_OPTIONS_ERROR));
     }
 
-    // 이벤트 핸들러들
+    // === 이벤트 드롭 처리 ===
     handleEventDrop(event) {
         try {
             const { draggedEl, date } = event.detail;
-            this.validateDropData(draggedEl, date);
+            
+            if (!isValidDropData(draggedEl, date)) {
+                throw new Error(ERROR_MESSAGES.INVALID_DROP_DATA);
+            }
 
-            const eventData = this.extractDropEventData(draggedEl, date);
-            this.setupNewEvent(eventData);
+            const { recordName, recordType, recordId, accountName } = draggedEl.dataset;
+            if (!recordName || !recordType) {
+                throw new Error(ERROR_MESSAGES.INVALID_DRAG_DATA);
+            }
+
+            this.setupNewEvent(recordName, recordType, recordId, accountName, date);
             this.openModal();
         } catch (error) {
-            this.showToast('오류', error.message, 'error');
+            this.showError(error.message);
         }
     }
 
+    // === 새 이벤트 설정 ===
+    setupNewEvent(recordName, recordType, recordId, accountName, date) {
+        this.recordId = null;
+        this.eventTitle = recordName;
+        this.eventDepartment = this.getDefaultDepartment();
+        this.eventDescription = '';
+        this.eventLocation = '';
+
+        const localYMD = toLocalYMD(date);
+        this.eventStartDate = localYMD;
+        this.eventEndDate = localYMD;
+
+        this.newEventData = {
+            extendedProps: {
+                recordType,
+                relatedId: recordId,
+                accountName: accountName || ''
+            }
+        };
+
+        this.costItems = [this.createEmptyCostItem()];
+        this.modalTitle = `새 ${recordType === RECORD_TYPES.PERSONAL ? '활동' : '이벤트'}: ${recordName}`;
+    }
+
+    // === 기존 이벤트 클릭 처리 ===
     handleEventClick(event) {
         this.recordId = event.detail.eventId;
         if (!this.recordId) return;
 
         getEventDetails({ eventId: this.recordId })
-            .then(result => {
-                this.setupExistingEvent(result);
-                this.openModal();
-            })
-            .catch(error => {
-                this.showToast('오류', '이벤트 정보를 불러오는 데 실패했습니다.', 'error');
-            });
+            .then(result => this.setupExistingEvent(result))
+            .then(() => this.openModal())
+            .catch(() => this.showError(ERROR_MESSAGES.LOAD_EVENT_ERROR));
     }
 
+    // === 기존 이벤트 설정 ===
+    setupExistingEvent(result) {
+        const evt = result.event;
+        
+        this.setBasicEventData(evt);
+        this.setDepartmentData(result.costs);
+        this.setExtendedProps(evt, result.accountName);
+        this.setCostItems(result.costs);
+        
+        this.modalTitle = `이벤트 수정: ${evt.Title__c}`;
+    }
+
+    setBasicEventData(evt) {
+        this.eventTitle = evt.Title__c || '';
+        this.eventStartDate = evt.Start_Date__c || '';
+        this.eventEndDate = evt.End_Date__c || '';
+        this.eventDescription = evt.Description__c || '';
+        this.eventLocation = evt.Location__c || '';
+    }
+
+    setDepartmentData(costs) {
+        this.eventDepartment = (costs && costs.length > 0 && costs[0].department__c) 
+            ? costs[0].department__c 
+            : this.getDefaultDepartment();
+    }
+
+    setExtendedProps(evt, accountName) {
+        this.newEventData = {
+            extendedProps: {
+                recordType: evt.Related_Record_Type__c,
+                relatedId: evt.Related_Record_Id__c,
+                accountName: accountName || ''
+            }
+        };
+    }
+
+    setCostItems(costs) {
+        this.costItems = (costs && costs.length > 0)
+            ? costs.map((c, i) => ({ id: i, type: c.Cost_Type__c, amount: c.Amount__c }))
+            : [this.createEmptyCostItem()];
+    }
+
+    // === 이벤트 저장 ===
+    saveEvent() {
+        if (!this.validateEventData()) return;
+
+        const saveParams = this.buildSaveParams();
+
+        saveEventAndCosts(saveParams)
+            .then(savedEventId => this.handleSaveSuccess(savedEventId))
+            .catch(error => this.handleSaveError(error));
+    }
+
+    validateEventData() {
+        if (!this.eventTitle) {
+            this.showError(ERROR_MESSAGES.TITLE_REQUIRED);
+            return false;
+        }
+
+        if (!this.eventDepartment && this.isSalesforceObjectEvent) {
+            this.showError(ERROR_MESSAGES.DEPARTMENT_REQUIRED);
+            return false;
+        }
+
+        return true;
+    }
+
+    buildSaveParams() {
+        const validCostItems = this.getValidCostItems();
+
+        return {
+            recordId: this.recordId,
+            title: this.eventTitle,
+            startDate: this.eventStartDate,
+            endDate: this.eventEndDate,
+            description: this.eventDescription,
+            location: this.eventLocation,
+            department: this.eventDepartment,
+            relatedId: this.newEventData?.extendedProps?.relatedId,
+            recordType: this.newEventData?.extendedProps?.recordType,
+            costDetailsJson: JSON.stringify(validCostItems)
+        };
+    }
+
+    getValidCostItems() {
+        return this.costItems
+            .filter(item => item.type && item.amount && Number(item.amount) > 0)
+            .map(item => ({
+                type: String(item.type),
+                amount: Number(item.amount)
+            }));
+    }
+
+    handleSaveSuccess(savedEventId) {
+        this.updateCalendarView(savedEventId);
+        this.showSuccess('이벤트가 저장되었습니다.');
+        this.closeModal();
+        this.refreshCostSummary();
+    }
+
+    handleSaveError(error) {
+        const errorMessage = this.extractErrorMessage(error) || '이벤트 저장 중 오류가 발생했습니다.';
+        this.showError(errorMessage);
+    }
+
+    // === 이벤트 삭제 ===
+    handleDelete() {
+        if (!this.recordId) return;
+
+        deleteEvent({ eventId: this.recordId })
+            .then(() => this.handleDeleteSuccess())
+            .catch(error => this.handleDeleteError(error));
+    }
+
+    handleDeleteSuccess() {
+        const calendarView = this.template.querySelector('c-calendar-view');
+        if (calendarView) {
+            calendarView.removeEvent(this.recordId);
+        }
+        this.showSuccess('일정이 삭제되었습니다.');
+        this.closeModal();
+        this.refreshCostSummary();
+    }
+
+    handleDeleteError(error) {
+        const errorMessage = this.extractErrorMessage(error) || '일정 삭제 중 오류가 발생했습니다.';
+        this.showError(errorMessage);
+    }
+
+    // === 기타 이벤트 핸들러들 ===
     handleEventMoved(event) {
-        this.showToast('성공', event.detail.message, 'success');
+        this.showSuccess(event.detail.message);
         this.refreshCostSummary();
     }
 
     handleEventError(event) {
-        this.showToast('오류', event.detail.message, 'error');
+        this.showError(event.detail.message);
     }
 
     handleDatesSet(event) {
@@ -153,156 +328,17 @@ export default class CalendarContainer extends LightningElement {
         }];
     }
 
-    // 이벤트 저장 - Promise 방식으로 통일
-    saveEvent() {
-        if (!this.validateEventData()) {
-            return;
-        }
-
-        const saveParams = this.buildSaveParams();
-
-        saveEventAndCosts(saveParams)
-            .then(savedEventId => {
-                this.updateCalendarView(savedEventId);
-                this.showToast('성공', '이벤트가 저장되었습니다.', 'success');
-                this.closeModal();
-                this.refreshCostSummary();
-            })
-            .catch(error => {
-                const errorMessage = error.body?.message || error.message || '이벤트 저장 중 오류가 발생했습니다.';
-                this.showToast('저장 오류', errorMessage, 'error');
-            });
+    // === 헬퍼 메서드들 ===
+    getDefaultDepartment() {
+        return this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
     }
 
-    // 이벤트 삭제 - Promise 방식으로 통일
-    handleDelete() {
-        if (!this.recordId) return;
-
-        deleteEvent({ eventId: this.recordId })
-            .then(() => {
-                const calendarView = this.template.querySelector('c-calendar-view');
-                if (calendarView) {
-                    calendarView.removeEvent(this.recordId);
-                }
-                this.showToast('성공', '일정이 삭제되었습니다.', 'success');
-                this.closeModal();
-                this.refreshCostSummary();
-            })
-            .catch(error => {
-                const errorMessage = error.body?.message || error.message || '일정 삭제 중 오류가 발생했습니다.';
-                this.showToast('삭제 오류', errorMessage, 'error');
-            });
+    createEmptyCostItem() {
+        return { id: 0, type: '', amount: null };
     }
 
-    // 헬퍼 메서드들 - 복잡한 로직을 간결하게 분리
-    validateDropData(draggedEl, date) {
-        if (!draggedEl || !date) {
-            throw new Error('드롭 이벤트 데이터가 유효하지 않습니다.');
-        }
-        const { recordName, recordType } = draggedEl.dataset;
-        if (!recordName || !recordType) {
-            throw new Error('드래그된 항목의 데이터가 유효하지 않습니다.');
-        }
-    }
-
-    extractDropEventData(draggedEl, date) {
-        const { recordName, recordType, recordId, accountName } = draggedEl.dataset;
-        const localYMD = DateUtils.toLocalYMD(date);
-        
-        return {
-            title: recordName,
-            startDate: localYMD,
-            endDate: localYMD,
-            recordType,
-            relatedId: recordId,
-            accountName: accountName || ''
-        };
-    }
-
-    setupNewEvent(eventData) {
-        this.recordId = null;
-        this.eventTitle = eventData.title;
-        this.eventDepartment = this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '';
-        this.eventDescription = '';
-        this.eventLocation = '';
-        this.eventStartDate = eventData.startDate;
-        this.eventEndDate = eventData.endDate;
-
-        this.newEventData = {
-            extendedProps: {
-                recordType: eventData.recordType,
-                relatedId: eventData.relatedId,
-                accountName: eventData.accountName
-            }
-        };
-
-        this.costItems = [{ id: 0, type: '', amount: null }];
-        this.modalTitle = `새 ${eventData.recordType === 'Personal' ? '활동' : '이벤트'}: ${eventData.title}`;
-    }
-
-    setupExistingEvent(result) {
-        const evt = result.event;
-        
-        this.eventTitle = evt.Title__c || '';
-        this.eventStartDate = evt.Start_Date__c || '';
-        this.eventEndDate = evt.End_Date__c || '';
-        this.eventDescription = evt.Description__c || '';
-        this.eventLocation = evt.Location__c || '';
-
-        // 부서 설정
-        this.eventDepartment = (result.costs && result.costs.length > 0 && result.costs[0].department__c) 
-            ? result.costs[0].department__c 
-            : (this.departmentPicklistOptions.length > 0 ? this.departmentPicklistOptions[0].value : '');
-
-        this.newEventData = {
-            extendedProps: {
-                recordType: evt.Related_Record_Type__c,
-                relatedId: evt.Related_Record_Id__c,
-                accountName: result.accountName || ''
-            }
-        };
-
-        this.costItems = (result.costs && result.costs.length > 0)
-            ? result.costs.map((c, i) => ({ id: i, type: c.Cost_Type__c, amount: c.Amount__c }))
-            : [{ id: 0, type: '', amount: null }];
-
-        this.modalTitle = `이벤트 수정: ${evt.Title__c}`;
-    }
-
-    validateEventData() {
-        if (!this.eventTitle) {
-            this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
-            return false;
-        }
-
-        if (!this.eventDepartment && this.isSalesforceObjectEvent) {
-            this.showToast('입력 오류', '부서는 필수 선택 항목입니다.', 'error');
-            return false;
-        }
-
-        return true;
-    }
-
-    buildSaveParams() {
-        const validCostItems = this.costItems
-            .filter(item => item.type && item.amount && Number(item.amount) > 0)
-            .map(item => ({
-                type: String(item.type),
-                amount: Number(item.amount)
-            }));
-
-        return {
-            recordId: this.recordId,
-            title: this.eventTitle,
-            startDate: this.eventStartDate,
-            endDate: this.eventEndDate,
-            description: this.eventDescription,
-            location: this.eventLocation,
-            department: this.eventDepartment,
-            relatedId: this.newEventData?.extendedProps?.relatedId,
-            recordType: this.newEventData?.extendedProps?.recordType,
-            costDetailsJson: JSON.stringify(validCostItems)
-        };
+    extractErrorMessage(error) {
+        return error?.body?.message || error?.message;
     }
 
     updateCalendarView(savedEventId) {
@@ -313,14 +349,14 @@ export default class CalendarContainer extends LightningElement {
             calendarView.updateEvent(this.recordId, {
                 title: this.eventTitle,
                 start: this.eventStartDate,
-                end: DateUtils.addOneDay(this.eventEndDate)
+                end: addOneDay(this.eventEndDate)
             });
         } else {
             calendarView.addEvent({
                 id: savedEventId,
                 title: this.eventTitle,
                 start: this.eventStartDate,
-                end: DateUtils.addOneDay(this.eventEndDate),
+                end: addOneDay(this.eventEndDate),
                 allDay: false
             });
         }
@@ -334,6 +370,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
+    // === 모달 관리 ===
     openModal() {
         this.isModalOpen = true;
     }
@@ -355,7 +392,20 @@ export default class CalendarContainer extends LightningElement {
         this.newEventData = { extendedProps: {} };
     }
 
-    showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    // === Toast 메시지 ===
+    showSuccess(message) {
+        this.dispatchEvent(new ShowToastEvent({
+            title: '성공',
+            message: message,
+            variant: 'success'
+        }));
+    }
+
+    showError(message) {
+        this.dispatchEvent(new ShowToastEvent({
+            title: '오류',
+            message: message,
+            variant: 'error'
+        }));
     }
 }

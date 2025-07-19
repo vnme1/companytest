@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 뷰 컴포넌트 (Promise 방식으로 통일)
+ * @description       : 캘린더 뷰 컴포넌트 (간결하게 리팩토링)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, api } from 'lwc';
@@ -8,36 +8,41 @@ import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
 import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
 
-// 날짜 유틸리티 함수
-const DateUtils = {
-    toYMD: (date) => {
-        try {
-            const offsetMs = date.getTimezoneOffset() * 60000;
-            const localDate = new Date(date.getTime() - offsetMs);
-            return localDate.toISOString().slice(0, 10);
-        } catch (e) {
-            return '';
-        }
-    },
-
-    adjustEndDate: (endDate) => {
-        const adjustedEnd = new Date(endDate);
-        adjustedEnd.setDate(adjustedEnd.getDate() + 1);
-        return adjustedEnd.toISOString().slice(0, 10);
-    },
-
-    subtractOneDay: (endDate) => {
-        const adjustedEnd = new Date(endDate);
-        adjustedEnd.setDate(adjustedEnd.getDate() - 1);
-        return DateUtils.toYMD(adjustedEnd);
-    }
+// === 상수 및 유틸리티 ===
+const CALENDAR_CONFIG = {
+    HEIGHT: 800,
+    CONTENT_HEIGHT: 700,
+    LOCALE: 'ko',
+    INITIAL_VIEW: 'dayGridMonth'
 };
+
+function toYMD(date) {
+    try {
+        const offsetMs = date.getTimezoneOffset() * 60000;
+        const localDate = new Date(date.getTime() - offsetMs);
+        return localDate.toISOString().slice(0, 10);
+    } catch (e) {
+        return '';
+    }
+}
+
+function addOneDay(dateStr) {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+}
+
+function subtractOneDay(date) {
+    const adjustedEnd = new Date(date);
+    adjustedEnd.setDate(adjustedEnd.getDate() - 1);
+    return toYMD(adjustedEnd);
+}
 
 export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
-    // Public API 메서드들
+    // === Public API Methods ===
     @api
     refetchEvents() {
         if (this.calendarApi) {
@@ -47,11 +52,8 @@ export default class CalendarView extends LightningElement {
 
     @api
     addEvent(eventData) {
-        if (this.calendarApi) {
-            const existingEvent = this.calendarApi.getEventById(eventData.id);
-            if (!existingEvent) {
-                this.calendarApi.addEvent(eventData);
-            }
+        if (this.calendarApi && !this.calendarApi.getEventById(eventData.id)) {
+            this.calendarApi.addEvent(eventData);
         }
     }
 
@@ -77,6 +79,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // === 라이프사이클 ===
     renderedCallback() {
         if (this.fullCalendarInitialized) {
             return;
@@ -86,7 +89,7 @@ export default class CalendarView extends LightningElement {
         }, 100);
     }
 
-    // Promise 방식으로 통일된 FullCalendar 로드
+    // === FullCalendar 로드 ===
     loadFullCalendar() {
         if (this.fullCalendarInitialized) {
             return;
@@ -97,15 +100,13 @@ export default class CalendarView extends LightningElement {
             loadScript(this, FullCalendar + '/main.min.js')
         ])
         .then(() => loadScript(this, FullCalendar + '/locales/ko.js'))
-        .then(() => {
-            this.fullCalendarInitialized = true;
-            this.initializeCalendar();
-        })
-        .catch(error => {
+        .then(() => this.initializeCalendar())
+        .catch(() => {
             this.fullCalendarInitialized = false;
         });
     }
 
+    // === 캘린더 초기화 ===
     initializeCalendar() {
         const calendarEl = this.template.querySelector('.calendar-container');
         if (!calendarEl || !window.FullCalendar) {
@@ -114,8 +115,19 @@ export default class CalendarView extends LightningElement {
 
         try {
             const calendar = new window.FullCalendar.Calendar(calendarEl, {
-                ...this.getCalendarConfig(),
-                events: this.eventSource.bind(this),
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: CALENDAR_CONFIG.LOCALE,
+                initialView: CALENDAR_CONFIG.INITIAL_VIEW,
+                editable: true,
+                droppable: true,
+                expandRows: true,
+                height: CALENDAR_CONFIG.HEIGHT,
+                contentHeight: CALENDAR_CONFIG.CONTENT_HEIGHT,
+                events: this.loadEvents.bind(this),
                 drop: this.handleDrop.bind(this),
                 eventClick: this.handleEventClick.bind(this),
                 eventDrop: this.handleEventDrop.bind(this),
@@ -125,37 +137,20 @@ export default class CalendarView extends LightningElement {
 
             this.calendarApi = calendar;
             calendar.render();
+            this.fullCalendarInitialized = true;
         } catch (error) {
-            // silent
+            // 조용히 실패 처리
         }
     }
 
-    // 캘린더 설정을 별도 메서드로 분리
-    getCalendarConfig() {
-        return {
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            locale: 'ko',
-            initialView: 'dayGridMonth',
-            editable: true,
-            droppable: true,
-            expandRows: true,
-            height: 800,
-            contentHeight: 700
-        };
-    }
-
-    // Promise 방식으로 통일된 이벤트 소스
-    eventSource(fetchInfo, successCallback, failureCallback) {
+    // === 이벤트 로드 ===
+    loadEvents(fetchInfo, successCallback, failureCallback) {
         getEvents({
-            startStr: DateUtils.toYMD(fetchInfo.start),
-            endStr: DateUtils.toYMD(fetchInfo.end)
+            startStr: toYMD(fetchInfo.start),
+            endStr: toYMD(fetchInfo.end)
         })
         .then(result => {
-            const events = this.transformEventsData(result);
+            const events = this.transformEvents(result);
             successCallback(events);
         })
         .catch(error => {
@@ -163,18 +158,18 @@ export default class CalendarView extends LightningElement {
         });
     }
 
-    // 이벤트 데이터 변환 로직 분리
-    transformEventsData(eventsData) {
+    // === 이벤트 데이터 변환 ===
+    transformEvents(eventsData) {
         return eventsData.map(event => ({
             id: event.Id,
             title: event.Title__c,
             start: event.Start_Date__c,
-            end: DateUtils.adjustEndDate(event.End_Date__c),
+            end: addOneDay(event.End_Date__c),
             allDay: false
         }));
     }
 
-    // 이벤트 핸들러들
+    // === 이벤트 핸들러들 ===
     handleDrop(info) {
         info.jsEvent.preventDefault();
         this.dispatchEvent(new CustomEvent('eventdrop', {
@@ -195,44 +190,12 @@ export default class CalendarView extends LightningElement {
         }));
     }
 
-    // Promise 방식으로 통일된 이벤트 드롭 처리
     handleEventDrop(info) {
-        const { eventId, newStart, newEnd } = this.extractEventDropData(info);
+        const dropData = this.extractDropData(info);
 
-        updateEventDates({
-            eventId: eventId,
-            newStartDate: newStart,
-            newEndDate: newEnd
-        })
-        .then(() => {
-            this.dispatchEvent(new CustomEvent('eventmoved', {
-                detail: {
-                    eventId: eventId,
-                    message: '일정이 성공적으로 이동되었습니다.'
-                }
-            }));
-        })
-        .catch(error => {
-            this.dispatchEvent(new CustomEvent('eventerror', {
-                detail: {
-                    message: '일정 이동 중 오류가 발생했습니다.'
-                }
-            }));
-            info.revert();
-        });
-    }
-
-    // 이벤트 드롭 데이터 추출 로직 분리
-    extractEventDropData(info) {
-        const eventId = info.event.id;
-        const newStart = DateUtils.toYMD(info.event.start);
-        
-        let newEnd = newStart;
-        if (info.event.end) {
-            newEnd = DateUtils.subtractOneDay(info.event.end);
-        }
-
-        return { eventId, newStart, newEnd };
+        updateEventDates(dropData)
+            .then(() => this.dispatchSuccessEvent(dropData.eventId))
+            .catch(() => this.dispatchErrorEvent(info));
     }
 
     handleDatesSet(dateInfo) {
@@ -242,5 +205,36 @@ export default class CalendarView extends LightningElement {
                 end: dateInfo.end.toISOString()
             }
         }));
+    }
+
+    // === 헬퍼 메서드들 ===
+    extractDropData(info) {
+        const eventId = info.event.id;
+        const newStart = toYMD(info.event.start);
+        const newEnd = info.event.end ? subtractOneDay(info.event.end) : newStart;
+
+        return {
+            eventId: eventId,
+            newStartDate: newStart,
+            newEndDate: newEnd
+        };
+    }
+
+    dispatchSuccessEvent(eventId) {
+        this.dispatchEvent(new CustomEvent('eventmoved', {
+            detail: {
+                eventId: eventId,
+                message: '일정이 성공적으로 이동되었습니다.'
+            }
+        }));
+    }
+
+    dispatchErrorEvent(info) {
+        this.dispatchEvent(new CustomEvent('eventerror', {
+            detail: {
+                message: '일정 이동 중 오류가 발생했습니다.'
+            }
+        }));
+        info.revert();
     }
 }
