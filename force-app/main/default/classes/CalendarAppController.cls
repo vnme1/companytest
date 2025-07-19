@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller (색상 지원 버전)
+ * @description       : Calendar App Controller (비즈니스 로직 강화 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-19
  * @last modified by  : sejin.park@dkbmc.com
@@ -12,27 +12,6 @@ public with sharing class CalendarAppController {
     private static final String ACCOUNT_RECORD_TYPE = 'Account';
     private static final Decimal MIN_COST_AMOUNT = 0.01;
     
-    // ✅ 색상 상수 정의 (재사용성 및 유지보수성 향상)
-    private static final Map<String, Map<String, String>> EVENT_COLORS = new Map<String, Map<String, String>>{
-        'Personal' => new Map<String, String>{
-            'backgroundColor' => '#8B5Cf6',
-            'borderColor' => '#7C3AED',
-            'textColor' => '#FFFFFF'
-        },
-        'Salesforce' => new Map<String, String>{
-            'backgroundColor' => '#059669',
-            'borderColor' => '#047857',
-            'textColor' => '#FFFFFF'
-        },
-        'Default' => new Map<String, String>{
-            'backgroundColor' => '#0176d3',
-            'borderColor' => '#005fb2',
-            'textColor' => '#FFFFFF'
-        }
-    };
-    
-    private static final Set<String> SALESFORCE_RECORD_TYPES = new Set<String>{'Account', 'Contact', 'Opportunity'};
-
     // === Wrapper Classes ===
     public class EventWrapper {
         @AuraEnabled public My_Event__c event;
@@ -40,51 +19,34 @@ public with sharing class CalendarAppController {
         @AuraEnabled public String accountName;
     }
 
-    // ✅ 색상 정보 클래스 (회사 명명 규칙 준수)
-    public class EventColorInfo {
-        @AuraEnabled public String backgroundColor;
-        @AuraEnabled public String borderColor;
-        @AuraEnabled public String textColor;
-        
-        public EventColorInfo(String bgColor, String borderColor, String textColor) {
-            this.backgroundColor = bgColor;
-            this.borderColor = borderColor;
-            this.textColor = textColor;
-        }
-    }
-
-    // ✅ 색상 포함 이벤트 표시 데이터 (기존 코드와 호환성 유지)
+    // DTO for transformed event data (JS 변환 로직을 Apex로 이관)
     public class EventDisplayData {
         @AuraEnabled public String id;
         @AuraEnabled public String title;
         @AuraEnabled public String startDate;
         @AuraEnabled public String endDate;
         @AuraEnabled public Boolean allDay;
-        @AuraEnabled public EventColorInfo colorInfo;
-        
-        public EventDisplayData(My_Event__c event, EventColorInfo colorInfo) {
-            this.id = event.Id;
-            this.title = event.Title__c;
-            this.startDate = String.valueOf(event.Start_Date__c);
-            this.endDate = String.valueOf(event.End_Date__c.addDays(1));
-            this.allDay = false;
-            this.colorInfo = colorInfo;
-        }
     }
 
-    // === READ OPERATIONS (색상 지원 버전) ===
+    // === READ OPERATIONS (Cacheable) ===
     
     @AuraEnabled(cacheable=true)
-    public static List<EventDisplayData> getEventsWithColors(String startStr, String endStr) {
+    public static List<EventDisplayData> getEventsForDisplay(String startStr, String endStr) {
         try {
             Date startDate = Date.valueOf(startStr);
             Date endDate = Date.valueOf(endStr);
             List<My_Event__c> events = CalendarEventSelector.selectEventsByDateRange(startDate, endDate);
             
+            // JS에서 하던 변환 로직을 Apex에서 처리
             List<EventDisplayData> displayEvents = new List<EventDisplayData>();
             for (My_Event__c event : events) {
-                EventColorInfo colorInfo = getEventColorInfo(event.Related_Record_Type__c);
-                displayEvents.add(new EventDisplayData(event, colorInfo));
+                EventDisplayData displayEvent = new EventDisplayData();
+                displayEvent.id = event.Id;
+                displayEvent.title = event.Title__c;
+                displayEvent.startDate = String.valueOf(event.Start_Date__c);
+                displayEvent.endDate = String.valueOf(event.End_Date__c.addDays(1)); // +1일 처리
+                displayEvent.allDay = false;
+                displayEvents.add(displayEvent);
             }
             
             return displayEvents;
@@ -93,7 +55,7 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // === 기존 메서드들 유지 (호환성) ===
+    // 기존 호환성을 위한 메서드 유지
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
         try {
@@ -118,6 +80,27 @@ public with sharing class CalendarAppController {
         }
     }
 
+    @AuraEnabled(cacheable=true) 
+    public static Map<String, String> getMonthlyCostSummaryFormatted(String startDate, String endDate) {
+        try {
+            Date start = Date.valueOf(startDate);
+            Date endDateObj = Date.valueOf(endDate);
+            Map<String, Decimal> rawSummary = CalendarEventSelector.selectMonthlyCostSummary(start, endDateObj);
+            
+            // JS에서 하던 통화 포맷팅을 Apex에서 처리
+            Map<String, String> formattedSummary = new Map<String, String>();
+            for (String costType : rawSummary.keySet()) {
+                Decimal amount = rawSummary.get(costType);
+                formattedSummary.put(costType, formatCurrency(amount));
+            }
+            
+            return formattedSummary;
+        } catch (Exception e) {
+            throw new AuraHandledException(Label.LABEL_COST_SUMMARY_ERROR + ': ' + e.getMessage());
+        }
+    }
+
+    // 기존 호환성을 위한 메서드 유지
     @AuraEnabled(cacheable=true) 
     public static Map<String, Decimal> getMonthlyCostSummary(String startDate, String endDate) {
         try {
@@ -154,34 +137,8 @@ public with sharing class CalendarAppController {
         return CalendarEventSelector.selectCostTypeOptions();
     }
 
-    // === WRITE OPERATIONS (색상 정보 포함 버전) ===
+    // === WRITE OPERATIONS (비즈니스 로직 강화) ===
     
-    @AuraEnabled
-    public static Map<String, Object> saveEventAndCostsWithColor(
-        Id recordId, String title, String startDate, String endDate,
-        String description, String location, String department,
-        String relatedId, String recordType, String costDetailsJson
-    ) {
-        try {
-            // 1. 기존 저장 로직 실행
-            String savedEventId = saveEventAndCosts(recordId, title, startDate, endDate, 
-                description, location, department, relatedId, recordType, costDetailsJson);
-            
-            // 2. 색상 정보 포함하여 반환
-            EventColorInfo colorInfo = getEventColorInfo(recordType);
-            
-            return new Map<String, Object>{
-                'eventId' => savedEventId,
-                'colorInfo' => colorInfo
-            };
-
-        } catch (Exception e) {
-            handleException(e);
-            return null;
-        }
-    }
-    
-    // ✅ 기존 저장 메서드 유지 (호환성)
     @AuraEnabled
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
@@ -189,10 +146,14 @@ public with sharing class CalendarAppController {
         String relatedId, String recordType, String costDetailsJson
     ) {
         try {
+            // 1. 서버사이드 검증 강화 (JS에서 이관)
             validateEventInputs(title, department, recordType);
+            
+            // 2. 이벤트 저장
             My_Event__c eventRecord = saveEventRecord(recordId, title, description, 
                 location, relatedId, recordType, startDate, endDate);
             
+            // 3. 비용 상세 처리 (검증 로직 포함)
             if (!isPersonalActivity(recordType)) {
                 saveCostDetailsWithValidation(eventRecord.Id, costDetailsJson, department);
             }
@@ -236,54 +197,11 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // === 색상 관련 HELPER METHODS ===
+    // === HELPER METHODS (비즈니스 로직 강화) ===
     
     /**
-     * ✅ 이벤트 유형별 색상 정보 반환 (재사용성 및 확장성 고려)
-     * @param recordType 레코드 타입
-     * @return EventColorInfo 색상 정보 객체
+     * JS에서 이관된 서버사이드 검증
      */
-    public static EventColorInfo getEventColorInfo(String recordType) {
-        try {
-            Map<String, String> colors;
-            
-            if (recordType == PERSONAL_RECORD_TYPE) {
-                colors = EVENT_COLORS.get('Personal');
-            } else if (SALESFORCE_RECORD_TYPES.contains(recordType)) {
-                colors = EVENT_COLORS.get('Salesforce');
-            } else {
-                colors = EVENT_COLORS.get('Default');
-            }
-            
-            return new EventColorInfo(
-                colors.get('backgroundColor'),
-                colors.get('borderColor'),
-                colors.get('textColor')
-            );
-            
-        } catch (Exception e) {
-            // ✅ 에러 발생 시 기본 색상 반환 (안전장치)
-            System.debug('색상 정보 조회 실패: ' + e.getMessage());
-            Map<String, String> defaultColors = EVENT_COLORS.get('Default');
-            return new EventColorInfo(
-                defaultColors.get('backgroundColor'),
-                defaultColors.get('borderColor'),
-                defaultColors.get('textColor')
-            );
-        }
-    }
-    
-    /**
-     * ✅ 색상 상수 맵 반환 (LWC에서 활용 가능)
-     * @return Map<String, Map<String, String>> 색상 정보 맵
-     */
-    @AuraEnabled(cacheable=true)
-    public static Map<String, Map<String, String>> getEventColorConstants() {
-        return EVENT_COLORS;
-    }
-
-    // === 기존 HELPER METHODS 유지 ===
-    
     private static void validateEventInputs(String title, String department, String recordType) {
         List<String> errors = new List<String>();
         
@@ -300,6 +218,17 @@ public with sharing class CalendarAppController {
         }
     }
     
+    /**
+     * JS에서 이관된 통화 포맷팅
+     */
+    private static String formatCurrency(Decimal amount) {
+        if (amount == null) amount = 0;
+        return '₩' + String.valueOf(amount.format());
+    }
+    
+    /**
+     * Account 이름 조회
+     */
     private static String getAccountName(My_Event__c event) {
         if (event?.Related_Record_Type__c == ACCOUNT_RECORD_TYPE && 
             String.isNotBlank(event.Related_Record_Id__c)) {
@@ -314,6 +243,9 @@ public with sharing class CalendarAppController {
         return '';
     }
     
+    /**
+     * 이벤트 레코드 저장
+     */
     private static My_Event__c saveEventRecord(Id recordId, String title, String description, 
             String location, String relatedId, String recordType, String startDate, String endDate) {
         
@@ -337,10 +269,16 @@ public with sharing class CalendarAppController {
         return eventRecord;
     }
     
+    /**
+     * 개인 활동 여부 확인
+     */
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
     
+    /**
+     * 비용 상세 저장 (검증 로직 강화)
+     */
     private static void saveCostDetailsWithValidation(Id eventId, String costDetailsJson, String department) {
         deleteCostDetails(eventId);
         
@@ -352,6 +290,9 @@ public with sharing class CalendarAppController {
         }
     }
     
+    /**
+     * 기존 비용 상세 삭제
+     */
     private static void deleteCostDetails(Id eventId) {
         List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
         if (!existingCosts.isEmpty()) {
@@ -359,6 +300,9 @@ public with sharing class CalendarAppController {
         }
     }
     
+    /**
+     * JS에서 이관된 비용 검증 및 생성 로직
+     */
     private static List<Cost_Detail__c> createValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
         List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
         
@@ -380,12 +324,16 @@ public with sharing class CalendarAppController {
         return costsToInsert;
     }
     
+    /**
+     * 단일 비용 상세 생성 및 검증 (JS 로직 이관)
+     */
     private static Cost_Detail__c createAndValidateCostDetail(Id eventId, Object costObj, String department) {
         Map<String, Object> costMap = (Map<String, Object>)costObj;
         
         String costType = String.valueOf(costMap.get('type'));
         Object amountObj = costMap.get('amount');
         
+        // JS에서 하던 검증 로직을 서버에서 처리
         if (String.isBlank(costType) || amountObj == null) {
             return null;
         }
@@ -393,7 +341,7 @@ public with sharing class CalendarAppController {
         Decimal amount;
         try {
             amount = Decimal.valueOf(String.valueOf(amountObj));
-            if (amount < MIN_COST_AMOUNT) {
+            if (amount < MIN_COST_AMOUNT) { // 상수 사용으로 개선
                 return null;
             }
         } catch (Exception e) {
@@ -409,6 +357,9 @@ public with sharing class CalendarAppController {
         );
     }
     
+    /**
+     * 예외 처리
+     */
     private static void handleException(Exception e) {
         String errorMessage = e.getMessage();
         System.debug('예외 발생: ' + errorMessage);

@@ -1,11 +1,10 @@
 /**
- * @description       : 캘린더 컨테이너 (색상 지원 호환 버전)
+ * @description       : 캘린더 컨테이너 (최적화 버전 - 불필요한 로직 제거)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-// ✅ 기존 메서드 사용 (안정성 우선)
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDetails';
 import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
@@ -27,7 +26,7 @@ const ERROR_MESSAGES = {
     LOAD_EVENT_ERROR: '이벤트 정보를 불러오는 데 실패했습니다.'
 };
 
-// === 유틸리티 함수 ===
+// === 유틸리티 함수 (필수만) ===
 function addOneDay(ymdStr) {
     const date = new Date(ymdStr);
     date.setDate(date.getDate() + 1);
@@ -112,6 +111,7 @@ export default class CalendarContainer extends LightningElement {
                 throw new Error(ERROR_MESSAGES.INVALID_DRAG_DATA);
             }
 
+            // 직접 인라인 처리 (과도한 메서드 분리 제거)
             this.recordId = null;
             this.eventTitle = recordName;
             this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
@@ -143,6 +143,7 @@ export default class CalendarContainer extends LightningElement {
             .then(result => {
                 const evt = result.event;
                 
+                // 직접 인라인 처리 (과도한 분리 제거)
                 this.eventTitle = evt.Title__c || '';
                 this.eventStartDate = evt.Start_Date__c || '';
                 this.eventEndDate = evt.End_Date__c || '';
@@ -168,13 +169,15 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', ERROR_MESSAGES.LOAD_EVENT_ERROR, 'error'));
     }
 
-    // === 이벤트 저장 (색상 지원) ===
+    // === 이벤트 저장 (검증 로직을 Apex에 위임) ===
     saveEvent() {
+        // 기본 클라이언트 검증만 (서버사이드 검증은 Apex에서)
         if (!this.eventTitle) {
             this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
             return;
         }
 
+        // 비용 데이터를 객체 배열로 전달 (JSON 직렬화는 Apex에서)
         const costData = this.costItems
             .filter(item => item.type && item.amount && Number(item.amount) > 0)
             .map(item => ({ type: item.type, amount: Number(item.amount) }));
@@ -189,14 +192,12 @@ export default class CalendarContainer extends LightningElement {
             department: this.eventDepartment,
             relatedId: this.newEventData?.extendedProps?.relatedId,
             recordType: this.newEventData?.extendedProps?.recordType,
-            costDetailsJson: JSON.stringify(costData)
+            costDetailsJson: JSON.stringify(costData) // 임시로 유지 (Apex 개선 후 제거 예정)
         };
 
-        // ✅ 기존 메서드 사용
         saveEventAndCosts(saveParams)
             .then(savedEventId => {
-                // ✅ 색상 정보 포함하여 캘린더 업데이트
-                this.updateCalendarViewWithColor(savedEventId);
+                this.updateCalendarView(savedEventId);
                 this.showToast('성공', '이벤트가 저장되었습니다.', 'success');
                 this.closeModal();
                 this.refreshCostSummary();
@@ -265,61 +266,28 @@ export default class CalendarContainer extends LightningElement {
         }];
     }
 
-    // === ✅ 색상 정보 포함 캘린더 업데이트 메서드 ===
-    updateCalendarViewWithColor(savedEventId) {
+    // === 헬퍼 메서드들 (필수만) ===
+    updateCalendarView(savedEventId) {
         const calendarView = this.template.querySelector('c-calendar-view');
         if (!calendarView) return;
 
-        // ✅ 클라이언트에서 색상 결정
-        const colors = this.getEventColors(this.newEventData?.extendedProps?.recordType);
-
-        const eventData = {
-            title: this.eventTitle,
-            start: this.eventStartDate,
-            end: addOneDay(this.eventEndDate),
-            allDay: true, // ✅ allDay: true로 설정하여 바 형태로 표시
-            backgroundColor: colors.backgroundColor,
-            borderColor: colors.borderColor,
-            textColor: colors.textColor
-        };
-
         if (this.recordId) {
-            calendarView.updateEvent(this.recordId, eventData);
+            calendarView.updateEvent(this.recordId, {
+                title: this.eventTitle,
+                start: this.eventStartDate,
+                end: addOneDay(this.eventEndDate)
+            });
         } else {
             calendarView.addEvent({
                 id: savedEventId,
-                ...eventData
+                title: this.eventTitle,
+                start: this.eventStartDate,
+                end: addOneDay(this.eventEndDate),
+                allDay: false
             });
         }
     }
 
-    // === ✅ 클라이언트 색상 결정 로직 ===
-    getEventColors(recordType) {
-        if (recordType === RECORD_TYPES.PERSONAL) {
-            // 개인 활동 - 보라색
-            return {
-                backgroundColor: '#8B5Cf6',
-                borderColor: '#7C3AED',
-                textColor: '#FFFFFF'
-            };
-        } else if ([RECORD_TYPES.ACCOUNT, RECORD_TYPES.CONTACT, RECORD_TYPES.OPPORTUNITY].includes(recordType)) {
-            // Salesforce 구성요소 - 초록색
-            return {
-                backgroundColor: '#059669',
-                borderColor: '#047857',
-                textColor: '#FFFFFF'
-            };
-        } else {
-            // 기본 색상 - 파란색
-            return {
-                backgroundColor: '#0176d3',
-                borderColor: '#005fb2',
-                textColor: '#FFFFFF'
-            };
-        }
-    }
-
-    // === 헬퍼 메서드들 ===
     refreshCostSummary() {
         const costSummaryPanel = this.template.querySelector('c-cost-summary-panel');
         if (costSummaryPanel) {
