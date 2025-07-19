@@ -1,13 +1,13 @@
 /**
- * @description       : 데이터베이스 조회(SOQL)를 전담하는 클래스. (색상 지원)
+ * @description       : 데이터베이스 조회(SOQL)를 전담하는 클래스.
  * @author            : sejin.park@dkbmc.com
  */
 public with sharing class CalendarEventSelector {
 
-    // ✅ 특정 기간의 이벤트 목록 조회 - Related_Record_Type__c 필드 추가
+    // 특정 기간의 이벤트 목록 조회
     public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt) {
         return [
-            SELECT Id, Title__c, Start_Date__c, End_Date__c, Related_Record_Type__c
+            SELECT Id, Title__c, Start_Date__c, End_Date__c
             FROM My_Event__c
             WHERE Start_Date__c <= :endDt AND End_Date__c >= :startDt
             AND OwnerId = :UserInfo.getUserId()
@@ -15,7 +15,8 @@ public with sharing class CalendarEventSelector {
         ];
     }
 
-    // 이벤트 상세 정보와 관련 비용 동시 조회
+
+    // 이벤트 상세 정보와 관련 비용 동시 조회 - Child Relationship Name 수정
     public static My_Event__c selectEventDetailsById(Id eventId) {
         return [
             SELECT 
@@ -28,7 +29,8 @@ public with sharing class CalendarEventSelector {
         ];
     }
 
-    // 월별 비용 합계 조회
+
+    // 월별 비용 합계 조회 - 수정된 버전
     public static Map<String, Decimal> selectMonthlyCostSummary(Date startDate, Date endDate) {
         Map<String, Decimal> summary = new Map<String, Decimal>();
 
@@ -58,6 +60,7 @@ public with sharing class CalendarEventSelector {
         
         return summary;
     }
+
 
     // Account, Contact, Opportunity 목록 조회
     public static List<Account> selectAccounts() {
