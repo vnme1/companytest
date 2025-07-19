@@ -1,26 +1,21 @@
 /**
- * @description       : Calendar App Controller with improved structure and validation
+ * @description       : Calendar App Controller (간결하게 리팩토링)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-19
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarAppController {
     
-    // Constants
+    // === 상수 정의 ===
     private static final String DEFAULT_DEPARTMENT = Label.LABEL_DEFAULT_DEPT;
     private static final String PERSONAL_RECORD_TYPE = 'Personal';
+    private static final String ACCOUNT_RECORD_TYPE = 'Account';
     
-    // Wrapper class for event details
+    // === Wrapper Classes ===
     public class EventWrapper {
         @AuraEnabled public My_Event__c event;
         @AuraEnabled public List<Cost_Detail__c> costs;
         @AuraEnabled public String accountName;
-    }
-    
-    // Cost detail wrapper for JSON processing
-    public class CostDetailInput {
-        public String type;
-        public Decimal amount;
     }
 
     // === READ OPERATIONS (Cacheable) ===
@@ -42,12 +37,7 @@ public with sharing class CalendarAppController {
             EventWrapper wrapper = new EventWrapper();
             wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
             wrapper.costs = wrapper.event.Cost_Details1__r;
-
-            // Account 이름 조회 (필요시)
-            if (isAccountRelatedEvent(wrapper.event)) {
-                wrapper.accountName = getAccountNameById(wrapper.event.Related_Record_Id__c);
-            }
-            
+            wrapper.accountName = getAccountName(wrapper.event);
             return wrapper;
         } catch (Exception e) {
             throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR + ': ' + e.getMessage());
@@ -99,22 +89,22 @@ public with sharing class CalendarAppController {
         String relatedId, String recordType, String costDetailsJson
     ) {
         try {
-            validateRequiredFields(title);
+            // 1. 입력 검증
+            validateInputs(title);
             
-            My_Event__c eventToSave = prepareEventRecord(recordId, title, description, 
+            // 2. 이벤트 저장
+            My_Event__c eventRecord = saveEventRecord(recordId, title, description, 
                 location, relatedId, recordType, startDate, endDate);
             
-            upsert eventToSave;
-            
-            // 비용 상세 처리 (개인 활동이 아닌 경우에만)
+            // 3. 비용 상세 처리 (개인 활동 제외)
             if (!isPersonalActivity(recordType)) {
-                processCostDetails(eventToSave.Id, costDetailsJson, department);
+                saveCostDetails(eventRecord.Id, costDetailsJson, department);
             }
             
-            return eventToSave.Id;
+            return eventRecord.Id;
 
         } catch (Exception e) {
-            handleSaveException(e);
+            handleException(e);
             return null;
         }
     }
@@ -143,7 +133,7 @@ public with sharing class CalendarAppController {
     public static String deleteEvent(Id eventId) {
         try {
             // 관련 비용 상세 삭제
-            deleteRelatedCostDetails(eventId);
+            deleteCostDetails(eventId);
             
             // 이벤트 삭제
             delete new My_Event__c(Id = eventId);
@@ -157,37 +147,40 @@ public with sharing class CalendarAppController {
 
     // === HELPER METHODS ===
     
-    private static Boolean isAccountRelatedEvent(My_Event__c event) {
-        return event != null && event.Related_Record_Type__c == 'Account' && 
-               String.isNotBlank(event.Related_Record_Id__c);
-    }
-    
-    private static String getAccountNameById(String accountId) {
-        try {
-            List<Account> accounts = [SELECT Name FROM Account WHERE Id = :accountId LIMIT 1];
-            return accounts.isEmpty() ? '' : accounts[0].Name;
-        } catch (Exception e) {
-            return '';
+    /**
+     * Account 이름 조회
+     */
+    private static String getAccountName(My_Event__c event) {
+        if (event?.Related_Record_Type__c == ACCOUNT_RECORD_TYPE && 
+            String.isNotBlank(event.Related_Record_Id__c)) {
+            try {
+                List<Account> accounts = [SELECT Name FROM Account WHERE Id = :event.Related_Record_Id__c LIMIT 1];
+                return accounts.isEmpty() ? '' : accounts[0].Name;
+            } catch (Exception e) {
+                return '';
+            }
         }
+        return '';
     }
     
-    private static void validateRequiredFields(String title) {
+    /**
+     * 입력값 검증
+     */
+    private static void validateInputs(String title) {
         if (String.isBlank(title)) {
             throw new AuraHandledException(Label.LABEL_REQUIRED_TITLE);
         }
     }
     
-    private static My_Event__c prepareEventRecord(Id recordId, String title, String description, 
+    /**
+     * 이벤트 레코드 저장
+     */
+    private static My_Event__c saveEventRecord(Id recordId, String title, String description, 
             String location, String relatedId, String recordType, String startDate, String endDate) {
         
-        My_Event__c eventRecord;
+        My_Event__c eventRecord = recordId == null ? new My_Event__c() : new My_Event__c(Id = recordId);
         
-        if (recordId == null) {
-            eventRecord = new My_Event__c();
-        } else {
-            eventRecord = new My_Event__c(Id = recordId);
-        }
-        
+        // 기본 필드 설정
         eventRecord.Name = title;
         eventRecord.Title__c = title;
         eventRecord.Description__c = description;
@@ -195,6 +188,7 @@ public with sharing class CalendarAppController {
         eventRecord.Related_Record_Id__c = relatedId;
         eventRecord.Related_Record_Type__c = recordType;
         
+        // 날짜 필드 설정
         if (String.isNotBlank(startDate)) {
             eventRecord.Start_Date__c = Date.valueOf(startDate);
         }
@@ -202,34 +196,47 @@ public with sharing class CalendarAppController {
             eventRecord.End_Date__c = Date.valueOf(endDate);
         }
         
+        upsert eventRecord;
         return eventRecord;
     }
     
+    /**
+     * 개인 활동 여부 확인
+     */
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
     
-    private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
+    /**
+     * 비용 상세 저장
+     */
+    private static void saveCostDetails(Id eventId, String costDetailsJson, String department) {
         // 기존 비용 삭제
-        deleteRelatedCostDetails(eventId);
+        deleteCostDetails(eventId);
         
-        // 새 비용 데이터 처리
+        // 새 비용 데이터 삽입
         if (String.isNotBlank(costDetailsJson)) {
-            List<Cost_Detail__c> costsToInsert = parseCostDetails(eventId, costDetailsJson, department);
+            List<Cost_Detail__c> costsToInsert = createCostDetails(eventId, costDetailsJson, department);
             if (!costsToInsert.isEmpty()) {
                 insert costsToInsert;
             }
         }
     }
     
-    private static void deleteRelatedCostDetails(Id eventId) {
+    /**
+     * 기존 비용 상세 삭제
+     */
+    private static void deleteCostDetails(Id eventId) {
         List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
         if (!existingCosts.isEmpty()) {
             delete existingCosts;
         }
     }
     
-    private static List<Cost_Detail__c> parseCostDetails(Id eventId, String costDetailsJson, String department) {
+    /**
+     * 비용 상세 레코드 생성
+     */
+    private static List<Cost_Detail__c> createCostDetails(Id eventId, String costDetailsJson, String department) {
         List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
         
         try {
@@ -237,7 +244,7 @@ public with sharing class CalendarAppController {
             String deptValue = String.isNotBlank(department) ? department : DEFAULT_DEPARTMENT;
             
             for (Object costObj : parsedCosts) {
-                Cost_Detail__c costDetail = createCostDetail(eventId, costObj, deptValue);
+                Cost_Detail__c costDetail = createSingleCostDetail(eventId, costObj, deptValue);
                 if (costDetail != null) {
                     costsToInsert.add(costDetail);
                 }
@@ -249,12 +256,16 @@ public with sharing class CalendarAppController {
         return costsToInsert;
     }
     
-    private static Cost_Detail__c createCostDetail(Id eventId, Object costObj, String department) {
+    /**
+     * 단일 비용 상세 레코드 생성
+     */
+    private static Cost_Detail__c createSingleCostDetail(Id eventId, Object costObj, String department) {
         Map<String, Object> costMap = (Map<String, Object>)costObj;
         
         String costType = String.valueOf(costMap.get('type'));
         Object amountObj = costMap.get('amount');
         
+        // 유효성 검사
         if (String.isBlank(costType) || amountObj == null) {
             return null;
         }
@@ -277,7 +288,10 @@ public with sharing class CalendarAppController {
         );
     }
     
-    private static void handleSaveException(Exception e) {
+    /**
+     * 예외 처리
+     */
+    private static void handleException(Exception e) {
         String errorMessage = e.getMessage();
         if (e instanceof AuraHandledException) {
             throw e;
