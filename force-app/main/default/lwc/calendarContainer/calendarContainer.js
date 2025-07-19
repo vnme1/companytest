@@ -11,6 +11,7 @@ import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
 import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
+//캘린더에 입력한 날짜보다 -1되는것을 막기위함 / 문자열 YYYY-MM-DD로 변환
 function addOneDay(ymdStr) {
     const date = new Date(ymdStr);
     date.setDate(date.getDate() + 1);
@@ -18,6 +19,8 @@ function addOneDay(ymdStr) {
 }
 
 export default class CalendarContainer extends LightningElement {
+
+    //모달 상태 관리 변수
     @track isModalOpen = false;
     @track modalTitle = '';
     @track currentMonthForSummary;
@@ -29,11 +32,12 @@ export default class CalendarContainer extends LightningElement {
     @track eventDescription = '';
     @track eventLocation = '';
     @track eventDepartment = '';
-    @track costItems = [];
+    @track costItems = []; //cost 리스트 저장 위함
     @track newEventData = { extendedProps: {} };
 
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
+
 
     get isSalesforceObjectEvent() {
         return this.newEventData?.extendedProps?.recordType !== 'Personal';
@@ -55,12 +59,14 @@ export default class CalendarContainer extends LightningElement {
         return this.costTypePicklistOptions;
     }
 
+    //월별 비용 요약 시작 날짜 초기화
     connectedCallback() {
-        const today = new Date();
+        const today = new Date();  //현재시간 기준 날짜 정보 가져옴
         this.currentMonthForSummary = today.toISOString();
         this.loadPicklistOptions();
     }
 
+    //드롭다운 항목 로드
     async loadPicklistOptions() {
         try {
             const [departmentOptions, costTypeOptions] = await Promise.all([
@@ -74,6 +80,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
+    //이벤트 드롭시 처리
     handleEventDrop(event) {
         try {
             const { draggedEl, date } = event.detail;
