@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller (예외처리 강화 버전)
+ * @description       : Calendar App Controller (최종 완성 버전 - Custom Label 100% 적용)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -59,6 +59,56 @@ public with sharing class CalendarAppController {
         } catch (Exception e) {
             System.debug('비용 요약 조회 오류: ' + e.getMessage());
             throw new AuraHandledException(Label.LABEL_COST_SUMMARY_ERROR + ': ' + e.getMessage());
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Account> getAccountList() {
+        try {
+            return CalendarEventSelector.selectAccounts();
+        } catch (Exception e) {
+            System.debug('Account 목록 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Contact> getContactList() {
+        try {
+            return CalendarEventSelector.selectContacts();
+        } catch (Exception e) {
+            System.debug('Contact 목록 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Opportunity> getOpportunityList() {
+        try {
+            return CalendarEventSelector.selectOpportunities();
+        } catch (Exception e) {
+            System.debug('Opportunity 목록 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getDepartmentOptions() {
+        try {
+            return CalendarEventSelector.selectDepartmentOptions();
+        } catch (Exception e) {
+            System.debug('부서 옵션 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getCostTypeOptions() {
+        try {
+            return CalendarEventSelector.selectCostTypeOptions();
+        } catch (Exception e) {
+            System.debug('비용 유형 옵션 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR);
         }
     }
 
@@ -324,52 +374,6 @@ public with sharing class CalendarAppController {
             throw e;
         } else {
             throw new AuraHandledException(Label.LABEL_GENERAL_ERROR + ': ' + errorMessage);
-        }
-    }
-
-    // === 기존 READ 메서드들 (변경 없음) ===
-    @AuraEnabled(cacheable=true)
-    public static List<Account> getAccountList() {
-        try {
-            return CalendarEventSelector.selectAccounts();
-        } catch (Exception e) {
-            throw new AuraHandledException('Account 목록을 불러오는 중 오류가 발생했습니다.');
-        }
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Contact> getContactList() {
-        try {
-            return CalendarEventSelector.selectContacts();
-        } catch (Exception e) {
-            throw new AuraHandledException('Contact 목록을 불러오는 중 오류가 발생했습니다.');
-        }
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Opportunity> getOpportunityList() {
-        try {
-            return CalendarEventSelector.selectOpportunities();
-        } catch (Exception e) {
-            throw new AuraHandledException('Opportunity 목록을 불러오는 중 오류가 발생했습니다.');
-        }
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Map<String, String>> getDepartmentOptions() {
-        try {
-            return CalendarEventSelector.selectDepartmentOptions();
-        } catch (Exception e) {
-            throw new AuraHandledException('부서 옵션을 불러오는 중 오류가 발생했습니다.');
-        }
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Map<String, String>> getCostTypeOptions() {
-        try {
-            return CalendarEventSelector.selectCostTypeOptions();
-        } catch (Exception e) {
-            throw new AuraHandledException('비용 유형 옵션을 불러오는 중 오류가 발생했습니다.');
         }
     }
 }
