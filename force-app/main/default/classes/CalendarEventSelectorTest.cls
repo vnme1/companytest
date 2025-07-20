@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar Event Selector Test Class  
+ * @description       : Calendar Event Selector Test Class (PMD 최적화)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -7,8 +7,7 @@
 public class CalendarEventSelectorTest {
     
     @TestSetup
-    static void setup() {
-        // 테스트 데이터 생성
+    static void makeData() {
         My_Event__c testEvent = new My_Event__c(
             Title__c = 'Test Event',
             Name = 'Test Event',
@@ -28,7 +27,6 @@ public class CalendarEventSelectorTest {
         );
         insert testCost;
         
-        // 표준 객체 테스트 데이터
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
         
@@ -131,7 +129,6 @@ public class CalendarEventSelectorTest {
         System.assertNotEquals(null, options, '부서 옵션이 null이면 안됩니다');
         System.assert(options.size() > 0, '부서 옵션이 존재해야 합니다');
         
-        // 첫 번째 옵션 검증
         Map<String, String> firstOption = options[0];
         System.assert(firstOption.containsKey('label'), 'label 키가 존재해야 합니다');
         System.assert(firstOption.containsKey('value'), 'value 키가 존재해야 합니다');
@@ -146,7 +143,6 @@ public class CalendarEventSelectorTest {
         System.assertNotEquals(null, options, '비용 유형 옵션이 null이면 안됩니다');
         System.assert(options.size() > 0, '비용 유형 옵션이 존재해야 합니다');
         
-        // 첫 번째 옵션 검증
         Map<String, String> firstOption = options[0];
         System.assert(firstOption.containsKey('label'), 'label 키가 존재해야 합니다');
         System.assert(firstOption.containsKey('value'), 'value 키가 존재해야 합니다');
@@ -175,7 +171,6 @@ public class CalendarEventSelectorTest {
         Test.stopTest();
         
         System.assertNotEquals(null, summary, '비용 요약이 null이면 안됩니다');
-        // 모든 비용 유형이 0이어야 함
         for (String costType : summary.keySet()) {
             System.assertEquals(0, summary.get(costType), costType + ' 비용은 0이어야 합니다');
         }

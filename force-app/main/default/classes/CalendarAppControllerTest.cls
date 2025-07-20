@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller Test Class
+ * @description       : Calendar App Controller Test Class (PMD 최적화)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -7,8 +7,7 @@
 public class CalendarAppControllerTest {
     
     @TestSetup
-    static void setup() {
-        // 테스트 데이터 생성
+    static void makeData() {
         My_Event__c testEvent = new My_Event__c(
             Title__c = 'Test Event',
             Name = 'Test Event',
@@ -28,7 +27,6 @@ public class CalendarAppControllerTest {
         );
         insert testCost;
         
-        // 표준 객체 테스트 데이터
         Account testAccount = new Account(Name = 'Test Account');
         insert testAccount;
         
@@ -235,7 +233,7 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testErrorHandling_InvalidEventId() {
+    static void testHandleError_InvalidEventId() {
         Test.startTest();
         try {
             CalendarAppController.getEventDetails(null);
@@ -247,7 +245,7 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testErrorHandling_InvalidDateRange() {
+    static void testHandleError_InvalidDateRange() {
         Test.startTest();
         try {
             CalendarAppController.getEvents(null, null);
@@ -259,7 +257,7 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testErrorHandling_InvalidTitle() {
+    static void testHandleError_InvalidTitle() {
         Test.startTest();
         try {
             CalendarAppController.saveEventAndCosts(
