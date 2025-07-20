@@ -255,69 +255,82 @@ export default class CalendarContainer extends LightningElement {
     }
 
     // === 이벤트 저장 (안전성 강화) ===
-    saveEvent() {
-        try {
-            if (!this.eventTitle || this.eventTitle.trim() === '') {
-                this.showToast(LABEL_INPUT_ERROR, LABEL_REQUIRED_TITLE, 'error');
-                return;
-            }
-
-            // 비용 데이터 안전하게 필터링
-            const costData = (this.costItems || [])
-                .filter(item => {
-                    try {
-                        return item && 
-                               item.type && 
-                               item.amount !== null && 
-                               item.amount !== undefined && 
-                               Number(item.amount) > 0;
-                    } catch (e) {
-                        console.warn('비용 아이템 필터링 오류:', e, item);
-                        return false;
-                    }
-                })
-                .map(item => ({ 
-                    type: item.type, 
-                    amount: Number(item.amount) 
-                }));
-
-            // 개별 파라미터로 전달
-            const saveParams = {
-                recordId: this.recordId,
-                title: this.eventTitle || '',
-                startDate: this.eventStartDate || '',
-                endDate: this.eventEndDate || '',
-                description: this.eventDescription || '',
-                location: this.eventLocation || '',
-                department: this.eventDepartment || '',
-                relatedId: this.newEventData?.extendedProps?.relatedId || '',
-                recordType: this.newEventData?.extendedProps?.recordType || '',
-                costDetailsJson: safeJSONStringify(costData)
-            };
-
-            console.log('저장 파라미터:', saveParams);
-
-            saveEventAndCosts(saveParams)
-                .then(savedEventId => {
-                    if (savedEventId) {
-                        this.updateCalendarView(savedEventId);
-                        this.showToast(LABEL_SUCCESS_SAVE, LABEL_EVENT_SAVED, 'success');
-                        this.closeModal();
-                        this.refreshCostSummary();
-                    } else {
-                        throw new Error('이벤트 ID가 반환되지 않았습니다');
-                    }
-                })
-                .catch(error => {
-                    console.error('이벤트 저장 오류:', error);
-                    const errorMessage = error?.body?.message || error?.message || '이벤트 저장 중 오류가 발생했습니다.';
-                    this.showToast(LABEL_SAVE_ERROR, errorMessage, 'error');
-                });
-        } catch (error) {
-            console.error('saveEvent 메서드 오류:', error);
-            this.showToast(LABEL_SAVE_ERROR, '저장 처리 중 오류가 발생했습니다', 'error');
+    // calendarContainer.js의 saveEvent 메서드 수정
+saveEvent() {
+    try {
+        if (!this.eventTitle || this.eventTitle.trim() === '') {
+            this.showToast('입력 오류', '제목을 입력해주세요', 'error');
+            return;
         }
+
+        // 비용 데이터 안전하게 필터링
+        const costData = (this.costItems || [])
+            .filter(item => {
+                try {
+                    return item && 
+                           item.type && 
+                           item.amount !== null && 
+                           item.amount !== undefined && 
+                           Number(item.amount) > 0;
+                } catch (e) {
+                    console.warn('비용 아이템 필터링 오류:', e, item);
+                    return false;
+                }
+            })
+            .map(item => ({ 
+                type: item.type, 
+                amount: Number(item.amount) 
+            }));
+
+        // ✅ 개별 파라미터로 전달 (Proxy 객체 문제 해결)
+        const saveParams = {
+            recordId: this.recordId || null,
+            title: this.eventTitle || '',
+            startDate: this.eventStartDate || '',
+            endDate: this.eventEndDate || '',
+            description: this.eventDescription || '',
+            location: this.eventLocation || '',
+            department: this.eventDepartment || '',
+            relatedId: this.newEventData?.extendedProps?.relatedId || '',
+            recordType: this.newEventData?.extendedProps?.recordType || '',
+            costDetailsJson: JSON.stringify(costData)
+        };
+
+        console.log('저장 파라미터:', saveParams);
+
+        // ✅ 올바른 Apex 메서드 호출
+        saveEventAndCosts({
+            recordId: saveParams.recordId,
+            title: saveParams.title,
+            startDate: saveParams.startDate,
+            endDate: saveParams.endDate,
+            description: saveParams.description,
+            location: saveParams.location,
+            department: saveParams.department,
+            relatedId: saveParams.relatedId,
+            recordType: saveParams.recordType,
+            costDetailsJson: saveParams.costDetailsJson
+        })
+        .then(savedEventId => {
+            if (savedEventId) {
+                this.updateCalendarView(savedEventId);
+                this.showToast('성공', '이벤트가 저장되었습니다', 'success');
+                this.closeModal();
+                this.refreshCostSummary();
+            } else {
+                throw new Error('이벤트 ID가 반환되지 않았습니다');
+            }
+        })
+        .catch(error => {
+            console.error('이벤트 저장 오류:', error);
+            const errorMessage = error?.body?.message || error?.message || '이벤트 저장 중 오류가 발생했습니다.';
+            this.showToast('저장 오류', errorMessage, 'error');
+        });
+    } catch (error) {
+        console.error('saveEvent 메서드 오류:', error);
+        this.showToast('저장 오류', '저장 처리 중 오류가 발생했습니다', 'error');
     }
+}
 
     // === 이벤트 삭제 ===
     handleDelete() {

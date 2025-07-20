@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller Test Class (PMD 경고 수정 버전)
+ * @description       : Calendar App Controller Test Class (수정된 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -94,21 +94,20 @@ private class CalendarAppControllerTest {
     @isTest
     static void testSaveEventAndCosts() {
         Account testAccount = [SELECT Id FROM Account LIMIT 1];
-        
-        CalendarAppController.EventSaveRequest request = new CalendarAppController.EventSaveRequest();
-        request.recordId = null;
-        request.title = 'New Test Event';
-        request.startDate = String.valueOf(Date.today());
-        request.endDate = String.valueOf(Date.today());
-        request.description = 'New test description';
-        request.location = 'New test location';
-        request.department = '영업팀';
-        request.relatedId = testAccount.Id;
-        request.recordType = 'Account';
-        request.costDetailsJson = '[{"type":"교통비","amount":30000}]';
 
         Test.startTest();
-        String eventId = CalendarAppController.saveEventAndCosts(request);
+        String eventId = CalendarAppController.saveEventAndCosts(
+            null, // recordId
+            'New Test Event', // title
+            String.valueOf(Date.today()), // startDate
+            String.valueOf(Date.today()), // endDate
+            'New test description', // description
+            'New test location', // location
+            '영업팀', // department
+            testAccount.Id, // relatedId
+            'Account', // recordType
+            '[{"type":"교통비","amount":30000}]' // costDetailsJson
+        );
         Test.stopTest();
 
         System.assertNotEquals(null, eventId, 'Event ID should not be null');
@@ -212,20 +211,19 @@ private class CalendarAppControllerTest {
 
     @isTest
     static void testPersonalActivitySave() {
-        CalendarAppController.EventSaveRequest request = new CalendarAppController.EventSaveRequest();
-        request.recordId = null;
-        request.title = '휴가';
-        request.startDate = String.valueOf(Date.today());
-        request.endDate = String.valueOf(Date.today());
-        request.description = '개인 휴가';
-        request.location = '';
-        request.department = '';
-        request.relatedId = '';
-        request.recordType = 'Personal';
-        request.costDetailsJson = '';
-
         Test.startTest();
-        String eventId = CalendarAppController.saveEventAndCosts(request);
+        String eventId = CalendarAppController.saveEventAndCosts(
+            null, // recordId
+            '휴가', // title
+            String.valueOf(Date.today()), // startDate
+            String.valueOf(Date.today()), // endDate
+            '개인 휴가', // description
+            '', // location
+            '', // department
+            '', // relatedId
+            'Personal', // recordType
+            '' // costDetailsJson
+        );
         Test.stopTest();
 
         System.assertNotEquals(null, eventId, 'Event ID should not be null');
