@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 뷰 컴포넌트 (색상 코드 제거 - 깔끔한 버전)
+ * @description       : 캘린더 뷰 컴포넌트 (최적화 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, api } from 'lwc';
@@ -8,7 +8,6 @@ import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
 import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
 
-// === 상수 ===
 const CALENDAR_CONFIG = {
     HEIGHT: 800,
     CONTENT_HEIGHT: 700,
@@ -17,7 +16,6 @@ const CALENDAR_CONFIG = {
     LOAD_DELAY_MS: 100
 };
 
-// === 유틸리티 함수 ===
 function toYMD(date) {
     try {
         const offsetMs = date.getTimezoneOffset() * 60000;
@@ -32,7 +30,6 @@ export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
-    // === Public API Methods ===
     @api
     refetchEvents() {
         if (this.calendarApi) {
@@ -69,7 +66,6 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    // === 라이프사이클 ===
     renderedCallback() {
         if (this.fullCalendarInitialized) {
             return;
@@ -79,7 +75,6 @@ export default class CalendarView extends LightningElement {
         }, CALENDAR_CONFIG.LOAD_DELAY_MS);
     }
 
-    // === FullCalendar 로드 ===
     loadFullCalendar() {
         if (this.fullCalendarInitialized) {
             return;
@@ -97,7 +92,6 @@ export default class CalendarView extends LightningElement {
         });
     }
 
-    // === 캘린더 초기화 ===
     initializeCalendar() {
         const calendarEl = this.template.querySelector('.calendar-container');
         if (!calendarEl || !window.FullCalendar) {
@@ -134,7 +128,6 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    // === 이벤트 로드 ===
     loadEvents(fetchInfo, successCallback, failureCallback) {
         getEvents({
             startStr: toYMD(fetchInfo.start),
@@ -156,7 +149,6 @@ export default class CalendarView extends LightningElement {
         });
     }
 
-    // 날짜 +1일 처리
     addOneDay(dateStr) {
         try {
             const date = new Date(dateStr);
@@ -167,7 +159,6 @@ export default class CalendarView extends LightningElement {
         }
     }
 
-    // === 이벤트 핸들러들 ===
     handleDrop(info) {
         info.jsEvent.preventDefault();
         this.dispatchEvent(new CustomEvent('eventdrop', {

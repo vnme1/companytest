@@ -1,5 +1,5 @@
 /**
- * @description       : 이벤트 소스 패널 (간결 최적화 버전)
+ * @description       : 이벤트 소스 패널 (최적화 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, wire } from 'lwc';
@@ -29,7 +29,9 @@ export default class EventSourcePanel extends LightningElement {
                 this.fullCalendarInitialized = true;
                 this.initializeExternalDraggables();
             })
-            .catch(() => {}); // Silent fail
+            .catch(error => {
+                console.warn('FullCalendar 로드 실패:', error.message);
+            });
     }
 
     handleTabActive() {
@@ -43,7 +45,7 @@ export default class EventSourcePanel extends LightningElement {
             this.cleanupExistingDraggables();
             this.createDraggables();
         } catch (error) {
-            // Silent fail
+            console.warn('드래그 초기화 실패:', error.message);
         }
     }
 
@@ -58,7 +60,6 @@ export default class EventSourcePanel extends LightningElement {
     }
 
     createDraggables() {
-        // Salesforce 객체 드래그
         const salesforceContainer = this.template.querySelector('.salesforce-components-section');
         if (salesforceContainer) {
             salesforceContainer._fcDraggable = new window.FullCalendar.Draggable(salesforceContainer, {
@@ -67,7 +68,6 @@ export default class EventSourcePanel extends LightningElement {
             });
         }
 
-        // 개인 활동 드래그
         const activityContainer = this.template.querySelector('.personal-activity-section');
         if (activityContainer) {
             activityContainer._fcDraggable = new window.FullCalendar.Draggable(activityContainer, {

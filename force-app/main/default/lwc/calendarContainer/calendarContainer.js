@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 (간결 최적화 버전)
+ * @description       : 캘린더 컨테이너 (최적화 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -11,14 +11,11 @@ import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
 import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
-const RECORD_TYPES = { PERSONAL: 'Personal' };
-
 export default class CalendarContainer extends LightningElement {
     @track isModalOpen = false;
     @track modalTitle = '';
     @track currentMonthForSummary = new Date().toISOString();
 
-    // 이벤트 데이터
     @track recordId = null;
     @track eventTitle = '';
     @track eventStartDate = '';
@@ -29,17 +26,15 @@ export default class CalendarContainer extends LightningElement {
     @track costItems = [{ id: 0, type: '', amount: null }];
     @track newEventData = { extendedProps: {} };
 
-    // 옵션
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
 
-    // Computed Properties
     get isSalesforceObjectEvent() {
-        return this.newEventData?.extendedProps?.recordType !== RECORD_TYPES.PERSONAL;
+        return this.newEventData?.extendedProps?.recordType !== 'Personal';
     }
 
     get isPersonalActivityEvent() {
-        return this.newEventData?.extendedProps?.recordType === RECORD_TYPES.PERSONAL;
+        return this.newEventData?.extendedProps?.recordType === 'Personal';
     }
 
     get displayAccountName() {
@@ -49,7 +44,6 @@ export default class CalendarContainer extends LightningElement {
     get departmentOptions() { return this.departmentPicklistOptions || []; }
     get costTypeOptions() { return this.costTypePicklistOptions || []; }
 
-    // 라이프사이클
     connectedCallback() {
         Promise.all([getDepartmentOptions(), getCostTypeOptions()])
             .then(([dept, cost]) => {
@@ -59,7 +53,6 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', '옵션 로드 실패', 'error'));
     }
 
-    // 이벤트 드롭 처리
     handleEventDrop(event) {
         const { draggedEl, date } = event.detail;
         const { recordName, recordType, recordId, accountName } = draggedEl?.dataset || {};
@@ -73,11 +66,10 @@ export default class CalendarContainer extends LightningElement {
         this.newEventData = { 
             extendedProps: { recordType, relatedId: recordId || '', accountName: accountName || '' }
         };
-        this.modalTitle = `새 ${recordType === RECORD_TYPES.PERSONAL ? '활동' : '이벤트'}: ${recordName}`;
+        this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
         this.openModal();
     }
 
-    // 기존 이벤트 클릭
     handleEventClick(event) {
         const eventId = event.detail?.eventId;
         if (!eventId) return;
@@ -113,7 +105,6 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', '이벤트 로드 실패', 'error'));
     }
 
-    // 이벤트 저장
     saveEvent() {
         if (!this.eventTitle?.trim()) {
             return this.showToast('입력 오류', '제목을 입력해주세요', 'error');
@@ -147,7 +138,6 @@ export default class CalendarContainer extends LightningElement {
         });
     }
 
-    // 이벤트 삭제
     handleDelete() {
         if (!this.recordId) return;
 
@@ -164,7 +154,6 @@ export default class CalendarContainer extends LightningElement {
             });
     }
 
-    // 기타 이벤트 핸들러
     handleEventMoved() {
         this.showToast('성공', '이벤트가 이동되었습니다', 'success');
         this.refreshCostSummary();
@@ -205,7 +194,6 @@ export default class CalendarContainer extends LightningElement {
         }];
     }
 
-    // 유틸리티
     toLocalYMD(date) {
         try {
             return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
@@ -251,7 +239,6 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    // 모달 관리
     openModal() { this.isModalOpen = true; }
     
     closeModal() {
