@@ -1,12 +1,12 @@
 /**
- * @description       : Calendar App Controller (Null Pointer 수정 버전)
+ * @description       : Calendar App Controller (validateCrudPermission 완전 제거 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
 public with sharing class CalendarAppController {
     
     // === 상수 정의 ===
-    private static final String DEFAULT_DEPARTMENT = 'IT팀'; // Label.LABEL_DEFAULT_DEPT 대신 하드코딩
+    private static final String DEFAULT_DEPARTMENT = '개발팀';
     private static final String PERSONAL_RECORD_TYPE = 'Personal';
     private static final String ACCOUNT_RECORD_TYPE = 'Account';
     private static final Decimal MIN_COST_AMOUNT = 0.01;
@@ -18,20 +18,6 @@ public with sharing class CalendarAppController {
         @AuraEnabled public String accountName;
     }
 
-    // 파라미터 객체 패턴 적용
-    public class EventSaveRequest {
-        @AuraEnabled public Id recordId;
-        @AuraEnabled public String title;
-        @AuraEnabled public String startDate;
-        @AuraEnabled public String endDate;
-        @AuraEnabled public String description;
-        @AuraEnabled public String location;
-        @AuraEnabled public String department;
-        @AuraEnabled public String relatedId;
-        @AuraEnabled public String recordType;
-        @AuraEnabled public String costDetailsJson;
-    }
-
     // === READ OPERATIONS ===
     
     @AuraEnabled(cacheable=true)
@@ -39,10 +25,10 @@ public with sharing class CalendarAppController {
         try {
             // 입력값 검증
             if (String.isBlank(startStr) || String.isBlank(endStr)) {
-                return new List<My_Event__c>();
+                throw new AuraHandledException('입력값이 유효하지 않습니다');
             }
-
-            // CRUD 권한 검증
+            
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
                 throw new AuraHandledException('읽기 권한이 없습니다');
             }
@@ -60,27 +46,26 @@ public with sharing class CalendarAppController {
     public static EventWrapper getEventDetails(Id eventId) {
         try {
             if (eventId == null) {
-                throw new AuraHandledException('유효하지 않은 이벤트 ID입니다');
+                throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
-
-            // CRUD 권한 검증
-            if (!Schema.sObjectType.My_Event__c.isAccessible() || 
-                !Schema.sObjectType.Cost_Detail__c.isAccessible()) {
-                throw new AuraHandledException('읽기 권한이 없습니다');
+            
+            // 권한 검증 (인라인)
+            if (!Schema.sObjectType.My_Event__c.isAccessible()) {
+                throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
+            }
+            if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
+                throw new AuraHandledException('비용 상세 읽기 권한이 없습니다');
             }
 
             EventWrapper wrapper = new EventWrapper();
             wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
             
-            // Null 체크 강화
             if (wrapper.event == null) {
                 throw new AuraHandledException('이벤트를 찾을 수 없습니다');
             }
 
-            // 비용 목록 Null 체크
             wrapper.costs = (wrapper.event.Cost_Details1__r != null) ? 
                            wrapper.event.Cost_Details1__r : new List<Cost_Detail__c>();
-            
             wrapper.accountName = getAccountName(wrapper.event);
             return wrapper;
         } catch (Exception e) {
@@ -94,12 +79,12 @@ public with sharing class CalendarAppController {
         try {
             // 입력값 검증
             if (String.isBlank(startDate) || String.isBlank(endDate)) {
-                return new Map<String, Decimal>();
+                throw new AuraHandledException('입력값이 유효하지 않습니다');
             }
-
-            // CRUD 권한 검증
+            
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
-                throw new AuraHandledException('읽기 권한이 없습니다');
+                throw new AuraHandledException('비용 상세 읽기 권한이 없습니다');
             }
 
             Date start = Date.valueOf(startDate);
@@ -114,9 +99,9 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccountList() {
         try {
-            // CRUD 권한 검증
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Account.isAccessible()) {
-                throw new AuraHandledException('읽기 권한이 없습니다');
+                throw new AuraHandledException('Account 읽기 권한이 없습니다');
             }
             return CalendarEventSelector.selectAccounts();
         } catch (Exception e) {
@@ -128,9 +113,9 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Contact> getContactList() {
         try {
-            // CRUD 권한 검증
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Contact.isAccessible()) {
-                throw new AuraHandledException('읽기 권한이 없습니다');
+                throw new AuraHandledException('Contact 읽기 권한이 없습니다');
             }
             return CalendarEventSelector.selectContacts();
         } catch (Exception e) {
@@ -142,9 +127,9 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Opportunity> getOpportunityList() {
         try {
-            // CRUD 권한 검증
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Opportunity.isAccessible()) {
-                throw new AuraHandledException('읽기 권한이 없습니다');
+                throw new AuraHandledException('Opportunity 읽기 권한이 없습니다');
             }
             return CalendarEventSelector.selectOpportunities();
         } catch (Exception e) {
@@ -173,7 +158,7 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // === WRITE OPERATIONS (Null 체크 강화) ===
+    // === WRITE OPERATIONS ===
     
     @AuraEnabled
     public static String saveEventAndCosts(
@@ -184,19 +169,30 @@ public with sharing class CalendarAppController {
         Savepoint sp = Database.setSavepoint();
         
         try {
-            // 입력값 검증 강화
-            validateEventInputsSimple(title, department, recordType);
+            validateEventInputs(title, department, recordType);
             
-            // 보안 검증 추가
-            validateSecurityPermissions(recordId);
+            // 권한 검증 (인라인)
+            if (recordId == null) {
+                if (!Schema.sObjectType.My_Event__c.isCreateable()) {
+                    throw new AuraHandledException('이벤트 생성 권한이 없습니다');
+                }
+                if (!Schema.sObjectType.Cost_Detail__c.isCreateable()) {
+                    throw new AuraHandledException('비용 상세 생성 권한이 없습니다');
+                }
+            } else {
+                if (!Schema.sObjectType.My_Event__c.isUpdateable()) {
+                    throw new AuraHandledException('이벤트 수정 권한이 없습니다');
+                }
+                if (!Schema.sObjectType.Cost_Detail__c.isUpdateable()) {
+                    throw new AuraHandledException('비용 상세 수정 권한이 없습니다');
+                }
+            }
             
-            // 이벤트 저장
-            My_Event__c eventRecord = saveEventRecordSimple(recordId, title, description, 
+            My_Event__c eventRecord = upsertEventRecord(recordId, title, description, 
                 location, relatedId, recordType, startDate, endDate);
             
-            // 비용 상세 저장 (개인 활동이 아닌 경우만)
             if (!isPersonalActivity(recordType)) {
-                saveCostDetailsWithValidation(eventRecord.Id, costDetailsJson, department);
+                processCostDetails(eventRecord.Id, costDetailsJson, department);
             }
             
             return eventRecord.Id;
@@ -204,11 +200,11 @@ public with sharing class CalendarAppController {
         } catch (DmlException dmlEx) {
             Database.rollback(sp);
             System.debug('DML 오류: ' + dmlEx.getMessage());
-            throw new AuraHandledException('저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
             Database.rollback(sp);
             System.debug('예외 발생: ' + e.getMessage());
-            throw new AuraHandledException('저장 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
     
@@ -216,15 +212,14 @@ public with sharing class CalendarAppController {
     public static String updateEventDates(Id eventId, String newStartDate, String newEndDate) {
         try {
             if (eventId == null) {
-                throw new AuraHandledException('유효하지 않은 이벤트 ID입니다');
+                throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
-
-            // CRUD 권한 검증
+            
+            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isUpdateable()) {
-                throw new AuraHandledException('수정 권한이 없습니다');
+                throw new AuraHandledException('이벤트 수정 권한이 없습니다');
             }
-
-            // 보안 검증
+            
             validateEventOwnership(eventId);
             
             My_Event__c eventToUpdate = new My_Event__c(Id = eventId);
@@ -235,16 +230,15 @@ public with sharing class CalendarAppController {
             if (String.isNotBlank(newEndDate)) { 
                 eventToUpdate.End_Date__c = Date.valueOf(newEndDate); 
             }
-
+            
             update eventToUpdate;
             return '성공적으로 업데이트되었습니다';
-            
         } catch (DmlException dmlEx) {
             System.debug('이벤트 업데이트 DML 오류: ' + dmlEx.getMessage());
-            throw new AuraHandledException('업데이트 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+            throw new AuraHandledException('이벤트 업데이트 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
             System.debug('이벤트 업데이트 오류: ' + e.getMessage());
-            throw new AuraHandledException('업데이트 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 업데이트 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
@@ -254,16 +248,17 @@ public with sharing class CalendarAppController {
         
         try {
             if (eventId == null) {
-                throw new AuraHandledException('유효하지 않은 이벤트 ID입니다');
+                throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
-
-            // CRUD 권한 검증
-            if (!Schema.sObjectType.My_Event__c.isDeletable() || 
-                !Schema.sObjectType.Cost_Detail__c.isDeletable()) {
-                throw new AuraHandledException('삭제 권한이 없습니다');
+            
+            // 권한 검증 (인라인)
+            if (!Schema.sObjectType.My_Event__c.isDeletable()) {
+                throw new AuraHandledException('이벤트 삭제 권한이 없습니다');
             }
-
-            // 보안 검증
+            if (!Schema.sObjectType.Cost_Detail__c.isDeletable()) {
+                throw new AuraHandledException('비용 상세 삭제 권한이 없습니다');
+            }
+            
             validateEventOwnership(eventId);
             
             deleteCostDetails(eventId);
@@ -273,45 +268,17 @@ public with sharing class CalendarAppController {
         } catch (DmlException dmlEx) {
             Database.rollback(sp);
             System.debug('이벤트 삭제 DML 오류: ' + dmlEx.getMessage());
-            throw new AuraHandledException('삭제 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+            throw new AuraHandledException('이벤트 삭제 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
             Database.rollback(sp);
             System.debug('이벤트 삭제 오류: ' + e.getMessage());
-            throw new AuraHandledException('삭제 중 오류가 발생했습니다: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
-    // === 보안 검증 메서드 ===
-    private static void validateSecurityPermissions(Id recordId) {
-        // 신규 생성 시 권한 확인
-        if (recordId == null) {
-            if (!Schema.sObjectType.My_Event__c.isCreateable() || 
-                !Schema.sObjectType.Cost_Detail__c.isCreateable()) {
-                throw new AuraHandledException('생성 권한이 없습니다');
-            }
-        } else {
-            // 업데이트 시 권한 확인
-            if (!Schema.sObjectType.My_Event__c.isUpdateable() || 
-                !Schema.sObjectType.Cost_Detail__c.isUpdateable()) {
-                throw new AuraHandledException('수정 권한이 없습니다');
-            }
-        }
-    }
-
-    private static void validateEventOwnership(Id eventId) {
-        if (!Schema.sObjectType.My_Event__c.isAccessible()) {
-            throw new AuraHandledException('읽기 권한이 없습니다');
-        }
-
-        List<My_Event__c> events = [SELECT Id FROM My_Event__c WHERE Id = :eventId AND OwnerId = :UserInfo.getUserId() LIMIT 1];
-        if (events.isEmpty()) {
-            throw new AuraHandledException('권한이 없습니다');
-        }
-    }
-
-    // === HELPER METHODS (Null 체크 강화) ===
+    // === HELPER METHODS ===
     
-    private static void validateEventInputsSimple(String title, String department, String recordType) {
+    private static void validateEventInputs(String title, String department, String recordType) {
         List<String> errors = new List<String>();
         
         if (String.isBlank(title)) {
@@ -327,14 +294,31 @@ public with sharing class CalendarAppController {
         }
     }
 
-    private static My_Event__c saveEventRecordSimple(Id recordId, String title, String description, 
+    private static void validateEventOwnership(Id eventId) {
+        // 권한 검증 (인라인)
+        if (!Schema.sObjectType.My_Event__c.isAccessible()) {
+            throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
+        }
+        
+        List<My_Event__c> events = [
+            SELECT Id FROM My_Event__c 
+            WHERE Id = :eventId AND OwnerId = :UserInfo.getUserId() 
+            LIMIT 1
+        ];
+        
+        if (events.isEmpty()) {
+            throw new AuraHandledException('권한이 없습니다');
+        }
+    }
+
+    // 데이터 처리 메서드들
+    private static My_Event__c upsertEventRecord(Id recordId, String title, String description, 
             String location, String relatedId, String recordType, String startDate, String endDate) {
         
         My_Event__c eventRecord = recordId == null ? new My_Event__c() : new My_Event__c(Id = recordId);
         
-        // Null 체크 후 값 할당
         eventRecord.Name = String.isNotBlank(title) ? title : 'Untitled Event';
-        eventRecord.Title__c = String.isNotBlank(title) ? title : 'Untitled Event';
+        eventRecord.Title__c = eventRecord.Name;
         eventRecord.Description__c = description;
         eventRecord.Location__c = location;
         eventRecord.Related_Record_Id__c = relatedId;
@@ -350,93 +334,29 @@ public with sharing class CalendarAppController {
         upsert eventRecord;
         return eventRecord;
     }
-    
-    private static String getAccountName(My_Event__c event) {
-        if (event == null) {
-            return '';
-        }
-        
-        if (event.Related_Record_Type__c == ACCOUNT_RECORD_TYPE && 
-            String.isNotBlank(event.Related_Record_Id__c)) {
-            try {
-                if (!Schema.sObjectType.Account.isAccessible()) {
-                    return '';
-                }
-                List<Account> accounts = [SELECT Name FROM Account WHERE Id = :event.Related_Record_Id__c LIMIT 1];
-                return accounts.isEmpty() ? '' : accounts[0].Name;
-            } catch (Exception e) {
-                System.debug('Account 조회 실패: ' + e.getMessage());
-                return '';
-            }
-        }
-        return '';
-    }
-    
-    private static My_Event__c saveEventRecord(EventSaveRequest request) {
-        My_Event__c eventRecord = request.recordId == null ? new My_Event__c() : new My_Event__c(Id = request.recordId);
-        
-        // Null 체크 후 값 할당
-        eventRecord.Name = String.isNotBlank(request.title) ? request.title : 'Untitled Event';
-        eventRecord.Title__c = String.isNotBlank(request.title) ? request.title : 'Untitled Event';
-        eventRecord.Description__c = request.description;
-        eventRecord.Location__c = request.location;
-        eventRecord.Related_Record_Id__c = request.relatedId;
-        eventRecord.Related_Record_Type__c = request.recordType;
-        
-        if (String.isNotBlank(request.startDate)) {
-            eventRecord.Start_Date__c = Date.valueOf(request.startDate);
-        }
-        if (String.isNotBlank(request.endDate)) {
-            eventRecord.End_Date__c = Date.valueOf(request.endDate);
-        }
-        
-        upsert eventRecord;
-        return eventRecord;
-    }
-    
-    private static Boolean isPersonalActivity(String recordType) {
-        return recordType == PERSONAL_RECORD_TYPE;
-    }
-    
-    private static void saveCostDetailsWithValidation(Id eventId, String costDetailsJson, String department) {
+
+    private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
         deleteCostDetails(eventId);
         
         if (String.isNotBlank(costDetailsJson)) {
-            List<Cost_Detail__c> costsToInsert = createValidatedCostDetails(eventId, costDetailsJson, department);
+            List<Cost_Detail__c> costsToInsert = buildValidatedCostDetails(eventId, costDetailsJson, department);
             if (!costsToInsert.isEmpty()) {
                 insert costsToInsert;
             }
         }
     }
-    
-    private static void deleteCostDetails(Id eventId) {
-        try {
-            if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
-                return;
-            }
-            List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
-            if (!existingCosts.isEmpty()) {
-                delete existingCosts;
-            }
-        } catch (DmlException e) {
-            System.debug('비용 상세 삭제 오류: ' + e.getMessage());
-            throw new AuraHandledException('비용 상세 삭제 중 오류가 발생했습니다');
-        }
-    }
-    
-    private static List<Cost_Detail__c> createValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
+
+    private static List<Cost_Detail__c> buildValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
         List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
         
         try {
             List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
             String deptValue = String.isNotBlank(department) ? department : DEFAULT_DEPARTMENT;
             
-            if (parsedCosts != null) {
-                for (Object costObj : parsedCosts) {
-                    Cost_Detail__c costDetail = createAndValidateCostDetail(eventId, costObj, deptValue);
-                    if (costDetail != null) {
-                        costsToInsert.add(costDetail);
-                    }
+            for (Object costObj : parsedCosts) {
+                Cost_Detail__c costDetail = buildCostDetail(eventId, costObj, deptValue);
+                if (costDetail != null) {
+                    costsToInsert.add(costDetail);
                 }
             }
         } catch (Exception jsonEx) {
@@ -446,27 +366,20 @@ public with sharing class CalendarAppController {
         
         return costsToInsert;
     }
-    
-    private static Cost_Detail__c createAndValidateCostDetail(Id eventId, Object costObj, String department) {
-        if (costObj == null) {
-            return null;
-        }
+
+    private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
+        if (costObj == null) return null;
         
         Map<String, Object> costMap = (Map<String, Object>)costObj;
-        
         String costType = String.valueOf(costMap.get('type'));
         Object amountObj = costMap.get('amount');
         
-        if (String.isBlank(costType) || amountObj == null) {
-            return null;
-        }
+        if (String.isBlank(costType) || amountObj == null) return null;
         
         Decimal amount;
         try {
             amount = Decimal.valueOf(String.valueOf(amountObj));
-            if (amount < MIN_COST_AMOUNT) {
-                return null;
-            }
+            if (amount < MIN_COST_AMOUNT) return null;
         } catch (Exception e) {
             System.debug('금액 파싱 오류: ' + e.getMessage());
             return null;
@@ -478,5 +391,47 @@ public with sharing class CalendarAppController {
             Amount__c = amount,
             department__c = department
         );
+    }
+
+    private static void deleteCostDetails(Id eventId) {
+        try {
+            // 권한 검증 (인라인)
+            if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
+                throw new AuraHandledException('비용 상세 읽기 권한이 없습니다');
+            }
+            
+            List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
+            if (!existingCosts.isEmpty()) {
+                delete existingCosts;
+            }
+        } catch (DmlException e) {
+            System.debug('비용 상세 삭제 오류: ' + e.getMessage());
+            throw new AuraHandledException('비용 상세 삭제 중 오류가 발생했습니다');
+        }
+    }
+
+    // 유틸리티 메서드들
+    private static Boolean isPersonalActivity(String recordType) {
+        return recordType == PERSONAL_RECORD_TYPE;
+    }
+    
+    private static String getAccountName(My_Event__c event) {
+        if (event?.Related_Record_Type__c != ACCOUNT_RECORD_TYPE || 
+            String.isBlank(event.Related_Record_Id__c)) {
+            return '';
+        }
+        
+        try {
+            // 권한 검증 (인라인)
+            if (!Schema.sObjectType.Account.isAccessible()) {
+                return '';
+            }
+            
+            List<Account> accounts = [SELECT Name FROM Account WHERE Id = :event.Related_Record_Id__c LIMIT 1];
+            return accounts.isEmpty() ? '' : accounts[0].Name;
+        } catch (Exception e) {
+            System.debug('Account 조회 실패: ' + e.getMessage());
+            return '';
+        }
     }
 }
