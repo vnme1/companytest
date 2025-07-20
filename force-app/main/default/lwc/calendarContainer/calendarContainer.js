@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 (최적화 버전)
+ * @description       : 캘린더 컨테이너 (중복 로직 제거 및 간소화 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
@@ -33,8 +33,9 @@ export default class CalendarContainer extends LightningElement {
         return this.newEventData?.extendedProps?.recordType !== 'Personal';
     }
 
+    // ✅ 중복 로직 제거: 단순하게 반대값 사용
     get isPersonalActivityEvent() {
-        return this.newEventData?.extendedProps?.recordType === 'Personal';
+        return !this.isSalesforceObjectEvent;
     }
 
     get displayAccountName() {
@@ -50,7 +51,10 @@ export default class CalendarContainer extends LightningElement {
                 this.departmentPicklistOptions = dept || [];
                 this.costTypePicklistOptions = cost || [];
             })
-            .catch(() => this.showToast('오류', '옵션 로드 실패', 'error'));
+            .catch(error => {
+                console.error('부서/비용 옵션 조회 오류:', error);
+                this.showToast('오류', '설정 옵션을 불러오는데 실패했습니다.', 'error');
+            });
     }
 
     handleEventDrop(event) {
@@ -95,14 +99,24 @@ export default class CalendarContainer extends LightningElement {
                     }
                 };
 
-                this.costItems = costs.length > 0
-                    ? costs.map((c, i) => ({ id: i, type: c.Cost_Type__c || '', amount: c.Amount__c || null }))
-                    : [{ id: 0, type: '', amount: null }];
+                // ✅ 삼항 연산자 중첩 제거: 명확한 조건문 사용
+                if (costs.length > 0) {
+                    this.costItems = costs.map((c, i) => ({
+                        id: i,
+                        type: c.Cost_Type__c || '',
+                        amount: c.Amount__c || null
+                    }));
+                } else {
+                    this.costItems = [{ id: 0, type: '', amount: null }];
+                }
 
                 this.modalTitle = `이벤트 수정: ${evt.Title__c || 'Untitled'}`;
                 this.openModal();
             })
-            .catch(() => this.showToast('오류', '이벤트 로드 실패', 'error'));
+            .catch(error => {
+                console.error('이벤트 상세 조회 오류:', error);
+                this.showToast('오류', '이벤트 정보를 불러오는데 실패했습니다.', 'error');
+            });
     }
 
     saveEvent() {
@@ -172,7 +186,9 @@ export default class CalendarContainer extends LightningElement {
 
     handleInputChange(event) {
         const { name, value } = event.target;
-        if (name) this[name] = value || '';
+        if (name) {
+            this[name] = value || '';
+        }
     }
 
     handleCostChange(event) {
@@ -239,25 +255,26 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    openModal() { this.isModalOpen = true; }
+    openModal() { 
+        this.isModalOpen = true; 
+    }
     
     closeModal() {
         this.isModalOpen = false;
         this.resetModal();
     }
 
+    // ✅ Object.assign 제거: 더 직관적인 할당 방식
     resetModal() {
-        Object.assign(this, {
-            recordId: null,
-            eventTitle: '',
-            eventStartDate: '',
-            eventEndDate: '',
-            eventDescription: '',
-            eventLocation: '',
-            eventDepartment: '',
-            costItems: [{ id: 0, type: '', amount: null }],
-            newEventData: { extendedProps: {} }
-        });
+        this.recordId = null;
+        this.eventTitle = '';
+        this.eventStartDate = '';
+        this.eventEndDate = '';
+        this.eventDescription = '';
+        this.eventLocation = '';
+        this.eventDepartment = '';
+        this.costItems = [{ id: 0, type: '', amount: null }];
+        this.newEventData = { extendedProps: {} };
     }
 
     showToast(title, message, variant) {

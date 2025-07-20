@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 뷰 컴포넌트 (최적화 버전)
+ * @description       : 캘린더 뷰 컴포넌트 (함수명 통일 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, api } from 'lwc';
@@ -16,7 +16,8 @@ const CALENDAR_CONFIG = {
     LOAD_DELAY_MS: 100
 };
 
-function toYMD(date) {
+// ✅ 함수명 통일: toYMD → toLocalYMD
+function toLocalYMD(date) {
     try {
         const offsetMs = date.getTimezoneOffset() * 60000;
         const localDate = new Date(date.getTime() - offsetMs);
@@ -130,8 +131,9 @@ export default class CalendarView extends LightningElement {
 
     loadEvents(fetchInfo, successCallback, failureCallback) {
         getEvents({
-            startStr: toYMD(fetchInfo.start),
-            endStr: toYMD(fetchInfo.end)
+            // ✅ 통일된 함수명 사용
+            startStr: toLocalYMD(fetchInfo.start),
+            endStr: toLocalYMD(fetchInfo.end)
         })
         .then(result => {
             const events = result.map(event => ({
@@ -181,8 +183,9 @@ export default class CalendarView extends LightningElement {
 
     handleEventDrop(info) {
         const eventId = info.event.id;
-        const newStart = toYMD(info.event.start);
-        const newEnd = info.event.end ? toYMD(new Date(info.event.end.getTime() - 86400000)) : newStart;
+        // ✅ 통일된 함수명 사용
+        const newStart = toLocalYMD(info.event.start);
+        const newEnd = info.event.end ? toLocalYMD(new Date(info.event.end.getTime() - 86400000)) : newStart;
 
         updateEventDates({
             eventId: eventId,
