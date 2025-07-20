@@ -1,9 +1,8 @@
 /**
- * @description       : Calendar App Controller (색상 코드 제거 - 깔끔한 버전)
+ * @description       : Calendar App Controller (예외처리 강화 버전)
  * @author            : sejin.park@dkbmc.com
- * @last modified on  : 2025-07-19
- * @last modified by  : sejin.park@dkbmc.com
-**/
+ * @last modified on  : 2025-07-20
+ */
 public with sharing class CalendarAppController {
     
     // === 상수 정의 ===
@@ -28,6 +27,7 @@ public with sharing class CalendarAppController {
             Date endDate = Date.valueOf(endStr);
             return CalendarEventSelector.selectEventsByDateRange(startDate, endDate);
         } catch (Exception e) {
+            System.debug('이벤트 조회 오류: ' + e.getMessage());
             throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR + ': ' + e.getMessage());
         }
     }
@@ -35,13 +35,18 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
         try {
+            if (eventId == null) {
+                throw new AuraHandledException(Label.LABEL_INVALID_EVENT_ID);
+            }
+
             EventWrapper wrapper = new EventWrapper();
             wrapper.event = CalendarEventSelector.selectEventDetailsById(eventId);
             wrapper.costs = wrapper.event.Cost_Details1__r;
             wrapper.accountName = getAccountName(wrapper.event);
             return wrapper;
         } catch (Exception e) {
-            throw new AuraHandledException(Label.LABEL_EVENT_FETCH_ERROR + ': ' + e.getMessage());
+            System.debug('이벤트 상세 조회 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_DETAIL_ERROR + ': ' + e.getMessage());
         }
     }
 
@@ -52,36 +57,12 @@ public with sharing class CalendarAppController {
             Date endDateObj = Date.valueOf(endDate);
             return CalendarEventSelector.selectMonthlyCostSummary(start, endDateObj);
         } catch (Exception e) {
+            System.debug('비용 요약 조회 오류: ' + e.getMessage());
             throw new AuraHandledException(Label.LABEL_COST_SUMMARY_ERROR + ': ' + e.getMessage());
         }
     }
 
-    @AuraEnabled(cacheable=true)
-    public static List<Account> getAccountList() {
-        return CalendarEventSelector.selectAccounts();
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Contact> getContactList() {
-        return CalendarEventSelector.selectContacts();
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Opportunity> getOpportunityList() {
-        return CalendarEventSelector.selectOpportunities();
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Map<String, String>> getDepartmentOptions() {
-        return CalendarEventSelector.selectDepartmentOptions();
-    }
-
-    @AuraEnabled(cacheable=true)
-    public static List<Map<String, String>> getCostTypeOptions() {
-        return CalendarEventSelector.selectCostTypeOptions();
-    }
-
-    // === WRITE OPERATIONS ===
+    // === WRITE OPERATIONS (예외처리 강화) ===
     
     @AuraEnabled
     public static String saveEventAndCosts(
@@ -89,18 +70,33 @@ public with sharing class CalendarAppController {
         String description, String location, String department,
         String relatedId, String recordType, String costDetailsJson
     ) {
+        Savepoint sp = Database.setSavepoint();
+        
         try {
+            // 입력값 검증
             validateEventInputs(title, department, recordType);
+            
+            // 보안 검증 추가
+            validateSecurityPermissions(recordId);
+            
+            // 이벤트 저장
             My_Event__c eventRecord = saveEventRecord(recordId, title, description, 
                 location, relatedId, recordType, startDate, endDate);
             
+            // 비용 상세 저장 (개인 활동이 아닌 경우만)
             if (!isPersonalActivity(recordType)) {
                 saveCostDetailsWithValidation(eventRecord.Id, costDetailsJson, department);
             }
             
             return eventRecord.Id;
 
+        } catch (DmlException dmlEx) {
+            Database.rollback(sp);
+            System.debug('DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_SAVE_ERROR + ': ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
+            Database.rollback(sp);
+            System.debug('예외 발생: ' + e.getMessage());
             handleException(e);
             return null;
         }
@@ -109,6 +105,13 @@ public with sharing class CalendarAppController {
     @AuraEnabled
     public static String updateEventDates(Id eventId, String newStartDate, String newEndDate) {
         try {
+            if (eventId == null) {
+                throw new AuraHandledException(Label.LABEL_INVALID_EVENT_ID);
+            }
+
+            // 보안 검증
+            validateEventOwnership(eventId);
+            
             My_Event__c eventToUpdate = new My_Event__c(Id = eventId);
             
             if (String.isNotBlank(newStartDate)) { 
@@ -119,21 +122,65 @@ public with sharing class CalendarAppController {
             }
 
             update eventToUpdate;
-            return Label.LABEL_SUCCESS_SAVE;
+            return Label.LABEL_SUCCESS_UPDATE;
             
+        } catch (DmlException dmlEx) {
+            System.debug('이벤트 업데이트 DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_UPDATE_ERROR + ': ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
-            throw new AuraHandledException(String.format(Label.LABEL_EVENT_UPDATE_ERROR, new String[]{ e.getMessage() }));
+            System.debug('이벤트 업데이트 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_UPDATE_ERROR + ': ' + e.getMessage());
         }
     }
 
     @AuraEnabled
     public static String deleteEvent(Id eventId) {
+        Savepoint sp = Database.setSavepoint();
+        
         try {
+            if (eventId == null) {
+                throw new AuraHandledException(Label.LABEL_INVALID_EVENT_ID);
+            }
+
+            // 보안 검증
+            validateEventOwnership(eventId);
+            
             deleteCostDetails(eventId);
             delete new My_Event__c(Id = eventId);
-            return Label.LABEL_SUCCESS_SAVE;
+            
+            return Label.LABEL_SUCCESS_DELETE;
+        } catch (DmlException dmlEx) {
+            Database.rollback(sp);
+            System.debug('이벤트 삭제 DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_DELETE_ERROR + ': ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
-            throw new AuraHandledException(String.format(Label.LABEL_EVENT_DELETE_ERROR, new String[]{ e.getMessage() }));
+            Database.rollback(sp);
+            System.debug('이벤트 삭제 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_EVENT_DELETE_ERROR + ': ' + e.getMessage());
+        }
+    }
+
+    // === 보안 검증 메서드 추가 ===
+    private static void validateSecurityPermissions(Id recordId) {
+        // 신규 생성 시 권한 확인
+        if (recordId == null) {
+            if (!Schema.sObjectType.My_Event__c.isCreateable() || 
+                !Schema.sObjectType.Cost_Detail__c.isCreateable()) {
+                throw new AuraHandledException(Label.LABEL_NO_CREATE_PERMISSION);
+            }
+        } else {
+            // 업데이트 시 권한 확인
+            if (!Schema.sObjectType.My_Event__c.isUpdateable() || 
+                !Schema.sObjectType.Cost_Detail__c.isUpdateable()) {
+                throw new AuraHandledException(Label.LABEL_NO_UPDATE_PERMISSION);
+            }
+        }
+    }
+
+    private static void validateEventOwnership(Id eventId) {
+        List<My_Event__c> events = [SELECT Id FROM My_Event__c WHERE Id = :eventId AND OwnerId = :UserInfo.getUserId() LIMIT 1];
+        if (events.isEmpty()) {
+            throw new AuraHandledException(Label.LABEL_NO_PERMISSION);
         }
     }
 
@@ -147,7 +194,7 @@ public with sharing class CalendarAppController {
         }
         
         if (!isPersonalActivity(recordType) && String.isBlank(department)) {
-            errors.add('부서는 필수 선택 항목입니다.');
+            errors.add(Label.LABEL_REQUIRED_DEPARTMENT);
         }
         
         if (!errors.isEmpty()) {
@@ -208,9 +255,14 @@ public with sharing class CalendarAppController {
     }
     
     private static void deleteCostDetails(Id eventId) {
-        List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
-        if (!existingCosts.isEmpty()) {
-            delete existingCosts;
+        try {
+            List<Cost_Detail__c> existingCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
+            if (!existingCosts.isEmpty()) {
+                delete existingCosts;
+            }
+        } catch (DmlException e) {
+            System.debug('비용 상세 삭제 오류: ' + e.getMessage());
+            throw new AuraHandledException(Label.LABEL_COST_DELETE_ERROR);
         }
     }
     
@@ -271,7 +323,53 @@ public with sharing class CalendarAppController {
         if (e instanceof AuraHandledException) {
             throw e;
         } else {
-            throw new AuraHandledException(String.format(Label.LABEL_EVENT_SAVE_ERROR, new String[]{ errorMessage }));
+            throw new AuraHandledException(Label.LABEL_GENERAL_ERROR + ': ' + errorMessage);
+        }
+    }
+
+    // === 기존 READ 메서드들 (변경 없음) ===
+    @AuraEnabled(cacheable=true)
+    public static List<Account> getAccountList() {
+        try {
+            return CalendarEventSelector.selectAccounts();
+        } catch (Exception e) {
+            throw new AuraHandledException('Account 목록을 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Contact> getContactList() {
+        try {
+            return CalendarEventSelector.selectContacts();
+        } catch (Exception e) {
+            throw new AuraHandledException('Contact 목록을 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Opportunity> getOpportunityList() {
+        try {
+            return CalendarEventSelector.selectOpportunities();
+        } catch (Exception e) {
+            throw new AuraHandledException('Opportunity 목록을 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getDepartmentOptions() {
+        try {
+            return CalendarEventSelector.selectDepartmentOptions();
+        } catch (Exception e) {
+            throw new AuraHandledException('부서 옵션을 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getCostTypeOptions() {
+        try {
+            return CalendarEventSelector.selectCostTypeOptions();
+        } catch (Exception e) {
+            throw new AuraHandledException('비용 유형 옵션을 불러오는 중 오류가 발생했습니다.');
         }
     }
 }

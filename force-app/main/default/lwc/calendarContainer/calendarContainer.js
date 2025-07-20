@@ -1,10 +1,19 @@
 /**
- * @description       : 캘린더 컨테이너 (색상 코드 제거 - 깔끔한 버전)
+ * @description       : 캘린더 컨테이너 (Custom Label 적용 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+// Custom Labels import
+import LABEL_INPUT_ERROR from '@salesforce/label/c.LABEL_INPUT_ERROR';
+import LABEL_REQUIRED_TITLE from '@salesforce/label/c.LABEL_REQUIRED_TITLE';
+import LABEL_SUCCESS_SAVE from '@salesforce/label/c.LABEL_SUCCESS_SAVE';
+import LABEL_EVENT_SAVED from '@salesforce/label/c.LABEL_EVENT_SAVED';
+import LABEL_SAVE_ERROR from '@salesforce/label/c.LABEL_SAVE_ERROR';
+import LABEL_SUCCESS_DELETE from '@salesforce/label/c.LABEL_SUCCESS_DELETE';
+
+// Apex Methods
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDetails';
 import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
@@ -167,10 +176,10 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', ERROR_MESSAGES.LOAD_EVENT_ERROR, 'error'));
     }
 
-    // === 이벤트 저장 ===
+    // === 이벤트 저장 (Custom Label 적용) ===
     saveEvent() {
         if (!this.eventTitle) {
-            this.showToast('입력 오류', '제목은 필수 입력 항목입니다.', 'error');
+            this.showToast(LABEL_INPUT_ERROR, LABEL_REQUIRED_TITLE, 'error');
             return;
         }
 
@@ -194,17 +203,17 @@ export default class CalendarContainer extends LightningElement {
         saveEventAndCosts(saveParams)
             .then(savedEventId => {
                 this.updateCalendarView(savedEventId);
-                this.showToast('성공', '이벤트가 저장되었습니다.', 'success');
+                this.showToast(LABEL_SUCCESS_SAVE, LABEL_EVENT_SAVED, 'success');
                 this.closeModal();
                 this.refreshCostSummary();
             })
             .catch(error => {
                 const errorMessage = error?.body?.message || error?.message || '이벤트 저장 중 오류가 발생했습니다.';
-                this.showToast('저장 오류', errorMessage, 'error');
+                this.showToast(LABEL_SAVE_ERROR, errorMessage, 'error');
             });
     }
 
-    // === 이벤트 삭제 ===
+    // === 이벤트 삭제 (Custom Label 적용) ===
     handleDelete() {
         if (!this.recordId) return;
 
@@ -214,7 +223,7 @@ export default class CalendarContainer extends LightningElement {
                 if (calendarView) {
                     calendarView.removeEvent(this.recordId);
                 }
-                this.showToast('성공', '일정이 삭제되었습니다.', 'success');
+                this.showToast(LABEL_SUCCESS_SAVE, LABEL_SUCCESS_DELETE, 'success');
                 this.closeModal();
                 this.refreshCostSummary();
             })
@@ -262,7 +271,7 @@ export default class CalendarContainer extends LightningElement {
         }];
     }
 
-    // === 캘린더 업데이트 (색상 제거) ===
+    // === 캘린더 업데이트 ===
     updateCalendarView(savedEventId) {
         const calendarView = this.template.querySelector('c-calendar-view');
         if (!calendarView) return;
