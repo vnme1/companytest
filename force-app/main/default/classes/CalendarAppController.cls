@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller (validateCrudPermission 완전 제거 버전)
+ * @description       : Calendar App Controller (오류 수정된 최적화 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -23,12 +23,10 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
         try {
-            // 입력값 검증
             if (String.isBlank(startStr) || String.isBlank(endStr)) {
                 throw new AuraHandledException('입력값이 유효하지 않습니다');
             }
             
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
                 throw new AuraHandledException('읽기 권한이 없습니다');
             }
@@ -49,7 +47,6 @@ public with sharing class CalendarAppController {
                 throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
             
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
                 throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
             }
@@ -77,12 +74,10 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true) 
     public static Map<String, Decimal> getMonthlyCostSummary(String startDate, String endDate) {
         try {
-            // 입력값 검증
             if (String.isBlank(startDate) || String.isBlank(endDate)) {
                 throw new AuraHandledException('입력값이 유효하지 않습니다');
             }
             
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
                 throw new AuraHandledException('비용 상세 읽기 권한이 없습니다');
             }
@@ -99,7 +94,6 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccountList() {
         try {
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Account.isAccessible()) {
                 throw new AuraHandledException('Account 읽기 권한이 없습니다');
             }
@@ -113,7 +107,6 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Contact> getContactList() {
         try {
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Contact.isAccessible()) {
                 throw new AuraHandledException('Contact 읽기 권한이 없습니다');
             }
@@ -127,7 +120,6 @@ public with sharing class CalendarAppController {
     @AuraEnabled(cacheable=true)
     public static List<Opportunity> getOpportunityList() {
         try {
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Opportunity.isAccessible()) {
                 throw new AuraHandledException('Opportunity 읽기 권한이 없습니다');
             }
@@ -171,7 +163,7 @@ public with sharing class CalendarAppController {
         try {
             validateEventInputs(title, department, recordType);
             
-            // 권한 검증 (인라인)
+            // 권한 검증
             if (recordId == null) {
                 if (!Schema.sObjectType.My_Event__c.isCreateable()) {
                     throw new AuraHandledException('이벤트 생성 권한이 없습니다');
@@ -215,7 +207,6 @@ public with sharing class CalendarAppController {
                 throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
             
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isUpdateable()) {
                 throw new AuraHandledException('이벤트 수정 권한이 없습니다');
             }
@@ -251,7 +242,6 @@ public with sharing class CalendarAppController {
                 throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
             
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.My_Event__c.isDeletable()) {
                 throw new AuraHandledException('이벤트 삭제 권한이 없습니다');
             }
@@ -295,7 +285,6 @@ public with sharing class CalendarAppController {
     }
 
     private static void validateEventOwnership(Id eventId) {
-        // 권한 검증 (인라인)
         if (!Schema.sObjectType.My_Event__c.isAccessible()) {
             throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
         }
@@ -311,7 +300,7 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // 데이터 처리 메서드들
+    // === 데이터 처리 메서드들 ===
     private static My_Event__c upsertEventRecord(Id recordId, String title, String description, 
             String location, String relatedId, String recordType, String startDate, String endDate) {
         
@@ -395,7 +384,6 @@ public with sharing class CalendarAppController {
 
     private static void deleteCostDetails(Id eventId) {
         try {
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
                 throw new AuraHandledException('비용 상세 읽기 권한이 없습니다');
             }
@@ -410,7 +398,7 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // 유틸리티 메서드들
+    // === 유틸리티 메서드들 ===
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
@@ -422,7 +410,6 @@ public with sharing class CalendarAppController {
         }
         
         try {
-            // 권한 검증 (인라인)
             if (!Schema.sObjectType.Account.isAccessible()) {
                 return '';
             }

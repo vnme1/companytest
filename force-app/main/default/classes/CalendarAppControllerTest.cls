@@ -1,12 +1,276 @@
 /**
- * @description       : 
+ * @description       : Calendar App Controller Test Class
  * @author            : sejin.park@dkbmc.com
- * @group             : 
  * @last modified on  : 2025-07-20
- * @last modified by  : sejin.park@dkbmc.com
-**/
-public with sharing class CalendarAppControllerTest {
-    public CalendarAppControllerTest() {
-
+ */
+@isTest
+public class CalendarAppControllerTest {
+    
+    @TestSetup
+    static void setup() {
+        // 테스트 데이터 생성
+        My_Event__c testEvent = new My_Event__c(
+            Title__c = 'Test Event',
+            Name = 'Test Event',
+            Start_Date__c = Date.today(),
+            End_Date__c = Date.today().addDays(1),
+            Description__c = 'Test Description',
+            Location__c = 'Test Location',
+            Related_Record_Type__c = 'Account'
+        );
+        insert testEvent;
+        
+        Cost_Detail__c testCost = new Cost_Detail__c(
+            My_Event__c = testEvent.Id,
+            Cost_Type__c = '교통비',
+            Amount__c = 10000,
+            department__c = '개발팀'
+        );
+        insert testCost;
+        
+        // 표준 객체 테스트 데이터
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+        
+        Contact testContact = new Contact(
+            FirstName = 'Test',
+            LastName = 'Contact',
+            AccountId = testAccount.Id
+        );
+        insert testContact;
+        
+        Opportunity testOpportunity = new Opportunity(
+            Name = 'Test Opportunity',
+            AccountId = testAccount.Id,
+            CloseDate = Date.today().addDays(30),
+            StageName = 'Prospecting'
+        );
+        insert testOpportunity;
+    }
+    
+    @isTest
+    static void testGetEvents() {
+        Test.startTest();
+        String startDate = String.valueOf(Date.today().addDays(-7));
+        String endDate = String.valueOf(Date.today().addDays(7));
+        
+        List<My_Event__c> events = CalendarAppController.getEvents(startDate, endDate);
+        Test.stopTest();
+        
+        System.assertNotEquals(null, events, '이벤트 목록이 null이면 안됩니다');
+        System.assertEquals(1, events.size(), '테스트 이벤트 1개가 조회되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetEventDetails() {
+        My_Event__c testEvent = [SELECT Id FROM My_Event__c LIMIT 1];
+        
+        Test.startTest();
+        CalendarAppController.EventWrapper result = CalendarAppController.getEventDetails(testEvent.Id);
+        Test.stopTest();
+        
+        System.assertNotEquals(null, result, '이벤트 상세 정보가 null이면 안됩니다');
+        System.assertNotEquals(null, result.event, '이벤트 객체가 null이면 안됩니다');
+        System.assertEquals('Test Event', result.event.Title__c, '이벤트 제목이 일치해야 합니다');
+        System.assertEquals(1, result.costs.size(), '비용 상세 1개가 조회되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetMonthlyCostSummary() {
+        Test.startTest();
+        String startDate = String.valueOf(Date.today().toStartOfMonth());
+        String endDate = String.valueOf(Date.today().addMonths(1).toStartOfMonth().addDays(-1));
+        
+        Map<String, Decimal> summary = CalendarAppController.getMonthlyCostSummary(startDate, endDate);
+        Test.stopTest();
+        
+        System.assertNotEquals(null, summary, '비용 요약이 null이면 안됩니다');
+        System.assertEquals(10000, summary.get('교통비'), '교통비 합계가 일치해야 합니다');
+    }
+    
+    @isTest
+    static void testSaveEventAndCosts_Create() {
+        Test.startTest();
+        String costJson = '[{"type":"교통비","amount":15000}]';
+        
+        String eventId = CalendarAppController.saveEventAndCosts(
+            null, 'New Test Event', String.valueOf(Date.today()), 
+            String.valueOf(Date.today()), 'Test Description', 
+            'Test Location', '개발팀', null, 'Account', costJson
+        );
+        Test.stopTest();
+        
+        System.assertNotEquals(null, eventId, '이벤트 ID가 반환되어야 합니다');
+        
+        My_Event__c savedEvent = [SELECT Id, Title__c FROM My_Event__c WHERE Id = :eventId];
+        System.assertEquals('New Test Event', savedEvent.Title__c, '이벤트 제목이 일치해야 합니다');
+        
+        List<Cost_Detail__c> costs = [SELECT Amount__c FROM Cost_Detail__c WHERE My_Event__c = :eventId];
+        System.assertEquals(1, costs.size(), '비용 상세 1개가 생성되어야 합니다');
+        System.assertEquals(15000, costs[0].Amount__c, '비용 금액이 일치해야 합니다');
+    }
+    
+    @isTest
+    static void testSaveEventAndCosts_Update() {
+        My_Event__c testEvent = [SELECT Id FROM My_Event__c LIMIT 1];
+        
+        Test.startTest();
+        String costJson = '[{"type":"식대","amount":20000}]';
+        
+        String eventId = CalendarAppController.saveEventAndCosts(
+            testEvent.Id, 'Updated Event', String.valueOf(Date.today()), 
+            String.valueOf(Date.today()), 'Updated Description', 
+            'Updated Location', '개발팀', null, 'Account', costJson
+        );
+        Test.stopTest();
+        
+        My_Event__c updatedEvent = [SELECT Title__c FROM My_Event__c WHERE Id = :testEvent.Id];
+        System.assertEquals('Updated Event', updatedEvent.Title__c, '이벤트 제목이 업데이트되어야 합니다');
+    }
+    
+    @isTest
+    static void testSaveEventAndCosts_Personal() {
+        Test.startTest();
+        String eventId = CalendarAppController.saveEventAndCosts(
+            null, '휴가', String.valueOf(Date.today()), 
+            String.valueOf(Date.today()), '개인 휴가', 
+            null, null, null, 'Personal', null
+        );
+        Test.stopTest();
+        
+        System.assertNotEquals(null, eventId, '개인 활동 이벤트 ID가 반환되어야 합니다');
+        
+        My_Event__c savedEvent = [SELECT Title__c, Related_Record_Type__c FROM My_Event__c WHERE Id = :eventId];
+        System.assertEquals('휴가', savedEvent.Title__c, '개인 활동 제목이 일치해야 합니다');
+        System.assertEquals('Personal', savedEvent.Related_Record_Type__c, '레코드 타입이 Personal이어야 합니다');
+    }
+    
+    @isTest
+    static void testUpdateEventDates() {
+        My_Event__c testEvent = [SELECT Id FROM My_Event__c LIMIT 1];
+        Date newStartDate = Date.today().addDays(1);
+        Date newEndDate = Date.today().addDays(2);
+        
+        Test.startTest();
+        String result = CalendarAppController.updateEventDates(
+            testEvent.Id, 
+            String.valueOf(newStartDate), 
+            String.valueOf(newEndDate)
+        );
+        Test.stopTest();
+        
+        System.assertEquals('성공적으로 업데이트되었습니다', result, '성공 메시지가 반환되어야 합니다');
+        
+        My_Event__c updatedEvent = [SELECT Start_Date__c, End_Date__c FROM My_Event__c WHERE Id = :testEvent.Id];
+        System.assertEquals(newStartDate, updatedEvent.Start_Date__c, '시작일이 업데이트되어야 합니다');
+        System.assertEquals(newEndDate, updatedEvent.End_Date__c, '종료일이 업데이트되어야 합니다');
+    }
+    
+    @isTest
+    static void testDeleteEvent() {
+        My_Event__c testEvent = [SELECT Id FROM My_Event__c LIMIT 1];
+        Id eventId = testEvent.Id;
+        
+        Test.startTest();
+        String result = CalendarAppController.deleteEvent(eventId);
+        Test.stopTest();
+        
+        System.assertEquals('성공적으로 삭제되었습니다', result, '성공 메시지가 반환되어야 합니다');
+        
+        List<My_Event__c> deletedEvents = [SELECT Id FROM My_Event__c WHERE Id = :eventId];
+        System.assertEquals(0, deletedEvents.size(), '이벤트가 삭제되어야 합니다');
+        
+        List<Cost_Detail__c> deletedCosts = [SELECT Id FROM Cost_Detail__c WHERE My_Event__c = :eventId];
+        System.assertEquals(0, deletedCosts.size(), '관련 비용도 삭제되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetAccountList() {
+        Test.startTest();
+        List<Account> accounts = CalendarAppController.getAccountList();
+        Test.stopTest();
+        
+        System.assertNotEquals(null, accounts, 'Account 목록이 null이면 안됩니다');
+        System.assertEquals(1, accounts.size(), 'Test Account가 조회되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetContactList() {
+        Test.startTest();
+        List<Contact> contacts = CalendarAppController.getContactList();
+        Test.stopTest();
+        
+        System.assertNotEquals(null, contacts, 'Contact 목록이 null이면 안됩니다');
+        System.assertEquals(1, contacts.size(), 'Test Contact가 조회되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetOpportunityList() {
+        Test.startTest();
+        List<Opportunity> opportunities = CalendarAppController.getOpportunityList();
+        Test.stopTest();
+        
+        System.assertNotEquals(null, opportunities, 'Opportunity 목록이 null이면 안됩니다');
+        System.assertEquals(1, opportunities.size(), 'Test Opportunity가 조회되어야 합니다');
+    }
+    
+    @isTest
+    static void testGetDepartmentOptions() {
+        Test.startTest();
+        List<Map<String, String>> options = CalendarAppController.getDepartmentOptions();
+        Test.stopTest();
+        
+        System.assertNotEquals(null, options, '부서 옵션이 null이면 안됩니다');
+        System.assert(options.size() > 0, '부서 옵션이 존재해야 합니다');
+    }
+    
+    @isTest
+    static void testGetCostTypeOptions() {
+        Test.startTest();
+        List<Map<String, String>> options = CalendarAppController.getCostTypeOptions();
+        Test.stopTest();
+        
+        System.assertNotEquals(null, options, '비용 유형 옵션이 null이면 안됩니다');
+        System.assert(options.size() > 0, '비용 유형 옵션이 존재해야 합니다');
+    }
+    
+    @isTest
+    static void testErrorHandling_InvalidEventId() {
+        Test.startTest();
+        try {
+            CalendarAppController.getEventDetails(null);
+            System.assert(false, '예외가 발생해야 합니다');
+        } catch (AuraHandledException e) {
+            System.assertEquals('이벤트 ID가 필요합니다', e.getMessage(), '올바른 오류 메시지가 반환되어야 합니다');
+        }
+        Test.stopTest();
+    }
+    
+    @isTest
+    static void testErrorHandling_InvalidDateRange() {
+        Test.startTest();
+        try {
+            CalendarAppController.getEvents(null, null);
+            System.assert(false, '예외가 발생해야 합니다');
+        } catch (AuraHandledException e) {
+            System.assertEquals('입력값이 유효하지 않습니다', e.getMessage(), '올바른 오류 메시지가 반환되어야 합니다');
+        }
+        Test.stopTest();
+    }
+    
+    @isTest
+    static void testErrorHandling_InvalidTitle() {
+        Test.startTest();
+        try {
+            CalendarAppController.saveEventAndCosts(
+                null, '', String.valueOf(Date.today()), 
+                String.valueOf(Date.today()), '', 
+                '', '개발팀', null, 'Account', '[]'
+            );
+            System.assert(false, '예외가 발생해야 합니다');
+        } catch (AuraHandledException e) {
+            System.assert(e.getMessage().contains('제목을 입력해주세요'), '제목 검증 오류 메시지가 반환되어야 합니다');
+        }
+        Test.stopTest();
     }
 }
