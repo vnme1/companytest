@@ -1,5 +1,5 @@
 /**
- * @description       : Calendar App Controller (오류 수정된 최적화 버전)
+ * @description       : Calendar App Controller (PMD 경고 해결 최종 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */
@@ -16,6 +16,20 @@ public with sharing class CalendarAppController {
         @AuraEnabled public My_Event__c event;
         @AuraEnabled public List<Cost_Detail__c> costs;
         @AuraEnabled public String accountName;
+    }
+
+    // Parameter Object 패턴 (PMD ExcessiveParameterList 해결)
+    public class EventSaveRequest {
+        public Id recordId;
+        public String title;
+        public String startDate;
+        public String endDate;
+        public String description;
+        public String location;
+        public String department;
+        public String relatedId;
+        public String recordType;
+        public String costDetailsJson;
     }
 
     // === READ OPERATIONS ===
@@ -158,13 +172,29 @@ public with sharing class CalendarAppController {
         String description, String location, String department,
         String relatedId, String recordType, String costDetailsJson
     ) {
+        EventSaveRequest request = new EventSaveRequest();
+        request.recordId = recordId;
+        request.title = title;
+        request.startDate = startDate;
+        request.endDate = endDate;
+        request.description = description;
+        request.location = location;
+        request.department = department;
+        request.relatedId = relatedId;
+        request.recordType = recordType;
+        request.costDetailsJson = costDetailsJson;
+        
+        return saveEventAndCostsInternal(request);
+    }
+    
+    private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
         
         try {
-            validateEventInputs(title, department, recordType);
+            validateEventInputs(request.title, request.department, request.recordType);
             
             // 권한 검증
-            if (recordId == null) {
+            if (request.recordId == null) {
                 if (!Schema.sObjectType.My_Event__c.isCreateable()) {
                     throw new AuraHandledException('이벤트 생성 권한이 없습니다');
                 }
@@ -180,11 +210,10 @@ public with sharing class CalendarAppController {
                 }
             }
             
-            My_Event__c eventRecord = upsertEventRecord(recordId, title, description, 
-                location, relatedId, recordType, startDate, endDate);
+            My_Event__c eventRecord = upsertEventRecord(request);
             
-            if (!isPersonalActivity(recordType)) {
-                processCostDetails(eventRecord.Id, costDetailsJson, department);
+            if (!isPersonalActivity(request.recordType)) {
+                processCostDetails(eventRecord.Id, request.costDetailsJson, request.department);
             }
             
             return eventRecord.Id;
@@ -300,24 +329,33 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // === 데이터 처리 메서드들 ===
-    private static My_Event__c upsertEventRecord(Id recordId, String title, String description, 
-            String location, String relatedId, String recordType, String startDate, String endDate) {
+    // === 데이터 처리 메서드들 (PMD 중괄호 경고 해결) ===
+    private static My_Event__c upsertEventRecord(EventSaveRequest request) {
+        My_Event__c eventRecord;
         
-        My_Event__c eventRecord = recordId == null ? new My_Event__c() : new My_Event__c(Id = recordId);
-        
-        eventRecord.Name = String.isNotBlank(title) ? title : 'Untitled Event';
-        eventRecord.Title__c = eventRecord.Name;
-        eventRecord.Description__c = description;
-        eventRecord.Location__c = location;
-        eventRecord.Related_Record_Id__c = relatedId;
-        eventRecord.Related_Record_Type__c = recordType;
-        
-        if (String.isNotBlank(startDate)) {
-            eventRecord.Start_Date__c = Date.valueOf(startDate);
+        if (request.recordId == null) {
+            eventRecord = new My_Event__c();
+        } else {
+            eventRecord = new My_Event__c(Id = request.recordId);
         }
-        if (String.isNotBlank(endDate)) {
-            eventRecord.End_Date__c = Date.valueOf(endDate);
+        
+        if (String.isNotBlank(request.title)) {
+            eventRecord.Name = request.title;
+        } else {
+            eventRecord.Name = 'Untitled Event';
+        }
+        
+        eventRecord.Title__c = eventRecord.Name;
+        eventRecord.Description__c = request.description;
+        eventRecord.Location__c = request.location;
+        eventRecord.Related_Record_Id__c = request.relatedId;
+        eventRecord.Related_Record_Type__c = request.recordType;
+        
+        if (String.isNotBlank(request.startDate)) {
+            eventRecord.Start_Date__c = Date.valueOf(request.startDate);
+        }
+        if (String.isNotBlank(request.endDate)) {
+            eventRecord.End_Date__c = Date.valueOf(request.endDate);
         }
         
         upsert eventRecord;
@@ -340,7 +378,13 @@ public with sharing class CalendarAppController {
         
         try {
             List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
-            String deptValue = String.isNotBlank(department) ? department : DEFAULT_DEPARTMENT;
+            String deptValue;
+            
+            if (String.isNotBlank(department)) {
+                deptValue = department;
+            } else {
+                deptValue = DEFAULT_DEPARTMENT;
+            }
             
             for (Object costObj : parsedCosts) {
                 Cost_Detail__c costDetail = buildCostDetail(eventId, costObj, deptValue);
@@ -357,18 +401,24 @@ public with sharing class CalendarAppController {
     }
 
     private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
-        if (costObj == null) return null;
+        if (costObj == null) {
+            return null;
+        }
         
         Map<String, Object> costMap = (Map<String, Object>)costObj;
         String costType = String.valueOf(costMap.get('type'));
         Object amountObj = costMap.get('amount');
         
-        if (String.isBlank(costType) || amountObj == null) return null;
+        if (String.isBlank(costType) || amountObj == null) {
+            return null;
+        }
         
         Decimal amount;
         try {
             amount = Decimal.valueOf(String.valueOf(amountObj));
-            if (amount < MIN_COST_AMOUNT) return null;
+            if (amount < MIN_COST_AMOUNT) {
+                return null;
+            }
         } catch (Exception e) {
             System.debug('금액 파싱 오류: ' + e.getMessage());
             return null;
@@ -404,8 +454,11 @@ public with sharing class CalendarAppController {
     }
     
     private static String getAccountName(My_Event__c event) {
-        if (event?.Related_Record_Type__c != ACCOUNT_RECORD_TYPE || 
-            String.isBlank(event.Related_Record_Id__c)) {
+        if (event?.Related_Record_Type__c != ACCOUNT_RECORD_TYPE) {
+            return '';
+        }
+        
+        if (String.isBlank(event.Related_Record_Id__c)) {
             return '';
         }
         
@@ -415,7 +468,11 @@ public with sharing class CalendarAppController {
             }
             
             List<Account> accounts = [SELECT Name FROM Account WHERE Id = :event.Related_Record_Id__c LIMIT 1];
-            return accounts.isEmpty() ? '' : accounts[0].Name;
+            if (accounts.isEmpty()) {
+                return '';
+            } else {
+                return accounts[0].Name;
+            }
         } catch (Exception e) {
             System.debug('Account 조회 실패: ' + e.getMessage());
             return '';

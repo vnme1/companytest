@@ -1,33 +1,24 @@
 /**
- * @description       : 캘린더 컨테이너 (JavaScript 로직 최적화)
+ * @description       : 캘린더 컨테이너 (간결 최적화 버전)
  * @author            : sejin.park@dkbmc.com
  */
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-// Custom Labels
-import LABEL_SUCCESS_SAVE from '@salesforce/label/c.LABEL_SUCCESS_SAVE';
-import LABEL_SUCCESS_DELETE from '@salesforce/label/c.LABEL_SUCCESS_DELETE';
-
-// Apex Methods
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDetails';
 import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
 import getDepartmentOptions from '@salesforce/apex/CalendarAppController.getDepartmentOptions';
 import getCostTypeOptions from '@salesforce/apex/CalendarAppController.getCostTypeOptions';
 
-const RECORD_TYPES = {
-    PERSONAL: 'Personal',
-    ACCOUNT: 'Account'
-};
+const RECORD_TYPES = { PERSONAL: 'Personal' };
 
 export default class CalendarContainer extends LightningElement {
-    // === 상태 관리 ===
     @track isModalOpen = false;
     @track modalTitle = '';
-    @track currentMonthForSummary;
+    @track currentMonthForSummary = new Date().toISOString();
 
-    // === 이벤트 데이터 ===
+    // 이벤트 데이터
     @track recordId = null;
     @track eventTitle = '';
     @track eventStartDate = '';
@@ -35,14 +26,14 @@ export default class CalendarContainer extends LightningElement {
     @track eventDescription = '';
     @track eventLocation = '';
     @track eventDepartment = '';
-    @track costItems = [];
+    @track costItems = [{ id: 0, type: '', amount: null }];
     @track newEventData = { extendedProps: {} };
 
-    // === 피클리스트 옵션 ===
+    // 옵션
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
 
-    // === Computed Properties ===
+    // Computed Properties
     get isSalesforceObjectEvent() {
         return this.newEventData?.extendedProps?.recordType !== RECORD_TYPES.PERSONAL;
     }
@@ -55,80 +46,53 @@ export default class CalendarContainer extends LightningElement {
         return this.newEventData?.extendedProps?.accountName || '';
     }
 
-    get departmentOptions() {
-        return this.departmentPicklistOptions || [];
-    }
+    get departmentOptions() { return this.departmentPicklistOptions || []; }
+    get costTypeOptions() { return this.costTypePicklistOptions || []; }
 
-    get costTypeOptions() {
-        return this.costTypePicklistOptions || [];
-    }
-
-    // === 라이프사이클 ===
+    // 라이프사이클
     connectedCallback() {
-        this.currentMonthForSummary = new Date().toISOString();
-        this.loadPicklistOptions();
-    }
-
-    // === 피클리스트 로드 ===
-    loadPicklistOptions() {
         Promise.all([getDepartmentOptions(), getCostTypeOptions()])
-            .then(([departmentOptions, costTypeOptions]) => {
-                this.departmentPicklistOptions = departmentOptions || [];
-                this.costTypePicklistOptions = costTypeOptions || [];
+            .then(([dept, cost]) => {
+                this.departmentPicklistOptions = dept || [];
+                this.costTypePicklistOptions = cost || [];
             })
-            .catch(error => this.showToast('오류', '옵션 로드 실패', 'error'));
+            .catch(() => this.showToast('오류', '옵션 로드 실패', 'error'));
     }
 
-    // === 이벤트 드롭 처리 ===
+    // 이벤트 드롭 처리
     handleEventDrop(event) {
-        try {
-            const { draggedEl, date } = event.detail;
-            if (!draggedEl?.dataset?.recordName) return;
+        const { draggedEl, date } = event.detail;
+        const { recordName, recordType, recordId, accountName } = draggedEl?.dataset || {};
+        
+        if (!recordName) return;
 
-            const { recordName, recordType, recordId, accountName } = draggedEl.dataset;
-            
-            this.resetModalData();
-            this.eventTitle = recordName;
-            this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
-            
-            const localYMD = this.toLocalYMD(date);
-            this.eventStartDate = localYMD;
-            this.eventEndDate = localYMD;
-
-            this.newEventData = {
-                extendedProps: { 
-                    recordType, 
-                    relatedId: recordId || '', 
-                    accountName: accountName || '' 
-                }
-            };
-
-            this.costItems = [{ id: 0, type: '', amount: null }];
-            this.modalTitle = `새 ${recordType === RECORD_TYPES.PERSONAL ? '활동' : '이벤트'}: ${recordName}`;
-            this.openModal();
-        } catch (error) {
-            this.showToast('오류', '드롭 처리 실패', 'error');
-        }
+        this.resetModal();
+        this.eventTitle = recordName;
+        this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
+        this.eventStartDate = this.eventEndDate = this.toLocalYMD(date);
+        this.newEventData = { 
+            extendedProps: { recordType, relatedId: recordId || '', accountName: accountName || '' }
+        };
+        this.modalTitle = `새 ${recordType === RECORD_TYPES.PERSONAL ? '활동' : '이벤트'}: ${recordName}`;
+        this.openModal();
     }
 
-    // === 기존 이벤트 클릭 처리 ===
+    // 기존 이벤트 클릭
     handleEventClick(event) {
         const eventId = event.detail?.eventId;
         if (!eventId) return;
 
         getEventDetails({ eventId })
             .then(result => {
-                if (!result?.event) throw new Error('이벤트 없음');
-
                 const evt = result.event;
+                const costs = result.costs || [];
+                
                 this.recordId = eventId;
                 this.eventTitle = evt.Title__c || '';
                 this.eventStartDate = evt.Start_Date__c || '';
                 this.eventEndDate = evt.End_Date__c || '';
                 this.eventDescription = evt.Description__c || '';
                 this.eventLocation = evt.Location__c || '';
-                
-                const costs = result.costs || [];
                 this.eventDepartment = costs[0]?.department__c || this.departmentPicklistOptions[0]?.value || '';
 
                 this.newEventData = {
@@ -149,11 +113,10 @@ export default class CalendarContainer extends LightningElement {
             .catch(() => this.showToast('오류', '이벤트 로드 실패', 'error'));
     }
 
-    // === 이벤트 저장 ===
+    // 이벤트 저장
     saveEvent() {
         if (!this.eventTitle?.trim()) {
-            this.showToast('입력 오류', '제목을 입력해주세요', 'error');
-            return;
+            return this.showToast('입력 오류', '제목을 입력해주세요', 'error');
         }
 
         const costData = this.costItems
@@ -173,20 +136,18 @@ export default class CalendarContainer extends LightningElement {
             costDetailsJson: JSON.stringify(costData)
         })
         .then(savedEventId => {
-            if (savedEventId) {
-                this.updateCalendarView(savedEventId);
-                this.showToast('성공', '이벤트가 저장되었습니다', 'success');
-                this.closeModal();
-                this.refreshCostSummary();
-            }
+            this.updateCalendarView(savedEventId);
+            this.showToast('성공', '저장되었습니다', 'success');
+            this.closeModal();
+            this.refreshCostSummary();
         })
         .catch(error => {
-            const errorMessage = error?.body?.message || error?.message || '저장 실패';
-            this.showToast('저장 오류', errorMessage, 'error');
+            const msg = error?.body?.message || error?.message || '저장 실패';
+            this.showToast('저장 오류', msg, 'error');
         });
     }
 
-    // === 이벤트 삭제 ===
+    // 이벤트 삭제
     handleDelete() {
         if (!this.recordId) return;
 
@@ -198,13 +159,13 @@ export default class CalendarContainer extends LightningElement {
                 this.refreshCostSummary();
             })
             .catch(error => {
-                const errorMessage = error?.body?.message || error?.message || '삭제 실패';
-                this.showToast('삭제 오류', errorMessage, 'error');
+                const msg = error?.body?.message || error?.message || '삭제 실패';
+                this.showToast('삭제 오류', msg, 'error');
             });
     }
 
-    // === 기타 이벤트 핸들러들 ===
-    handleEventMoved(event) {
+    // 기타 이벤트 핸들러
+    handleEventMoved() {
         this.showToast('성공', '이벤트가 이동되었습니다', 'success');
         this.refreshCostSummary();
     }
@@ -215,10 +176,8 @@ export default class CalendarContainer extends LightningElement {
 
     handleDatesSet(event) {
         const { start, end } = event.detail;
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const viewMiddle = new Date(startDate.getTime() + (endDate.getTime() - startDate.getTime()) / 2);
-        this.currentMonthForSummary = viewMiddle.toISOString();
+        const mid = new Date((new Date(start).getTime() + new Date(end).getTime()) / 2);
+        this.currentMonthForSummary = mid.toISOString();
         this.refreshCostSummary();
     }
 
@@ -239,27 +198,20 @@ export default class CalendarContainer extends LightningElement {
     }
 
     addCostItem() {
-        const newId = this.costItems.length;
-        this.costItems = [...this.costItems, { id: newId, type: '', amount: null }];
+        this.costItems = [...this.costItems, { 
+            id: this.costItems.length, 
+            type: '', 
+            amount: null 
+        }];
     }
 
-    // === 유틸리티 메서드들 ===
+    // 유틸리티
     toLocalYMD(date) {
         try {
-            const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-            return localDate.toISOString().slice(0, 10);
+            return new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+                .toISOString().slice(0, 10);
         } catch (e) {
             return '';
-        }
-    }
-
-    addOneDay(ymdStr) {
-        try {
-            const date = new Date(ymdStr);
-            date.setDate(date.getDate() + 1);
-            return date.toISOString().slice(0, 10);
-        } catch (e) {
-            return ymdStr;
         }
     }
 
@@ -281,37 +233,46 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    refreshCostSummary() {
-        const costSummaryPanel = this.template.querySelector('c-cost-summary-panel');
-        if (costSummaryPanel) {
-            costSummaryPanel.updateMonth(this.currentMonthForSummary);
-            costSummaryPanel.refreshSummary();
+    addOneDay(ymdStr) {
+        try {
+            const date = new Date(ymdStr);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().slice(0, 10);
+        } catch (e) {
+            return ymdStr;
         }
     }
 
-    // === 모달 관리 ===
-    openModal() {
-        this.isModalOpen = true;
+    refreshCostSummary() {
+        const panel = this.template.querySelector('c-cost-summary-panel');
+        if (panel) {
+            panel.updateMonth(this.currentMonthForSummary);
+            panel.refreshSummary();
+        }
     }
 
+    // 모달 관리
+    openModal() { this.isModalOpen = true; }
+    
     closeModal() {
         this.isModalOpen = false;
-        this.resetModalData();
+        this.resetModal();
     }
 
-    resetModalData() {
-        this.recordId = null;
-        this.eventTitle = '';
-        this.eventStartDate = '';
-        this.eventEndDate = '';
-        this.eventDescription = '';
-        this.eventLocation = '';
-        this.eventDepartment = '';
-        this.costItems = [];
-        this.newEventData = { extendedProps: {} };
+    resetModal() {
+        Object.assign(this, {
+            recordId: null,
+            eventTitle: '',
+            eventStartDate: '',
+            eventEndDate: '',
+            eventDescription: '',
+            eventLocation: '',
+            eventDepartment: '',
+            costItems: [{ id: 0, type: '', amount: null }],
+            newEventData: { extendedProps: {} }
+        });
     }
 
-    // === Toast 메시지 ===
     showToast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }

@@ -1,5 +1,5 @@
 /**
- * @description       : 데이터베이스 조회(SOQL)를 전담하는 클래스 (PMD 경고 수정 버전)
+ * @description       : 데이터베이스 조회(SOQL)를 전담하는 클래스 (권한 검증 수정 버전)
  * @author            : sejin.park@dkbmc.com
  * @last modified on  : 2025-07-20
  */

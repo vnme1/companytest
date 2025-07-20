@@ -4,65 +4,39 @@
     background-color: #f3f2f2;
 }
 
-/* 전체 컴포넌트 스타일 */
-:host {
-    display: block;
-    background-color: #f3f2f2;
-}
-
 .main-container {
     display: flex;
     height: 850px;
-    min-height: 850px; /* 최소 높이 보장 */
+    min-height: 850px;
     gap: 0.5rem;
     padding: 0.5rem;
     box-sizing: border-box;
 }
 
-/* 패널 높이 설정 - 모든 패널 동일한 높이 */
-.left-panel {
-    flex: 0 0 280px;
-    height: 840px; /* 패딩 고려한 실제 높이 */
+/* 패널 공통 스타일 */
+.left-panel, .center-panel, .right-panel {
+    height: 840px;
     min-height: 840px;
     max-height: 840px;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
     overflow: hidden;
+}
+
+.left-panel {
+    flex: 0 0 280px;
+    gap: 0.5rem;
 }
 
 .center-panel {
     flex: 1;
-    height: 840px; /* 패딩 고려한 실제 높이 */
-    min-height: 840px;
-    max-height: 840px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
 }
 
 .right-panel {
     flex: 0 0 300px;
-    height: 840px; /* 패딩 고려한 실제 높이 */
-    min-height: 840px;
-    max-height: 840px;
-    overflow: hidden;
 }
 
-/* 삭제 버튼 스타일 - calendarApp에서 가져옴 */
-.slds-button_destructive {
-    background-color: #d73a49;
-    border-color: #d73a49;
-    color: white;
-    margin-left: 0.5rem;
-}
-
-.slds-button_destructive:hover {
-    background-color: #cb2431;
-    border-color: #cb2431;
-}
-
-/* 버튼 스타일 */
+/* 버튼 스타일 통합 */
 .slds-button {
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
@@ -98,6 +72,7 @@
     background-color: #d73a49;
     color: white;
     border-color: #d73a49;
+    margin-left: 0.5rem;
 }
 
 .slds-button_destructive:hover {
@@ -107,12 +82,8 @@
 
 /* 반응형 처리 */
 @media screen and (max-width: 1200px) {
-    .left-panel { 
-        flex: 0 0 260px; 
-    }
-    .right-panel { 
-        flex: 0 0 280px; 
-    }
+    .left-panel { flex: 0 0 260px; }
+    .right-panel { flex: 0 0 280px; }
 }
 
 @media screen and (max-width: 768px) {
@@ -128,17 +99,9 @@
         height: auto; 
     }
     
-    .left-panel { 
-        height: 300px; 
-    }
-    
-    .center-panel { 
-        height: 400px; 
-    }
-    
-    .right-panel { 
-        height: 300px; 
-    }
+    .left-panel { height: 300px; }
+    .center-panel { height: 400px; }
+    .right-panel { height: 300px; }
     
     .slds-modal__container {
         width: 95%;
