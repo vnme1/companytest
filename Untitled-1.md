@@ -433,3 +433,5 @@ Promise.all([
 - **Salesforce Developer Guide**: 공식 개발 문서
 - **Lightning Web Components Guide**: LWC 개발 가이드  
 - **FullCalendar Documentation**: 외부 라이브러리 문서
+
+---
