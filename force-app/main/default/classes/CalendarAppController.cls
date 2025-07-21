@@ -232,7 +232,7 @@ public with sharing class CalendarAppController {
     }
     
     @AuraEnabled
-    public static String updateEventDates(Id eventId, String newStartDate, String newEndDate) {
+    public static void updateEventDates(Id eventId, String newStartDate, String newEndDate) {
         try {
             if (eventId == null) {
                 throw new AuraHandledException('이벤트 ID가 필요합니다');
@@ -254,7 +254,6 @@ public with sharing class CalendarAppController {
             }
             
             update eventToUpdate;
-            return '성공적으로 업데이트되었습니다';
         } catch (DmlException dmlEx) {
             System.debug('이벤트 업데이트 DML 오류: ' + dmlEx.getMessage());
             throw new AuraHandledException('이벤트 업데이트 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
@@ -265,7 +264,7 @@ public with sharing class CalendarAppController {
     }
 
     @AuraEnabled
-    public static String deleteEvent(Id eventId) {
+    public static void deleteEvent(Id eventId) {
         Savepoint sp = Database.setSavepoint();
         
         try {
@@ -285,7 +284,6 @@ public with sharing class CalendarAppController {
             deleteCostDetails(eventId);
             delete new My_Event__c(Id = eventId);
             
-            return '성공적으로 삭제되었습니다';
         } catch (DmlException dmlEx) {
             Database.rollback(sp);
             System.debug('이벤트 삭제 DML 오류: ' + dmlEx.getMessage());
@@ -338,7 +336,7 @@ public with sharing class CalendarAppController {
         if (request.recordId == null) {
             eventRecord = new My_Event__c();
         } else {
-            eventRecord = new My_Event__c(Id = request.recordId); // 기존 레코드 참ㄷ조
+            eventRecord = new My_Event__c(Id = request.recordId); // 기존 레코드 참조
         }
         
         if (String.isNotBlank(request.title)) {
