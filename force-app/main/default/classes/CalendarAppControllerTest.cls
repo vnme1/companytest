@@ -6,6 +6,7 @@
  * @last modified by  : sejin.park@dkbmc.com
 **/
 @isTest
+@SuppressWarnings('PMD.MethodNamingConventions')
 public class CalendarAppControllerTest {
     
     @TestSetup
@@ -233,6 +234,7 @@ public class CalendarAppControllerTest {
     // === 에러 처리 테스트 (수정된 버전) ===
     
     @isTest
+    
     static void testHandleError_InvalidEventId() {
         Test.startTest();
         try {
