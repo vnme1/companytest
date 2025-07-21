@@ -1,7 +1,10 @@
 /**
- * @description       : 캘린더 뷰 컴포넌트 (함수명 통일 버전)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-21
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
@@ -16,8 +19,7 @@ const CALENDAR_CONFIG = {
     LOAD_DELAY_MS: 100
 };
 
-// ✅ 함수명 통일: toYMD → toLocalYMD
-function toLocalYMD(date) {
+function toLocalYMD(date) { //YYYY-MM-DD 문자열 변환
     try {
         const offsetMs = date.getTimezoneOffset() * 60000;
         const localDate = new Date(date.getTime() - offsetMs);
@@ -71,12 +73,12 @@ export default class CalendarView extends LightningElement {
         if (this.fullCalendarInitialized) {
             return;
         }
-        setTimeout(() => {
+        setTimeout(() => { // DOM 랜더링 완료 대기
             this.loadFullCalendar();
         }, CALENDAR_CONFIG.LOAD_DELAY_MS);
     }
 
-    loadFullCalendar() {
+    loadFullCalendar() { // 라이브러리 로딩
         if (this.fullCalendarInitialized) {
             return;
         }
@@ -113,6 +115,7 @@ export default class CalendarView extends LightningElement {
                 expandRows: true,
                 height: CALENDAR_CONFIG.HEIGHT,
                 contentHeight: CALENDAR_CONFIG.CONTENT_HEIGHT,
+                // 이벤트 핸들러
                 events: this.loadEvents.bind(this),
                 drop: this.handleDrop.bind(this),
                 eventClick: this.handleEventClick.bind(this),
@@ -121,8 +124,8 @@ export default class CalendarView extends LightningElement {
                 datesSet: this.handleDatesSet.bind(this)
             });
 
-            this.calendarApi = calendar;
-            calendar.render();
+            this.calendarApi = calendar;  // 인스턴스저장
+            calendar.render(); // 랜더링
             this.fullCalendarInitialized = true;
         } catch (error) {
             console.warn('캘린더 초기화 실패:', error.message);
@@ -131,7 +134,6 @@ export default class CalendarView extends LightningElement {
 
     loadEvents(fetchInfo, successCallback, failureCallback) {
         getEvents({
-            // ✅ 통일된 함수명 사용
             startStr: toLocalYMD(fetchInfo.start),
             endStr: toLocalYMD(fetchInfo.end)
         })
@@ -163,7 +165,7 @@ export default class CalendarView extends LightningElement {
 
     handleDrop(info) {
         info.jsEvent.preventDefault();
-        this.dispatchEvent(new CustomEvent('eventdrop', {
+        this.dispatchEvent(new CustomEvent('eventdrop', { // 부모 컴포넌트에게 드롭이벤트 전달
             detail: {
                 draggedEl: info.draggedEl,
                 date: info.date
@@ -172,7 +174,7 @@ export default class CalendarView extends LightningElement {
     }
 
     handleEventReceive(info) {
-        info.event.remove();
+        info.event.remove(); // 중복으로 일정에 등록 방지
     }
 
     handleEventClick(info) {
@@ -183,11 +185,10 @@ export default class CalendarView extends LightningElement {
 
     handleEventDrop(info) {
         const eventId = info.event.id;
-        // ✅ 통일된 함수명 사용
         const newStart = toLocalYMD(info.event.start);
         const newEnd = info.event.end ? toLocalYMD(new Date(info.event.end.getTime() - 86400000)) : newStart;
 
-        updateEventDates({
+        updateEventDates({ // apex 호출, 데베 업데이트
             eventId: eventId,
             newStartDate: newStart,
             newEndDate: newEnd
@@ -212,7 +213,7 @@ export default class CalendarView extends LightningElement {
     }
 
     handleDatesSet(dateInfo) {
-        this.dispatchEvent(new CustomEvent('dateset', {
+        this.dispatchEvent(new CustomEvent('dateset', { // 해당월 비용 집계 업데이트
             detail: {
                 start: dateInfo.start.toISOString(),
                 end: dateInfo.end.toISOString()

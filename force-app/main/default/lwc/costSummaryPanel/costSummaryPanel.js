@@ -1,7 +1,10 @@
 /**
- * @description       : 비용 요약 패널 (에러 핸들링 강화 버전)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-21
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, api, track, wire } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -9,11 +12,11 @@ import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMon
 import { refreshApex } from '@salesforce/apex';
 
 export default class CostSummaryPanel extends NavigationMixin(LightningElement) {
-    @api currentMonth;
+    @api currentMonth; // 현재 월 정보(부모 컴포넌트로 부터 받음)
     @track costItems = [];
     @track totalAmount = '₩0';
     
-    _wiredCostResult;
+    _wiredCostResult; // wire에 결과 저장
 
     get monthRange() {
         try {
@@ -35,7 +38,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         }
     }
 
-    // ✅ 에러 핸들링 강화
     @wire(getMonthlyCostSummary, { 
         startDate: '$monthRange.start',
         endDate: '$monthRange.end' 
@@ -57,7 +59,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         }
     }
 
-    // ✅ 에러 핸들링 추가
     processCostData(data) {
         if (!data || typeof data !== 'object') {
             throw new Error('잘못된 비용 데이터 형식');
@@ -66,7 +67,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         try {
             let total = 0;
             this.costItems = [];
-
+            // 각 비용 유형별로
             Object.keys(data).forEach(costType => {
                 const amount = Number(data[costType]) || 0;
                 if (amount < 0) {
@@ -86,7 +87,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         }
     }
 
-    // ✅ 에러 핸들링 추가
     formatCurrency(amount) {
         try {
             const numAmount = Number(amount) || 0;
@@ -135,7 +135,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         }
     }
 
-    // ✅ showToast 메서드 추가
     showToast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }

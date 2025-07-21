@@ -1,8 +1,10 @@
 /**
- * @description       : Calendar App Controller Test Class (PMD 최적화)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
+ * @group             : 
  * @last modified on  : 2025-07-20
- */
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 @isTest
 public class CalendarAppControllerTest {
     
