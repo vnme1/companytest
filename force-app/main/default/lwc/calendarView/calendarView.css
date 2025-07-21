@@ -3,6 +3,7 @@
     background-color: white;
     border-radius: 0.25rem;
     border: 1px solid #d8dde6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 840px !important; /* 고정 높이 강제 적용 */
     min-height: 840px !important;
     max-height: 840px !important;

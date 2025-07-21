@@ -167,6 +167,7 @@ public with sharing class CalendarAppController {
     
     // lwc에서 호출하는 public 메소드
     @AuraEnabled
+    @SuppressWarnings('PMD.ExcessiveParameterList') // 경고 무시 이사님께 여쭤보기
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
         String description, String location, String department,
