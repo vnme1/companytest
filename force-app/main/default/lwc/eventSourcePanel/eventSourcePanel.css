@@ -13,12 +13,13 @@
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
+    border: 1px solid #d8dde6;
     overflow: hidden;
     height: 500px !important; /* 고정 높이로 다시 변경 */
     max-height: 500px !important;
     min-height: 500px !important;
     flex: none !important; /* flex 속성 제거 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
 }
 
 /* 개인 활동 섹션 - 나머지 50% 차지 */
@@ -27,12 +28,13 @@
     border-radius: 0.25rem;
     display: flex;
     flex-direction: column;
+    border: 1px solid #d8dde6;
     overflow: hidden;
     height: 300px !important; /* 고정 높이로 다시 변경 */
     max-height: 300px !important;
     min-height: 300px !important;
     flex: none !important; /* flex 속성 제거 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
 }
 
 /* ===== 공통 섹션 헤더 스타일 ===== */
@@ -125,12 +127,11 @@
     width: 40%;
 }
 
-/* ✅ 테이블 행 드래그 최적화 - 기존 코드에서 일부만 수정 */
 .custom-table tbody .table-row {
     cursor: grab;
-    transition: background-color 0.1s ease-out; /* ✅ 0.2s → 0.1s로 단축 */
+    transition: background-color 0.1s ease-out; /* 0.2s → 0.1s로 단축 */
     border-bottom: 1px solid #e5e5e5;
-    will-change: transform; /* ✅ GPU 가속 추가 */
+    will-change: transform; /*  GPU 가속 추가 */
 }
 
 .custom-table tbody .table-row:last-child {
@@ -162,18 +163,17 @@
     min-height: 0;
 }
 
-/* ✅ 활동 아이템 드래그 최적화 - 문제 부분만 수정 */
+/*  활동 아이템 드래그 최적화  */
 .activity-item {
     display: flex;
     align-items: center;
     padding: 0.5rem 0.75rem;
     margin-bottom: 0.5rem;
-    border-radius: 0.25rem;
+    border-bottom:1px solid #d8dde6;
     cursor: grab;
-    /* ✅ all → 특정 속성만 트랜지션, 시간도 단축 */
+    /* all → 특정 속성만 트랜지션, 시간도 단축 */
     transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
-    border: 1px solid transparent;
-    will-change: transform; /* ✅ GPU 가속 추가 */
+    will-change: transform; /* GPU 가속 추가 */
 }
 
 .activity-item:hover {
@@ -182,30 +182,30 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ✅ active 상태 최적화 - transform 제거 */
+/* active 상태 최적화 */
 .activity-item:active {
     cursor: grabbing;
-    background-color: #e8f4fd; /* ✅ transform: scale(0.98) 제거 */
+    background-color: #e8f4fd; /* transform: scale(0.98) 제거 */
 }
 
-/* ✅ 드래그 중 스타일 최적화 */
+/* 드래그 중 스타일 최적화 */
 .activity-item.dragging {
-    opacity: 0.7; /* ✅ 0.6 → 0.7로 가독성 향상 */
+    opacity: 0.7;
     background-color: #e8f4fd;
-    box-shadow: 0 2px 4px rgba(1, 118, 211, 0.2); /* ✅ 가벼운 그림자 */
-    transition: none; /* ✅ 드래그 중 트랜지션 비활성화 */
+    box-shadow: 0 2px 4px rgba(1, 118, 211, 0.2); 
+    transition: none; /* 드래그 중 트랜지션 비활성화 */
 }
 
 .activity-icon {
     color: #0176d3;
     margin-right: 0.5rem;
-    pointer-events: none; /* ✅ 이벤트 전파 방지로 성능 향상 */
+    pointer-events: none;
 }
 
 .activity-text {
     font-size: 0.875rem;
     font-weight: 400;
     color: #514f4d;
-    user-select: none; /* ✅ 텍스트 선택 방지로 드래그 성능 향상 */
-    pointer-events: none; /* ✅ 이벤트 전파 방지 */
+    user-select: none;
+    pointer-events: none;
 }

@@ -23,6 +23,7 @@ public with sharing class CalendarEventSelector {
     }
 
     // 이벤트 상세 정보 조회
+    @SuppressWarnings('PMD.ApexCRUDViolation') // pmd가 crud 권한 검증 인식 못함
     public static My_Event__c selectEventDetailsById(Id eventId) {
         if (!Schema.sObjectType.My_Event__c.isAccessible() || 
             !Schema.sObjectType.Cost_Detail__c.isAccessible()) {
