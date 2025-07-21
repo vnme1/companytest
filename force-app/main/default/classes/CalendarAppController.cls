@@ -1,24 +1,26 @@
 /**
- * @description       : Calendar App Controller (PMD 경고 해결 최종 버전)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- * @last modified on  : 2025-07-20
- */
+ * @group             : 
+ * @last modified on  : 2025-07-21
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 public with sharing class CalendarAppController {
     
-    // === 상수 정의 ===
+    // 상수 정의
     private static final String DEFAULT_DEPARTMENT = '개발팀';
     private static final String PERSONAL_RECORD_TYPE = 'Personal';
     private static final String ACCOUNT_RECORD_TYPE = 'Account';
     private static final Decimal MIN_COST_AMOUNT = 0.01;
 
-    // === Wrapper Classes ===
+    // wrapper class(이벤트+비용+account)
     public class EventWrapper {
         @AuraEnabled public My_Event__c event;
         @AuraEnabled public List<Cost_Detail__c> costs;
         @AuraEnabled public String accountName;
     }
 
-    // Parameter Object 패턴 (PMD ExcessiveParameterList 해결)
+    // 파라미터들 하나의 객체로 묶음
     public class EventSaveRequest {
         public Id recordId;
         public String title;
@@ -31,10 +33,9 @@ public with sharing class CalendarAppController {
         public String recordType;
         public String costDetailsJson;
     }
-
-    // === READ OPERATIONS ===
     
-    @AuraEnabled(cacheable=true)
+    // 이벤트 목록 가져오기
+    @AuraEnabled(cacheable=true) // 같은 파라미터 호출시 캐시된 결과 사용
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
         try {
             if (String.isBlank(startStr) || String.isBlank(endStr)) {
@@ -47,20 +48,20 @@ public with sharing class CalendarAppController {
 
             Date startDate = Date.valueOf(startStr);
             Date endDate = Date.valueOf(endStr);
-            return CalendarEventSelector.selectEventsByDateRange(startDate, endDate);
+            return CalendarEventSelector.selectEventsByDateRange(startDate, endDate); // 실제 조회
         } catch (Exception e) {
             System.debug('이벤트 조회 오류: ' + e.getMessage());
             throw new AuraHandledException('이벤트 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
+    // 이벤트 상세 정보 가져옴
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
         try {
             if (eventId == null) {
                 throw new AuraHandledException('이벤트 ID가 필요합니다');
             }
-            
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
                 throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
             }
@@ -74,7 +75,7 @@ public with sharing class CalendarAppController {
             if (wrapper.event == null) {
                 throw new AuraHandledException('이벤트를 찾을 수 없습니다');
             }
-
+            // 비용 정보 처리
             wrapper.costs = (wrapper.event.Cost_Details1__r != null) ? 
                            wrapper.event.Cost_Details1__r : new List<Cost_Detail__c>();
             wrapper.accountName = getAccountName(wrapper.event);
@@ -163,9 +164,8 @@ public with sharing class CalendarAppController {
             throw new AuraHandledException('비용 유형 옵션 조회 중 오류가 발생했습니다');
         }
     }
-
-    // === WRITE OPERATIONS ===
     
+    // lwc에서 호출하는 public 메소드
     @AuraEnabled
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
@@ -187,6 +187,7 @@ public with sharing class CalendarAppController {
         return saveEventAndCostsInternal(request);
     }
     
+    // 실제 저장 로직
     private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
         
@@ -209,7 +210,7 @@ public with sharing class CalendarAppController {
                     throw new AuraHandledException('비용 상세 수정 권한이 없습니다');
                 }
             }
-            
+            // 이벤트 저장
             My_Event__c eventRecord = upsertEventRecord(request);
             
             if (!isPersonalActivity(request.recordType)) {
@@ -219,7 +220,7 @@ public with sharing class CalendarAppController {
             return eventRecord.Id;
 
         } catch (DmlException dmlEx) {
-            Database.rollback(sp);
+            Database.rollback(sp); // 변경사항 되돌림 (savepoint())
             System.debug('DML 오류: ' + dmlEx.getMessage());
             throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
@@ -329,14 +330,14 @@ public with sharing class CalendarAppController {
         }
     }
 
-    // === 데이터 처리 메서드들 (PMD 중괄호 경고 해결) ===
+    // 이벤트 레코드 생성, 수정
     private static My_Event__c upsertEventRecord(EventSaveRequest request) {
         My_Event__c eventRecord;
         
         if (request.recordId == null) {
             eventRecord = new My_Event__c();
         } else {
-            eventRecord = new My_Event__c(Id = request.recordId);
+            eventRecord = new My_Event__c(Id = request.recordId); // 기존 레코드 참ㄷ조
         }
         
         if (String.isNotBlank(request.title)) {
@@ -362,6 +363,7 @@ public with sharing class CalendarAppController {
         return eventRecord;
     }
 
+    // 비용 상세 처리
     private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
         deleteCostDetails(eventId);
         
@@ -378,14 +380,15 @@ public with sharing class CalendarAppController {
         
         try {
             List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
-            String deptValue;
             
+            // 부서 기본값 설정
+            String deptValue;
             if (String.isNotBlank(department)) {
                 deptValue = department;
             } else {
                 deptValue = DEFAULT_DEPARTMENT;
             }
-            
+            //각 비용 항목 처리
             for (Object costObj : parsedCosts) {
                 Cost_Detail__c costDetail = buildCostDetail(eventId, costObj, deptValue);
                 if (costDetail != null) {

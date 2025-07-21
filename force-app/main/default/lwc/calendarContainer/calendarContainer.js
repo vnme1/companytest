@@ -1,10 +1,14 @@
 /**
- * @description       : 캘린더 컨테이너 (중복 로직 제거 및 간소화 버전)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-21
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+// apex 메소드
 import saveEventAndCosts from '@salesforce/apex/CalendarAppController.saveEventAndCosts';
 import getEventDetails from '@salesforce/apex/CalendarAppController.getEventDetails';
 import deleteEvent from '@salesforce/apex/CalendarAppController.deleteEvent';
@@ -15,7 +19,6 @@ export default class CalendarContainer extends LightningElement {
     @track isModalOpen = false;
     @track modalTitle = '';
     @track currentMonthForSummary = new Date().toISOString();
-
     @track recordId = null;
     @track eventTitle = '';
     @track eventStartDate = '';
@@ -33,7 +36,6 @@ export default class CalendarContainer extends LightningElement {
         return this.newEventData?.extendedProps?.recordType !== 'Personal';
     }
 
-    // ✅ 중복 로직 제거: 단순하게 반대값 사용
     get isPersonalActivityEvent() {
         return !this.isSalesforceObjectEvent;
     }
@@ -45,7 +47,7 @@ export default class CalendarContainer extends LightningElement {
     get departmentOptions() { return this.departmentPicklistOptions || []; }
     get costTypeOptions() { return this.costTypePicklistOptions || []; }
 
-    connectedCallback() {
+    connectedCallback() { //컴포넌트가 DOM 연결시 자동 실행
         Promise.all([getDepartmentOptions(), getCostTypeOptions()])
             .then(([dept, cost]) => {
                 this.departmentPicklistOptions = dept || [];
@@ -61,13 +63,13 @@ export default class CalendarContainer extends LightningElement {
         const { draggedEl, date } = event.detail;
         const { recordName, recordType, recordId, accountName } = draggedEl?.dataset || {};
         
-        if (!recordName) return;
+        if (!recordName) return; // 필수 데이터 없을시 종료
 
         this.resetModal();
         this.eventTitle = recordName;
         this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
         this.eventStartDate = this.eventEndDate = this.toLocalYMD(date);
-        this.newEventData = { 
+        this.newEventData = { // 이벤트 메타 데이터 설정
             extendedProps: { recordType, relatedId: recordId || '', accountName: accountName || '' }
         };
         this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
@@ -78,7 +80,7 @@ export default class CalendarContainer extends LightningElement {
         const eventId = event.detail?.eventId;
         if (!eventId) return;
 
-        getEventDetails({ eventId })
+        getEventDetails({ eventId }) // apex 메소트 호출(이벤트 상세 정보 조회)
             .then(result => {
                 const evt = result.event;
                 const costs = result.costs || [];
@@ -99,7 +101,6 @@ export default class CalendarContainer extends LightningElement {
                     }
                 };
 
-                // ✅ 삼항 연산자 중첩 제거: 명확한 조건문 사용
                 if (costs.length > 0) {
                     this.costItems = costs.map((c, i) => ({
                         id: i,
@@ -264,7 +265,6 @@ export default class CalendarContainer extends LightningElement {
         this.resetModal();
     }
 
-    // ✅ Object.assign 제거: 더 직관적인 할당 방식
     resetModal() {
         this.recordId = null;
         this.eventTitle = '';

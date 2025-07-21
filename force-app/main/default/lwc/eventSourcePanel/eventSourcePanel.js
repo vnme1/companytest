@@ -1,7 +1,10 @@
 /**
- * @description       : 이벤트 소스 패널 (최적화 버전)
+ * @description       : 
  * @author            : sejin.park@dkbmc.com
- */
+ * @group             : 
+ * @last modified on  : 2025-07-21
+ * @last modified by  : sejin.park@dkbmc.com
+**/
 import { LightningElement, wire } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
@@ -12,7 +15,7 @@ import getOpportunityList from '@salesforce/apex/CalendarAppController.getOpport
 
 export default class EventSourcePanel extends LightningElement {
     fullCalendarInitialized = false;
-
+    // @wire -> salesforce 데이터 자동 조회,캐싱 / 데이터 변경시 자동으로 화면 업데이트
     @wire(getAccountList) wiredAccounts;
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
@@ -34,22 +37,23 @@ export default class EventSourcePanel extends LightningElement {
             });
     }
 
+    // 탭 변경처리(탭 변경시에도 드래그 기능 제공)
     handleTabActive() {
-        setTimeout(() => this.initializeExternalDraggables(), 100);
+        setTimeout(() => this.initializeExternalDraggables(), 100); //DOM 다시 랜더링 되므로
     }
     
     initializeExternalDraggables() {
         if (!this.fullCalendarInitialized || !window.FullCalendar) return;
 
         try {
-            this.cleanupExistingDraggables();
-            this.createDraggables();
+            this.cleanupExistingDraggables(); // 기존 인스턴스 정리
+            this.createDraggables(); // 새 인스턴스 생성
         } catch (error) {
             console.warn('드래그 초기화 실패:', error.message);
         }
     }
 
-    cleanupExistingDraggables() {
+    cleanupExistingDraggables() { // 메모리 누수 발생 방지
         this.template.querySelectorAll('.salesforce-components-section, .personal-activity-section')
             .forEach(container => {
                 if (container._fcDraggable) {
@@ -88,7 +92,7 @@ export default class EventSourcePanel extends LightningElement {
         };
     }
 
-    disconnectedCallback() {
+    disconnectedCallback() { // 컴포넌트가 DOM에서 제거시 자동 호출
         this.cleanupExistingDraggables();
     }
 }
