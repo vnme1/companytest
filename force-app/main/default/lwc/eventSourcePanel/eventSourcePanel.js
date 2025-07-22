@@ -20,9 +20,9 @@ export default class EventSourcePanel extends LightningElement {
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
 
-    get accountData() { return this.wiredAccounts.data || []; }
-    get contactData() { return this.wiredContacts.data || []; }
-    get opportunityData() { return this.wiredOpportunities.data || []; }
+    get accountData() { return this.wiredAccounts?.data || []; }
+    get contactData() { return this.wiredContacts?.data || []; }
+    get opportunityData() { return this.wiredOpportunities?.data || []; }
     
     renderedCallback() {
         if (this.fullCalendarInitialized) return;
