@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, track } from 'lwc';
@@ -129,7 +129,7 @@ export default class CalendarContainer extends LightningElement {
             .filter(item => item?.type && Number(item.amount) > 0)
             .map(item => ({ type: item.type, amount: Number(item.amount) }));
 
-        saveEventAndCosts({
+        return saveEventAndCosts({
             recordId: this.recordId,
             title: this.eventTitle,
             startDate: this.eventStartDate,
@@ -198,7 +198,7 @@ export default class CalendarContainer extends LightningElement {
         
         if (!isNaN(itemId) && name) {
             this.costItems = this.costItems.map(item =>
-                item.id === itemId ? { ...item, [name]: value } : item
+                (item.id === itemId ? { ...item, [name]: value } : item)
             );
         }
     }

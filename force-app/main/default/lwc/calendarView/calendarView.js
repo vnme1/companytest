@@ -2,12 +2,16 @@
  * @description       : 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, api } from 'lwc';
 import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
+
+// static resource
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
+
+// apex 메소드
 import getEvents from '@salesforce/apex/CalendarAppController.getEvents';
 import updateEventDates from '@salesforce/apex/CalendarAppController.updateEventDates';
 
@@ -69,10 +73,12 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    
     renderedCallback() {
         if (this.fullCalendarInitialized) {
             return;
         }
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
         setTimeout(() => { // DOM 랜더링 완료 대기
             this.loadFullCalendar();
         }, CALENDAR_CONFIG.LOAD_DELAY_MS);

@@ -2,14 +2,16 @@
  * @description       : 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, api, track, wire } from 'lwc';
+
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
 import { refreshApex } from '@salesforce/apex';
+import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
+
 
 export default class CostSummaryPanel extends NavigationMixin(LightningElement) {
     @api currentMonth; // 현재 월 정보(부모 컴포넌트로 부터 받음)
@@ -117,7 +119,9 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     }
 
     @api
+    
     updateMonth(newMonth) {
+        // eslint-disable-next-line @lwc/lwc/no-api-reassignments
         this.currentMonth = newMonth;
     }
 

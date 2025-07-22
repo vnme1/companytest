@@ -2,7 +2,7 @@
  * @description       : 데이터 조회용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarEventSelector {
@@ -17,13 +17,12 @@ public with sharing class CalendarEventSelector {
             SELECT Id, Title__c, Start_Date__c, End_Date__c
             FROM My_Event__c
             WHERE Start_Date__c <= :endDt AND End_Date__c >= :startDt
-            AND OwnerId = :UserInfo.getUserId() //현재 로그인한 사용자가 소유한 이벤트 조회
+            AND OwnerId = :UserInfo.getUserId() // 현재 로그인한 사용자가 소유한 이벤트 조회
             ORDER BY Start_Date__c LIMIT 200
         ];
     }
 
     // 이벤트 상세 정보 조회
-    @SuppressWarnings('PMD.ApexCRUDViolation') // pmd가 crud 권한 검증 인식 못함
     public static My_Event__c selectEventDetailsById(Id eventId) {
         if (!Schema.sObjectType.My_Event__c.isAccessible() || 
             !Schema.sObjectType.Cost_Detail__c.isAccessible()) {
@@ -107,7 +106,7 @@ public with sharing class CalendarEventSelector {
         return [SELECT Id, Name, StageName, CloseDate, Owner.Name, Account.Name FROM Opportunity ORDER BY CloseDate DESC LIMIT 200];
     }
 
-    // Picklist 옵션 조회
+    // Picklist 옵션 조회 
     private static List<Map<String, String>> getPicklistOptions(SObjectField field) {
         List<Map<String, String>> options = new List<Map<String, String>>();
         Schema.DescribeFieldResult fieldResult = field.getDescribe();

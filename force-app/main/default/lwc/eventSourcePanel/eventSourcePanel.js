@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, wire } from 'lwc';
@@ -20,9 +20,9 @@ export default class EventSourcePanel extends LightningElement {
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
 
-    get accountData() { return this.wiredAccounts.data || []; }
-    get contactData() { return this.wiredContacts.data || []; }
-    get opportunityData() { return this.wiredOpportunities.data || []; }
+    get accountData() { return this.wiredAccounts?.data || []; }
+    get contactData() { return this.wiredContacts?.data || []; }
+    get opportunityData() { return this.wiredOpportunities?.data || []; }
     
     renderedCallback() {
         if (this.fullCalendarInitialized) return;
@@ -39,6 +39,7 @@ export default class EventSourcePanel extends LightningElement {
 
     // 탭 변경처리(탭 변경시에도 드래그 기능 제공)
     handleTabActive() {
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
         setTimeout(() => this.initializeExternalDraggables(), 100); //DOM 다시 랜더링 되므로
     }
     
@@ -53,20 +54,20 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
-    cleanupExistingDraggables() { // 메모리 누수 발생 방지
+    cleanupExistingDraggables() { // 탭 변경시 DOM 랜더링 -> 메모리 누ㄴ수 발생 방지
         this.template.querySelectorAll('.salesforce-components-section, .personal-activity-section')
             .forEach(container => {
                 if (container._fcDraggable) {
-                    container._fcDraggable.destroy();
-                    delete container._fcDraggable;
+                    container._fcDraggable.destroy(); // 기존 인스턴스 남아있을시 destroy() 제거
+                    delete container._fcDraggable; // 참조 삭제
                 }
             });
     }
 
-    createDraggables() {
+    createDraggables() { // 새 인스턴스 생성
         const salesforceContainer = this.template.querySelector('.salesforce-components-section');
         if (salesforceContainer) {
-            salesforceContainer._fcDraggable = new window.FullCalendar.Draggable(salesforceContainer, {
+            salesforceContainer._fcDraggable = new window.FullCalendar.Draggable(salesforceContainer, { // Fullcalendar draggable 사용
                 itemSelector: '.table-row',
                 eventData: this.getEventData
             });
@@ -81,7 +82,7 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
-    getEventData(eventEl) {
+    getEventData(eventEl) { // 드래그 데이터 생성
         return {
             title: eventEl.dataset.recordName,
             extendedProps: {

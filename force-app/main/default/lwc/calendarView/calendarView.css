@@ -1,4 +1,10 @@
-/* ===== 캘린더 컨테이너 스타일 ===== */
+:host {
+    --mainColor1: #d92121; /* 일요일에 사용할 빨간색 계열 */
+    --subColor1: #252525;  /* 토요일에 사용할 파란색 계열 */
+    /* --subColor2: #d6e8f8; */
+
+}
+/* 캘린더 컨테이너 스타일  */
 .calendar-container {
     background-color: white;
     border-radius: 0.25rem;
@@ -12,6 +18,16 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+  padding: 10px 20px;
+
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--subColor2);
+
+  border-radius: 20px;
 }
 
 /* 캘린더 내용이 모든 여백을 채우도록 설정 */
@@ -34,7 +50,6 @@
     height: 100% !important;
 }
 
-/* ===== FullCalendar 스타일 덮어쓰기 ===== */
 .fc-theme-standard .fc-scrollgrid {
     border-color: #d8dde6;
 }
@@ -79,7 +94,6 @@
     border-color: #d8dde6 !important;
 }
 
-/* 달력 헤더 툴바 여백 조정 */
 .fc .fc-toolbar {
     margin-bottom: 1rem !important;
     flex-shrink: 0 !important;
@@ -107,4 +121,11 @@
 .fc-event:hover {
     background-color: #005fb2;
     border-color: #005fb2;
+}
+
+.fc-day-sun a { /* 일요일 컬러 */
+  color: var(--mainColor1);
+}
+.fc-day-sat a { /* 토요일 컬러 */
+  color: var(--subColor1);
 }
