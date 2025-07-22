@@ -7,8 +7,11 @@
 **/
 import { LightningElement, wire } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
+
+// static resource
 import FullCalendar from '@salesforce/resourceUrl/FullCalendarV5_new';
 
+// apex 메소드
 import getAccountList from '@salesforce/apex/CalendarAppController.getAccountList';
 import getContactList from '@salesforce/apex/CalendarAppController.getContactList';
 import getOpportunityList from '@salesforce/apex/CalendarAppController.getOpportunityList';
