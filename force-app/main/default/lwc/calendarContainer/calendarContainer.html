@@ -2,7 +2,7 @@
   @description       : 
   @author            : sejin.park@dkbmc.com
   @group             : 
-  @last modified on  : 2025-07-21
+  @last modified on  : 2025-07-22
   @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
@@ -47,9 +47,26 @@
                             <div class="slds-col slds-size_1-of-1">
                                 <lightning-input name="eventTitle" label="Event Name" value={eventTitle} onchange={handleInputChange} required></lightning-input>
                             </div>
-                            <div class="slds-col slds-size_1-of-1">
-                                <lightning-input label="Account" value={displayAccountName} disabled></lightning-input>
-                            </div>
+                            <!-- Account 타입일 때 -->
+                            <template if:true={isAccountType}>
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning-input label="Account" value={displayRelatedRecord} disabled></lightning-input>
+                                </div>
+                            </template>
+                            
+                            <!-- Contact 타입일 때 -->
+                            <template if:true={isContactType}>
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning-input label="Contact" value={displayRelatedRecord} disabled></lightning-input>
+                                </div>
+                            </template>
+                            
+                            <!-- Opportunity 타입일 때 -->
+                            <template if:true={isOpportunityType}>
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning-input label="Opportunity" value={displayRelatedRecord} disabled></lightning-input>
+                                </div>
+                            </template>
                             
                             <!-- 부서 선택 필드 -->
                             <div class="slds-col slds-size_1-of-1">

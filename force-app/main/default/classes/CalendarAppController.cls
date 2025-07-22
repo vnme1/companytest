@@ -13,11 +13,12 @@ public with sharing class CalendarAppController {
     private static final String ACCOUNT_RECORD_TYPE = 'Account';
     private static final Decimal MIN_COST_AMOUNT = 0.01;
 
-    // wrapper class(이벤트+비용+account)
+    // wrapper class(이벤트+비용+관련레코드)
     public class EventWrapper {
         @AuraEnabled public My_Event__c event;
         @AuraEnabled public List<Cost_Detail__c> costs;
-        @AuraEnabled public String accountName;
+        @AuraEnabled public String relatedRecordName; // accountName에서 변경
+        @AuraEnabled public String recordTypeName;    // 새로 추가
     }
 
     // 파라미터들 하나의 객체로 묶음
@@ -75,10 +76,15 @@ public with sharing class CalendarAppController {
             if (wrapper.event == null) {
                 throw new AuraHandledException('이벤트를 찾을 수 없습니다');
             }
+            
             // 비용 정보 처리
             wrapper.costs = (wrapper.event.Cost_Details1__r != null) ? 
                            wrapper.event.Cost_Details1__r : new List<Cost_Detail__c>();
-            wrapper.accountName = getAccountName(wrapper.event);
+            
+            // 관련 레코드 이름과 타입 설정
+            wrapper.relatedRecordName = getRelatedRecordName(wrapper.event);
+            wrapper.recordTypeName = wrapper.event.Related_Record_Type__c;
+            
             return wrapper;
         } catch (Exception e) {
             System.debug('이벤트 상세 조회 오류: ' + e.getMessage());
@@ -454,28 +460,41 @@ public with sharing class CalendarAppController {
         return recordType == PERSONAL_RECORD_TYPE;
     }
     
-    private static String getAccountName(My_Event__c event) {
-        if (event?.Related_Record_Type__c != ACCOUNT_RECORD_TYPE) {
-            return '';
-        }
-        
-        if (String.isBlank(event.Related_Record_Id__c)) {
+    // getAccountName을 getRelatedRecordName으로 변경하고 확장
+    private static String getRelatedRecordName(My_Event__c event) {
+        if (String.isBlank(event?.Related_Record_Type__c) || String.isBlank(event?.Related_Record_Id__c)) {
             return '';
         }
         
         try {
-            if (!Schema.sObjectType.Account.isAccessible()) {
-                return '';
+            String recordType = event.Related_Record_Type__c;
+            String recordId = event.Related_Record_Id__c;
+            
+            if (recordType == 'Account') {
+                if (!Schema.sObjectType.Account.isAccessible()) {
+                    return '';
+                }
+                List<Account> accounts = [SELECT Name FROM Account WHERE Id = :recordId LIMIT 1];
+                return accounts.isEmpty() ? '' : accounts[0].Name;
+                
+            } else if (recordType == 'Contact') {
+                if (!Schema.sObjectType.Contact.isAccessible()) {
+                    return '';
+                }
+                List<Contact> contacts = [SELECT Name FROM Contact WHERE Id = :recordId LIMIT 1];
+                return contacts.isEmpty() ? '' : contacts[0].Name;
+                
+            } else if (recordType == 'Opportunity') {
+                if (!Schema.sObjectType.Opportunity.isAccessible()) {
+                    return '';
+                }
+                List<Opportunity> opportunities = [SELECT Name FROM Opportunity WHERE Id = :recordId LIMIT 1];
+                return opportunities.isEmpty() ? '' : opportunities[0].Name;
             }
             
-            List<Account> accounts = [SELECT Name FROM Account WHERE Id = :event.Related_Record_Id__c LIMIT 1];
-            if (accounts.isEmpty()) {
-                return '';
-            } else {
-                return accounts[0].Name;
-            }
+            return '';
         } catch (Exception e) {
-            System.debug('Account 조회 실패: ' + e.getMessage());
+            System.debug('관련 레코드 조회 실패: ' + e.getMessage());
             return '';
         }
     }
