@@ -47,6 +47,33 @@ export default class CalendarContainer extends LightningElement {
     get departmentOptions() { return this.departmentPicklistOptions || []; }
     get costTypeOptions() { return this.costTypePicklistOptions || []; }
 
+
+    get isAccountType() {
+    return this.newEventData?.extendedProps?.recordType === 'Account';
+    }
+
+    get isContactType() {
+        return this.newEventData?.extendedProps?.recordType === 'Contact';
+    }
+
+    get isOpportunityType() {
+        return this.newEventData?.extendedProps?.recordType === 'Opportunity';
+    }
+
+    get displayRelatedRecord() {
+        const recordType = this.newEventData?.extendedProps?.recordType;
+        
+        if (recordType === 'Account') {
+            return this.newEventData?.extendedProps?.accountName || '';
+        } else if (recordType === 'Contact') {
+            return this.newEventData?.extendedProps?.contactName || '';
+        } else if (recordType === 'Opportunity') {
+            return this.newEventData?.extendedProps?.opportunityName || '';
+        }
+        
+        return '';
+    }
+
     connectedCallback() { //컴포넌트가 DOM 연결시 자동 실행
         Promise.all([getDepartmentOptions(), getCostTypeOptions()])
             .then(([dept, cost]) => {
@@ -69,8 +96,16 @@ export default class CalendarContainer extends LightningElement {
         this.eventTitle = recordName;
         this.eventDepartment = this.departmentPicklistOptions[0]?.value || '';
         this.eventStartDate = this.eventEndDate = this.toLocalYMD(date);
+        
+        // 사용하지 않는 변수 제거됨
         this.newEventData = { // 이벤트 메타 데이터 설정
-            extendedProps: { recordType, relatedId: recordId || '', accountName: accountName || '' }
+            extendedProps: { 
+                recordType, 
+                relatedId: recordId || '', 
+                accountName: recordType === 'Account' ? recordName : (accountName || ''),
+                contactName: recordType === 'Contact' ? recordName : '',
+                opportunityName: recordType === 'Opportunity' ? recordName : ''
+            }
         };
         this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
         this.openModal();
@@ -93,11 +128,17 @@ export default class CalendarContainer extends LightningElement {
                 this.eventLocation = evt.Location__c || '';
                 this.eventDepartment = costs[0]?.department__c || this.departmentPicklistOptions[0]?.value || '';
 
+                // 레코드 타입별로 관련 레코드 이름 설정
+                const recordType = evt.Related_Record_Type__c || '';
+                const relatedRecordName = result.relatedRecordName || '';
+                
                 this.newEventData = {
                     extendedProps: {
-                        recordType: evt.Related_Record_Type__c || '',
+                        recordType: recordType,
                         relatedId: evt.Related_Record_Id__c || '',
-                        accountName: result.accountName || ''
+                        accountName: recordType === 'Account' ? relatedRecordName : '',
+                        contactName: recordType === 'Contact' ? relatedRecordName : '',
+                        opportunityName: recordType === 'Opportunity' ? relatedRecordName : ''
                     }
                 };
 
