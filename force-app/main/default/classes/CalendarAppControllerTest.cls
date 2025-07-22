@@ -1,8 +1,8 @@
 /**
- * @description       : Calendar App Controller Test Class
+ * @description       : Calendar App Controller Test Class - JSON 방식으로 수정
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-21
+ * @last modified on  : 2025-07-22
  * @last modified by  : sejin.park@dkbmc.com
 **/
 @isTest
@@ -90,14 +90,27 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testSaveEventAndCosts_Create() {
+    static void testSaveEventAndCosts_Create_JsonMethod() {
         Test.startTest();
+        
+        // 이벤트 데이터 JSON 구성
+        Map<String, Object> eventData = new Map<String, Object>{
+            'recordId' => null,
+            'title' => 'New Test Event',
+            'startDate' => String.valueOf(Date.today()),
+            'endDate' => String.valueOf(Date.today()),
+            'description' => 'Test Description',
+            'location' => 'Test Location',
+            'department' => '개발팀',
+            'relatedId' => null,
+            'recordType' => 'Account'
+        };
+        
         String costJson = '[{"type":"교통비","amount":15000}]';
         
         String eventId = CalendarAppController.saveEventAndCosts(
-            null, 'New Test Event', String.valueOf(Date.today()), 
-            String.valueOf(Date.today()), 'Test Description', 
-            'Test Location', '개발팀', null, 'Account', costJson
+            JSON.serialize(eventData),
+            costJson
         );
         Test.stopTest();
         
@@ -112,16 +125,29 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testSaveEventAndCosts_Update() {
+    static void testSaveEventAndCosts_Update_JsonMethod() {
         My_Event__c testEvent = [SELECT Id FROM My_Event__c LIMIT 1];
         
         Test.startTest();
+        
+        // 이벤트 데이터 JSON 구성
+        Map<String, Object> eventData = new Map<String, Object>{
+            'recordId' => testEvent.Id,
+            'title' => 'Updated Event',
+            'startDate' => String.valueOf(Date.today()),
+            'endDate' => String.valueOf(Date.today()),
+            'description' => 'Updated Description',
+            'location' => 'Updated Location',
+            'department' => '개발팀',
+            'relatedId' => null,
+            'recordType' => 'Account'
+        };
+        
         String costJson = '[{"type":"식대","amount":20000}]';
         
         String eventId = CalendarAppController.saveEventAndCosts(
-            testEvent.Id, 'Updated Event', String.valueOf(Date.today()), 
-            String.valueOf(Date.today()), 'Updated Description', 
-            'Updated Location', '개발팀', null, 'Account', costJson
+            JSON.serialize(eventData),
+            costJson
         );
         Test.stopTest();
         
@@ -130,12 +156,25 @@ public class CalendarAppControllerTest {
     }
     
     @isTest
-    static void testSaveEventAndCosts_Personal() {
+    static void testSaveEventAndCosts_Personal_JsonMethod() {
         Test.startTest();
+        
+        // 개인 활동 이벤트 데이터 JSON 구성
+        Map<String, Object> eventData = new Map<String, Object>{
+            'recordId' => null,
+            'title' => '휴가',
+            'startDate' => String.valueOf(Date.today()),
+            'endDate' => String.valueOf(Date.today()),
+            'description' => '개인 휴가',
+            'location' => null,
+            'department' => null,
+            'relatedId' => null,
+            'recordType' => 'Personal'
+        };
+        
         String eventId = CalendarAppController.saveEventAndCosts(
-            null, '휴가', String.valueOf(Date.today()), 
-            String.valueOf(Date.today()), '개인 휴가', 
-            null, null, null, 'Personal', null
+            JSON.serialize(eventData),
+            null
         );
         Test.stopTest();
         
@@ -231,10 +270,9 @@ public class CalendarAppControllerTest {
         System.assert(options.size() > 0, '비용 유형 옵션이 존재해야 합니다');
     }
     
-    // === 에러 처리 테스트 (수정된 버전) ===
+    // === JSON 방식 에러 처리 테스트 ===
     
     @isTest
-    
     static void testHandleError_InvalidEventId() {
         Test.startTest();
         try {
@@ -261,14 +299,47 @@ public class CalendarAppControllerTest {
     }
 
     @isTest
+    static void testHandleError_InvalidEventData() {
+        Test.startTest();
+        try {
+            CalendarAppController.saveEventAndCosts('invalid-json', '[]');
+            System.assert(false, '예외가 발생해야 합니다');
+        } catch (Exception e) {
+            System.assertNotEquals(null, e.getMessage(), '에러 메시지가 있어야 합니다');
+            System.assert(e.getMessage().contains('데이터 형식'), 'JSON 파싱 오류 메시지가 포함되어야 합니다');
+        }
+        Test.stopTest();
+    }
+
+    @isTest
+    static void testHandleError_EmptyEventData() {
+        Test.startTest();
+        try {
+            CalendarAppController.saveEventAndCosts('', '[]');
+            System.assert(false, '예외가 발생해야 합니다');
+        } catch (Exception e) {
+            System.assertNotEquals(null, e, '빈 이벤트 데이터에 대해 예외가 발생해야 합니다');
+        }
+        Test.stopTest();
+    }
+
+    @isTest
     static void testHandleError_InvalidTitle() {
         Test.startTest();
         try {
-            CalendarAppController.saveEventAndCosts(
-                null, '', String.valueOf(Date.today()), 
-                String.valueOf(Date.today()), '', 
-                '', '개발팀', null, 'Account', '[]'
-            );
+            Map<String, Object> eventData = new Map<String, Object>{
+                'recordId' => null,
+                'title' => '',  // 빈 제목
+                'startDate' => String.valueOf(Date.today()),
+                'endDate' => String.valueOf(Date.today()),
+                'description' => '',
+                'location' => '',
+                'department' => '개발팀',
+                'relatedId' => null,
+                'recordType' => 'Account'
+            };
+            
+            CalendarAppController.saveEventAndCosts(JSON.serialize(eventData), '[]');
             System.assert(false, '예외가 발생해야 합니다');
         } catch (Exception e) {
             System.assertNotEquals(null, e, '예외가 발생해야 합니다');
@@ -313,11 +384,20 @@ public class CalendarAppControllerTest {
         List<My_Event__c> events = CalendarAppController.getEvents(todayStr, tomorrowStr);
         System.assertNotEquals(null, events, '정상적인 날짜 범위로 이벤트 조회가 가능해야 합니다');
         
-        // 정상적인 개인 활동 저장
-        String eventId = CalendarAppController.saveEventAndCosts(
-            null, '정상 테스트', todayStr, tomorrowStr, 
-            '테스트 설명', null, null, null, 'Personal', null
-        );
+        // 정상적인 개인 활동 저장 (JSON 방식)
+        Map<String, Object> eventData = new Map<String, Object>{
+            'recordId' => null,
+            'title' => '정상 테스트',
+            'startDate' => todayStr,
+            'endDate' => tomorrowStr,
+            'description' => '테스트 설명',
+            'location' => null,
+            'department' => null,
+            'relatedId' => null,
+            'recordType' => 'Personal'
+        };
+        
+        String eventId = CalendarAppController.saveEventAndCosts(JSON.serialize(eventData), null);
         System.assertNotEquals(null, eventId, '정상적인 개인 활동 저장이 가능해야 합니다');
         
         Test.stopTest();

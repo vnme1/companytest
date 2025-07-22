@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 앱 컨트롤러 - 완전한 try-catch 적용
+ * @description       : 캘린더 앱 컨트롤러 - JSON 방식으로 수정
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -169,26 +169,32 @@ public with sharing class CalendarAppController {
         }
     }
     
+    // JSON 방식으로 수정된 메소드
     @AuraEnabled
-    public static String saveEventAndCosts(
-        Id recordId, String title, String startDate, String endDate,
-        String description, String location, String department,
-        String relatedId, String recordType, String costDetailsJson
-    ) {
+    public static String saveEventAndCosts(String eventDataJson, String costDetailsJson) {
         try {
+            if (String.isBlank(eventDataJson)) {
+                throw new AuraHandledException('이벤트 데이터가 필요합니다');
+            }
+
+            Map<String, Object> eventData = (Map<String, Object>)JSON.deserializeUntyped(eventDataJson);
+            
             EventSaveRequest request = new EventSaveRequest();
-            request.recordId = recordId;
-            request.title = title;
-            request.startDate = startDate;
-            request.endDate = endDate;
-            request.description = description;
-            request.location = location;
-            request.department = department;
-            request.relatedId = relatedId;
-            request.recordType = recordType;
+            request.recordId = (Id)eventData.get('recordId');
+            request.title = (String)eventData.get('title');
+            request.startDate = (String)eventData.get('startDate');
+            request.endDate = (String)eventData.get('endDate');
+            request.description = (String)eventData.get('description');
+            request.location = (String)eventData.get('location');
+            request.department = (String)eventData.get('department');
+            request.relatedId = (String)eventData.get('relatedId');
+            request.recordType = (String)eventData.get('recordType');
             request.costDetailsJson = costDetailsJson;
             
             return saveEventAndCostsInternal(request);
+        } catch (JSONException jsonEx) {
+            System.debug('JSON 파싱 오류: ' + jsonEx.getMessage());
+            throw new AuraHandledException('이벤트 데이터 형식이 올바르지 않습니다: ' + jsonEx.getMessage());
         } catch (Exception e) {
             System.debug('이벤트 저장 요청 처리 오류: ' + e.getMessage());
             throw new AuraHandledException('이벤트 저장 요청 처리 중 오류가 발생했습니다: ' + e.getMessage());
@@ -258,6 +264,8 @@ public with sharing class CalendarAppController {
             throw new AuraHandledException('이벤트 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
+    
+    // === PRIVATE METHODS ===
     
     private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
