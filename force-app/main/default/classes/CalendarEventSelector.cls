@@ -6,8 +6,13 @@
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarEventSelector {
-
-    // 날짜 범위별 이벤트 조회
+    /**
+    * @description 날짜 범위별 이벤트 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param startDt 
+    * @param endDt 
+    * @return List<My_Event__c> 
+    **/
     public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt) {
         try {
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
@@ -34,9 +39,12 @@ public with sharing class CalendarEventSelector {
         }
     }
 
-    // 이벤트 상세 정보 조회
-    // CalendarEventSelector.cls의 selectEventDetailsById 메소드를 이렇게 수정
-
+    /**
+    * @description 이벤트 상세 정보 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @return My_Event__c 
+    **/
     public static My_Event__c selectEventDetailsById(Id eventId) {
         try {
             if (eventId == null) {
@@ -76,7 +84,13 @@ public with sharing class CalendarEventSelector {
         }
     }
 
-    // 월별 비용 합계 조회
+    /**
+    * @description 월별 비용 합계 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param startDate 
+    * @param endDate 
+    * @return Map<String, Decimal> 
+    **/
     public static Map<String, Decimal> selectMonthlyCostSummary(Date startDate, Date endDate) {
         try {
             if (startDate == null || endDate == null) {
@@ -127,7 +141,11 @@ public with sharing class CalendarEventSelector {
         }
     }
 
-    // Account 목록 조회
+    /**
+    * @description Account 목록 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Account> 
+    **/
     public static List<Account> selectAccounts() {
         try {
             if (!Schema.sObjectType.Account.isAccessible() || 
@@ -144,8 +162,12 @@ public with sharing class CalendarEventSelector {
             throw new AuraHandledException('Account 목록 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
-    
-    // Contact 목록 조회
+
+    /**
+    * @description Contact 목록 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Contact> 
+    **/
     public static List<Contact> selectContacts() {
         try {
             if (!Schema.sObjectType.Contact.isAccessible() || 
@@ -163,8 +185,12 @@ public with sharing class CalendarEventSelector {
             throw new AuraHandledException('Contact 목록 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
-    
-    // Opportunity 목록 조회
+
+    /**
+    * @description Opportunity 목록 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Opportunity> 
+    **/
     public static List<Opportunity> selectOpportunities() {
         try {
             if (!Schema.sObjectType.Opportunity.isAccessible() || 
@@ -181,9 +207,14 @@ public with sharing class CalendarEventSelector {
             System.debug('Opportunity 목록 조회 일반 오류: ' + e.getMessage());
             throw new AuraHandledException('Opportunity 목록 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
-    }
+    } 
 
-    // Picklist 옵션 조회 
+    /**
+    * @description Picklist 옵션 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param field 
+    * @return List<Map<String, String>> 
+    **/
     private static List<Map<String, String>> getPicklistOptions(SObjectField field) {
         try {
             if (field == null) {
@@ -209,7 +240,11 @@ public with sharing class CalendarEventSelector {
         }
     }
 
-    // 부서 옵션 조회
+    /**
+    * @description 부서 옵션 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Map<String, String>> 
+    **/
     public static List<Map<String, String>> selectDepartmentOptions() {
         try {
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
@@ -223,7 +258,11 @@ public with sharing class CalendarEventSelector {
         }
     }
 
-    // 비용 유형 옵션 조회
+    /**
+    * @description 비용 유형 옵션 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Map<String, String>> 
+    **/
     public static List<Map<String, String>> selectCostTypeOptions() {
         try {
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {

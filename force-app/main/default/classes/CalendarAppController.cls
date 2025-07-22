@@ -35,8 +35,13 @@ public with sharing class CalendarAppController {
         public String costDetailsJson;
     }
     
-    // === PUBLIC METHODS ===
-    
+    /**
+    * @description 이벤트 목록 조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param startStr 
+    * @param endStr 
+    * @return List<My_Event__c> 
+    **/
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
         try {
@@ -57,6 +62,12 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 이벤트 상세조회
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @return EventWrapper 
+    **/
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
         try {
@@ -90,6 +101,13 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 월별 비용 합계
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param startDate 
+    * @param endDate 
+    * @return Map<String, Decimal> 
+    **/
     @AuraEnabled(cacheable=true) 
     public static Map<String, Decimal> getMonthlyCostSummary(String startDate, String endDate) {
         try {
@@ -110,6 +128,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description Account 리스트 getter
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Account> 
+    **/
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccountList() {
         try {
@@ -123,6 +146,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description contact 리스트 getter
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Contact> 
+    **/
     @AuraEnabled(cacheable=true)
     public static List<Contact> getContactList() {
         try {
@@ -136,6 +164,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description opportunity 리스트 getter
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Opportunity> 
+    **/
     @AuraEnabled(cacheable=true)
     public static List<Opportunity> getOpportunityList() {
         try {
@@ -149,6 +182,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 부소 옵션 getter
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Map<String, String>> 
+    **/
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> getDepartmentOptions() {
         try {
@@ -170,6 +208,14 @@ public with sharing class CalendarAppController {
     }
     
     // JSON 방식으로 수정된 메소드
+    
+    /**
+    * @description 이벤트 저장 (LWC에서 호출하는 public 메소드)
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventDataJson 
+    * @param costDetailsJson 
+    * @return String 
+    **/
     @AuraEnabled
     public static String saveEventAndCosts(String eventDataJson, String costDetailsJson) {
         try {
@@ -201,6 +247,13 @@ public with sharing class CalendarAppController {
         }
     }
     
+    /**
+    * @description 이벤트 업데이트 메소드
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @param newStartDate 
+    * @param newEndDate 
+    **/
     @AuraEnabled
     public static void updateEventDates(Id eventId, String newStartDate, String newEndDate) {
         try {
@@ -233,6 +286,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 이벤트 삭제 메소드
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    **/
     @AuraEnabled
     public static void deleteEvent(Id eventId) {
         Savepoint sp = Database.setSavepoint();
@@ -267,6 +325,12 @@ public with sharing class CalendarAppController {
     
     // === PRIVATE METHODS ===
     
+    /**
+    * @description 실제 저장 로직 / test시 isTestVisible?사용하기
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param request 
+    * @return String 
+    **/
     private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
         
@@ -309,6 +373,13 @@ public with sharing class CalendarAppController {
         }
     }
     
+    /**
+    * @description 
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param title 
+    * @param department 
+    * @param recordType 
+    **/
     private static void validateEventInputs(String title, String department, String recordType) {
         try {
             List<String> errors = new List<String>();
@@ -349,6 +420,12 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 이벤트 레코드 생성,수정
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param request 
+    * @return My_Event__c 
+    **/
     private static My_Event__c upsertEventRecord(EventSaveRequest request) {
         try {
             My_Event__c eventRecord;
@@ -389,6 +466,13 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 비용 상세 처리
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @param costDetailsJson 
+    * @param department 
+    **/
     private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
             deleteCostDetails(eventId);
@@ -408,6 +492,14 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description  JSON을 비용 레코드로 변환처리
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @param costDetailsJson 
+    * @param department 
+    * @return List<Cost_Detail__c> 
+    **/
     private static List<Cost_Detail__c> buildValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
             List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
@@ -428,6 +520,14 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 개별 비용 레코드 생성
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    * @param costObj 
+    * @param department 
+    * @return Cost_Detail__c 
+    **/
     private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
         try {
             if (costObj == null) {
@@ -459,6 +559,11 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 비용 이벤트 삭제처리
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 
+    **/
     private static void deleteCostDetails(Id eventId) {
         try {
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
@@ -478,10 +583,22 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 개인활동 인지 salesforce 데이터인지 구분 
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param recordType 
+    * @return Boolean 
+    **/
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
     
+    /**
+    * @description 이벤트와 연결된 salesforce 오브젝트 name 가져옴
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param event 
+    * @return String 
+    **/
     private static String getRelatedRecordName(My_Event__c event) {
         try {
             if (String.isBlank(event?.Related_Record_Type__c) || String.isBlank(event?.Related_Record_Id__c)) {
