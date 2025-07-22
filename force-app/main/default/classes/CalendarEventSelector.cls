@@ -35,17 +35,23 @@ public with sharing class CalendarEventSelector {
     }
 
     // 이벤트 상세 정보 조회
+    // CalendarEventSelector.cls의 selectEventDetailsById 메소드를 이렇게 수정
+
     public static My_Event__c selectEventDetailsById(Id eventId) {
         try {
             if (eventId == null) {
                 throw new AuraHandledException('이벤트 ID가 필요합니다.');
             }
 
-            if (!Schema.sObjectType.My_Event__c.isAccessible() || 
-                !Schema.sObjectType.Cost_Detail__c.isAccessible()) {
-                throw new AuraHandledException('필요한 객체에 대한 읽기 권한이 없습니다.');
+            // CRUD 권한 검증을 쿼리 바로 직전에 배치
+            if (!Schema.sObjectType.My_Event__c.isAccessible()) {
+                throw new AuraHandledException('My_Event__c에 대한 읽기 권한이 없습니다.');
+            }
+            if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
+                throw new AuraHandledException('Cost_Detail__c에 대한 읽기 권한이 없습니다.');
             }
 
+            // CRUD 권한 검증 직후 쿼리 실행
             List<My_Event__c> events = [
                 SELECT 
                     Id, Name, Title__c, Start_Date__c, End_Date__c, Description__c, Location__c, 

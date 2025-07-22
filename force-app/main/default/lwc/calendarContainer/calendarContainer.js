@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 컨테이너 - async/await 일관성 적용
+ * @description       : 캘린더 컨테이너 - JSON 방식으로 수정
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -76,7 +76,6 @@ export default class CalendarContainer extends LightningElement {
 
     async connectedCallback() {
         try {
-            // Promise.all 대신 순차적 async/await 사용
             const deptOptions = await getDepartmentOptions();
             const costOptions = await getCostTypeOptions();
             
@@ -184,11 +183,8 @@ export default class CalendarContainer extends LightningElement {
                 return;
             }
 
-            const costData = this.costItems
-                .filter(item => item?.type && Number(item.amount) > 0)
-                .map(item => ({ type: item.type, amount: Number(item.amount) }));
-
-            const savedEventId = await saveEventAndCosts({
+            // 이벤트 기본 정보를 JSON으로 구성
+            const eventData = {
                 recordId: this.recordId,
                 title: this.eventTitle,
                 startDate: this.eventStartDate,
@@ -197,7 +193,16 @@ export default class CalendarContainer extends LightningElement {
                 location: this.eventLocation,
                 department: this.eventDepartment,
                 relatedId: this.newEventData?.extendedProps?.relatedId || '',
-                recordType: this.newEventData?.extendedProps?.recordType || '',
+                recordType: this.newEventData?.extendedProps?.recordType || ''
+            };
+
+            // 비용 데이터 필터링 및 구성
+            const costData = this.costItems
+                .filter(item => item?.type && Number(item.amount) > 0)
+                .map(item => ({ type: item.type, amount: Number(item.amount) }));
+
+            const savedEventId = await saveEventAndCosts({
+                eventDataJson: JSON.stringify(eventData),
                 costDetailsJson: JSON.stringify(costData)
             });
 
@@ -273,7 +278,6 @@ export default class CalendarContainer extends LightningElement {
         try {
             const { name, value } = event.target;
             
-            // 허용된 필드명만 업데이트
             const allowedFields = [
                 'eventTitle', 'eventStartDate', 'eventEndDate', 
                 'eventDescription', 'eventLocation', 'eventDepartment'
