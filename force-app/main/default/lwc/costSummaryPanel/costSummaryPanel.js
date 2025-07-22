@@ -1,5 +1,5 @@
 /**
- * @description       : 
+ * @description       : 비용 요약 패널 - async/await 일관성 적용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -14,17 +14,21 @@ import { refreshApex } from '@salesforce/apex';
 // apex 메소드
 import getMonthlyCostSummary from '@salesforce/apex/CalendarAppController.getMonthlyCostSummary';
 
-
 export default class CostSummaryPanel extends NavigationMixin(LightningElement) {
-    @api currentMonth; // 현재 월 정보(부모 컴포넌트로 부터 받음)
+    @api currentMonth;
     @track costItems = [];
     @track totalAmount = '₩0';
     
-    _wiredCostResult; // wire에 결과 저장
+    _wiredCostResult;
 
     get monthRange() {
         try {
             const currentDate = this.currentMonth ? new Date(this.currentMonth) : new Date();
+            
+            if (isNaN(currentDate.getTime())) {
+                throw new Error('잘못된 날짜 형식입니다.');
+            }
+
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
@@ -48,6 +52,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     })
     wiredCosts(result) {
         this._wiredCostResult = result;
+        
         if (result.data) {
             try {
                 this.processCostData(result.data);
@@ -64,27 +69,34 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     }
 
     processCostData(data) {
-        if (!data || typeof data !== 'object') {
-            throw new Error('잘못된 비용 데이터 형식');
-        }
-
         try {
+            if (!data || typeof data !== 'object') {
+                throw new Error('잘못된 비용 데이터 형식');
+            }
+
             let total = 0;
             this.costItems = [];
-            // 각 비용 유형별로
+
             Object.keys(data).forEach(costType => {
-                const amount = Number(data[costType]) || 0;
-                if (amount < 0) {
-                    console.warn(`음수 비용 발견: ${costType} = ${amount}`);
+                try {
+                    const amount = Number(data[costType]) || 0;
+                    
+                    if (amount < 0) {
+                        console.warn(`음수 비용 발견: ${costType} = ${amount}`);
+                    }
+                    
+                    total += amount;
+                    this.costItems.push({
+                        type: costType,
+                        amount: this.formatCurrency(amount)
+                    });
+                } catch (itemError) {
+                    console.error(`비용 항목 처리 오류 (${costType}):`, itemError);
                 }
-                total += amount;
-                this.costItems.push({
-                    type: costType,
-                    amount: this.formatCurrency(amount)
-                });
             });
 
             this.totalAmount = this.formatCurrency(total);
+
         } catch (error) {
             console.error('비용 아이템 처리 오류:', error);
             throw error;
@@ -94,6 +106,11 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     formatCurrency(amount) {
         try {
             const numAmount = Number(amount) || 0;
+            
+            if (isNaN(numAmount)) {
+                throw new Error('숫자가 아닌 값입니다.');
+            }
+            
             return new Intl.NumberFormat('ko-KR', { 
                 style: 'currency', 
                 currency: 'KRW' 
@@ -105,31 +122,41 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     }
 
     resetCostData() {
-        this.costItems = [];
-        this.totalAmount = '₩0';
-    }
-
-    @api
-    refreshSummary() {
         try {
-            return refreshApex(this._wiredCostResult);
+            this.costItems = [];
+            this.totalAmount = '₩0';
         } catch (error) {
-            console.error('비용 요약 새로고침 오류:', error);
-            this.showToast('오류', '데이터 새로고침에 실패했습니다.', 'error');
-            return Promise.resolve();
+            console.error('비용 데이터 리셋 오류:', error);
         }
     }
 
     @api
-    
-    updateMonth(newMonth) {
-        // eslint-disable-next-line @lwc/lwc/no-api-reassignments
-        this.currentMonth = newMonth;
+    async refreshSummary() {
+        try {
+            await refreshApex(this._wiredCostResult);
+        } catch (error) {
+            console.error('비용 요약 새로고침 오류:', error);
+            this.showToast('오류', '데이터 새로고침에 실패했습니다.', 'error');
+        }
     }
 
-    handleReportClick() {
+    @api
+    updateMonth(newMonth) {
         try {
-            this[NavigationMixin.Navigate]({
+            if (!newMonth) {
+                console.warn('새로운 월 정보가 없습니다.');
+                return;
+            }
+            // eslint-disable-next-line @lwc/lwc/no-api-reassignments
+            this.currentMonth = newMonth;
+        } catch (error) {
+            console.error('월 업데이트 오류:', error);
+        }
+    }
+
+    async handleReportClick() {
+        try {
+            await this[NavigationMixin.Navigate]({
                 type: 'standard__webPage',
                 attributes: {
                     url: '/lightning/r/Report/00OAu000005iY1WMAU/view'
@@ -142,6 +169,10 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     }
 
     showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+        try {
+            this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+        } catch (error) {
+            console.error('토스트 메시지 표시 오류:', error);
+        }
     }
 }
