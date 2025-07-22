@@ -1,5 +1,5 @@
 /**
- * @description       : 
+ * @description       : 캘린더 앱 컨트롤러 - 완전한 try-catch 적용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -17,8 +17,8 @@ public with sharing class CalendarAppController {
     public class EventWrapper {
         @AuraEnabled public My_Event__c event;
         @AuraEnabled public List<Cost_Detail__c> costs;
-        @AuraEnabled public String relatedRecordName; // accountName에서 변경
-        @AuraEnabled public String recordTypeName;    // 새로 추가
+        @AuraEnabled public String relatedRecordName;
+        @AuraEnabled public String recordTypeName;
     }
 
     // 파라미터들 하나의 객체로 묶음
@@ -35,8 +35,9 @@ public with sharing class CalendarAppController {
         public String costDetailsJson;
     }
     
-    // 이벤트 목록 가져오기
-    @AuraEnabled(cacheable=true) // 같은 파라미터 호출시 캐시된 결과 사용
+    // === PUBLIC METHODS ===
+    
+    @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
         try {
             if (String.isBlank(startStr) || String.isBlank(endStr)) {
@@ -49,14 +50,13 @@ public with sharing class CalendarAppController {
 
             Date startDate = Date.valueOf(startStr);
             Date endDate = Date.valueOf(endStr);
-            return CalendarEventSelector.selectEventsByDateRange(startDate, endDate); // 실제 조회
+            return CalendarEventSelector.selectEventsByDateRange(startDate, endDate);
         } catch (Exception e) {
             System.debug('이벤트 조회 오류: ' + e.getMessage());
             throw new AuraHandledException('이벤트 조회 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
-    // 이벤트 상세 정보 가져옴
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
         try {
@@ -77,11 +77,9 @@ public with sharing class CalendarAppController {
                 throw new AuraHandledException('이벤트를 찾을 수 없습니다');
             }
             
-            // 비용 정보 처리
             wrapper.costs = (wrapper.event.Cost_Details1__r != null) ? 
                            wrapper.event.Cost_Details1__r : new List<Cost_Detail__c>();
             
-            // 관련 레코드 이름과 타입 설정
             wrapper.relatedRecordName = getRelatedRecordName(wrapper.event);
             wrapper.recordTypeName = wrapper.event.Related_Record_Type__c;
             
@@ -171,68 +169,29 @@ public with sharing class CalendarAppController {
         }
     }
     
-    // lwc에서 호출하는 public 메소드
     @AuraEnabled
     public static String saveEventAndCosts(
         Id recordId, String title, String startDate, String endDate,
         String description, String location, String department,
         String relatedId, String recordType, String costDetailsJson
     ) {
-        EventSaveRequest request = new EventSaveRequest();
-        request.recordId = recordId;
-        request.title = title;
-        request.startDate = startDate;
-        request.endDate = endDate;
-        request.description = description;
-        request.location = location;
-        request.department = department;
-        request.relatedId = relatedId;
-        request.recordType = recordType;
-        request.costDetailsJson = costDetailsJson;
-        
-        return saveEventAndCostsInternal(request);
-    }
-    
-    // 실제 저장 로직
-    private static String saveEventAndCostsInternal(EventSaveRequest request) {
-        Savepoint sp = Database.setSavepoint();
-        
         try {
-            validateEventInputs(request.title, request.department, request.recordType);
+            EventSaveRequest request = new EventSaveRequest();
+            request.recordId = recordId;
+            request.title = title;
+            request.startDate = startDate;
+            request.endDate = endDate;
+            request.description = description;
+            request.location = location;
+            request.department = department;
+            request.relatedId = relatedId;
+            request.recordType = recordType;
+            request.costDetailsJson = costDetailsJson;
             
-            // 권한 검증
-            if (request.recordId == null) {
-                if (!Schema.sObjectType.My_Event__c.isCreateable()) {
-                    throw new AuraHandledException('이벤트 생성 권한이 없습니다');
-                }
-                if (!Schema.sObjectType.Cost_Detail__c.isCreateable()) {
-                    throw new AuraHandledException('비용 상세 생성 권한이 없습니다');
-                }
-            } else {
-                if (!Schema.sObjectType.My_Event__c.isUpdateable()) {
-                    throw new AuraHandledException('이벤트 수정 권한이 없습니다');
-                }
-                if (!Schema.sObjectType.Cost_Detail__c.isUpdateable()) {
-                    throw new AuraHandledException('비용 상세 수정 권한이 없습니다');
-                }
-            }
-            // 이벤트 저장
-            My_Event__c eventRecord = upsertEventRecord(request);
-            
-            if (!isPersonalActivity(request.recordType)) {
-                processCostDetails(eventRecord.Id, request.costDetailsJson, request.department);
-            }
-            
-            return eventRecord.Id;
-
-        } catch (DmlException dmlEx) {
-            Database.rollback(sp); // 변경사항 되돌림 (savepoint())
-            System.debug('DML 오류: ' + dmlEx.getMessage());
-            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+            return saveEventAndCostsInternal(request);
         } catch (Exception e) {
-            Database.rollback(sp);
-            System.debug('예외 발생: ' + e.getMessage());
-            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + e.getMessage());
+            System.debug('이벤트 저장 요청 처리 오류: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 저장 요청 처리 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
     
@@ -299,144 +258,197 @@ public with sharing class CalendarAppController {
             throw new AuraHandledException('이벤트 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
+    
+    private static String saveEventAndCostsInternal(EventSaveRequest request) {
+        Savepoint sp = Database.setSavepoint();
+        
+        try {
+            validateEventInputs(request.title, request.department, request.recordType);
+            
+            // 권한 검증
+            if (request.recordId == null) {
+                if (!Schema.sObjectType.My_Event__c.isCreateable()) {
+                    throw new AuraHandledException('이벤트 생성 권한이 없습니다');
+                }
+                if (!Schema.sObjectType.Cost_Detail__c.isCreateable()) {
+                    throw new AuraHandledException('비용 상세 생성 권한이 없습니다');
+                }
+            } else {
+                if (!Schema.sObjectType.My_Event__c.isUpdateable()) {
+                    throw new AuraHandledException('이벤트 수정 권한이 없습니다');
+                }
+                if (!Schema.sObjectType.Cost_Detail__c.isUpdateable()) {
+                    throw new AuraHandledException('비용 상세 수정 권한이 없습니다');
+                }
+            }
+            
+            My_Event__c eventRecord = upsertEventRecord(request);
+            
+            if (!isPersonalActivity(request.recordType)) {
+                processCostDetails(eventRecord.Id, request.costDetailsJson, request.department);
+            }
+            
+            return eventRecord.Id;
 
-    // === HELPER METHODS ===
+        } catch (DmlException dmlEx) {
+            Database.rollback(sp);
+            System.debug('DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+        } catch (Exception e) {
+            Database.rollback(sp);
+            System.debug('예외 발생: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 저장 중 오류가 발생했습니다: ' + e.getMessage());
+        }
+    }
     
     private static void validateEventInputs(String title, String department, String recordType) {
-        List<String> errors = new List<String>();
-        
-        if (String.isBlank(title)) {
-            errors.add('제목을 입력해주세요');
-        }
-        
-        if (!isPersonalActivity(recordType) && String.isBlank(department)) {
-            errors.add('부서를 선택해주세요');
-        }
-        
-        if (!errors.isEmpty()) {
-            throw new AuraHandledException(String.join(errors, '\n'));
+        try {
+            List<String> errors = new List<String>();
+            
+            if (String.isBlank(title)) {
+                errors.add('제목을 입력해주세요');
+            }
+            if (!isPersonalActivity(recordType) && String.isBlank(department)) {
+                errors.add('부서를 선택해주세요');
+            }
+            if (!errors.isEmpty()) {
+                throw new AuraHandledException(String.join(errors, '\n'));
+            }
+        } catch (Exception e) {
+            System.debug('입력 검증 오류: ' + e.getMessage());
+            throw new AuraHandledException('입력 검증 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
     private static void validateEventOwnership(Id eventId) {
-        if (!Schema.sObjectType.My_Event__c.isAccessible()) {
-            throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
-        }
-        
-        List<My_Event__c> events = [
-            SELECT Id FROM My_Event__c 
-            WHERE Id = :eventId AND OwnerId = :UserInfo.getUserId() 
-            LIMIT 1
-        ];
-        
-        if (events.isEmpty()) {
-            throw new AuraHandledException('권한이 없습니다');
-        }
-    }
-
-    // 이벤트 레코드 생성, 수정
-    private static My_Event__c upsertEventRecord(EventSaveRequest request) {
-        My_Event__c eventRecord;
-        
-        if (request.recordId == null) {
-            eventRecord = new My_Event__c();
-        } else {
-            eventRecord = new My_Event__c(Id = request.recordId); // 기존 레코드 참조
-        }
-        
-        if (String.isNotBlank(request.title)) {
-            eventRecord.Name = request.title;
-        } else {
-            eventRecord.Name = 'Untitled Event';
-        }
-        
-        eventRecord.Title__c = eventRecord.Name;
-        eventRecord.Description__c = request.description;
-        eventRecord.Location__c = request.location;
-        eventRecord.Related_Record_Id__c = request.relatedId;
-        eventRecord.Related_Record_Type__c = request.recordType;
-        
-        if (String.isNotBlank(request.startDate)) {
-            eventRecord.Start_Date__c = Date.valueOf(request.startDate);
-        }
-        if (String.isNotBlank(request.endDate)) {
-            eventRecord.End_Date__c = Date.valueOf(request.endDate);
-        }
-        
-        upsert eventRecord;
-        return eventRecord;
-    }
-
-    // 비용 상세 처리
-    private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
-        deleteCostDetails(eventId);
-        
-        if (String.isNotBlank(costDetailsJson)) {
-            List<Cost_Detail__c> costsToInsert = buildValidatedCostDetails(eventId, costDetailsJson, department);
-            if (!costsToInsert.isEmpty()) {
-                insert costsToInsert;
+        try {
+            if (!Schema.sObjectType.My_Event__c.isAccessible()) {
+                throw new AuraHandledException('이벤트 읽기 권한이 없습니다');
             }
+            
+            List<My_Event__c> events = [
+                SELECT Id FROM My_Event__c 
+                WHERE Id = :eventId AND OwnerId = :UserInfo.getUserId() 
+                LIMIT 1
+            ];
+            
+            if (events.isEmpty()) {
+                throw new AuraHandledException('권한이 없습니다');
+            }
+        } catch (Exception e) {
+            System.debug('이벤트 소유권 검증 오류: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 소유권 검증 중 오류가 발생했습니다: ' + e.getMessage());
+        }
+    }
+
+    private static My_Event__c upsertEventRecord(EventSaveRequest request) {
+        try {
+            My_Event__c eventRecord;
+            
+            if (request.recordId == null) {
+                eventRecord = new My_Event__c();
+            } else {
+                eventRecord = new My_Event__c(Id = request.recordId);
+            }
+            
+            if (String.isNotBlank(request.title)) {
+                eventRecord.Name = request.title;
+            } else {
+                eventRecord.Name = 'Untitled Event';
+            }
+            
+            eventRecord.Title__c = eventRecord.Name;
+            eventRecord.Description__c = request.description;
+            eventRecord.Location__c = request.location;
+            eventRecord.Related_Record_Id__c = request.relatedId;
+            eventRecord.Related_Record_Type__c = request.recordType;
+            
+            if (String.isNotBlank(request.startDate)) {
+                eventRecord.Start_Date__c = Date.valueOf(request.startDate);
+            }
+            if (String.isNotBlank(request.endDate)) {
+                eventRecord.End_Date__c = Date.valueOf(request.endDate);
+            }
+            
+            upsert eventRecord;
+            return eventRecord;
+        } catch (DmlException dmlEx) {
+            System.debug('이벤트 레코드 저장 DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException('이벤트 레코드 저장 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+        } catch (Exception e) {
+            System.debug('이벤트 레코드 저장 오류: ' + e.getMessage());
+            throw new AuraHandledException('이벤트 레코드 저장 중 오류가 발생했습니다: ' + e.getMessage());
+        }
+    }
+
+    private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
+        try {
+            deleteCostDetails(eventId);
+            
+            if (String.isNotBlank(costDetailsJson)) {
+                List<Cost_Detail__c> costsToInsert = buildValidatedCostDetails(eventId, costDetailsJson, department);
+                if (!costsToInsert.isEmpty()) {
+                    insert costsToInsert;
+                }
+            }
+        } catch (DmlException dmlEx) {
+            System.debug('비용 상세 처리 DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException('비용 상세 처리 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+        } catch (Exception e) {
+            System.debug('비용 상세 처리 오류: ' + e.getMessage());
+            throw new AuraHandledException('비용 상세 처리 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
     private static List<Cost_Detail__c> buildValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
-        List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
-        
         try {
-            List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson);
+            List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
+            List<Object> parsedCosts = (List<Object>)JSON.deserializeUntyped(costDetailsJson); 
+            String deptValue = String.isNotBlank(department) ? department : DEFAULT_DEPARTMENT;
             
-            // 부서 기본값 설정
-            String deptValue;
-            if (String.isNotBlank(department)) {
-                deptValue = department;
-            } else {
-                deptValue = DEFAULT_DEPARTMENT;
-            }
-            //각 비용 항목 처리
             for (Object costObj : parsedCosts) {
                 Cost_Detail__c costDetail = buildCostDetail(eventId, costObj, deptValue);
                 if (costDetail != null) {
                     costsToInsert.add(costDetail);
                 }
             }
-        } catch (Exception jsonEx) {
-            System.debug('JSON 파싱 오류: ' + jsonEx.getMessage());
-            throw new AuraHandledException('비용 데이터 형식이 올바르지 않습니다');
+            
+            return costsToInsert;
+        } catch (Exception e) {
+            System.debug('비용 상세 데이터 구성 오류: ' + e.getMessage());
+            throw new AuraHandledException('비용 데이터 형식이 올바르지 않습니다: ' + e.getMessage());
         }
-        
-        return costsToInsert;
     }
 
     private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
-        if (costObj == null) {
-            return null;
-        }
-        
-        Map<String, Object> costMap = (Map<String, Object>)costObj;
-        String costType = String.valueOf(costMap.get('type'));
-        Object amountObj = costMap.get('amount');
-        
-        if (String.isBlank(costType) || amountObj == null) {
-            return null;
-        }
-        
-        Decimal amount;
         try {
-            amount = Decimal.valueOf(String.valueOf(amountObj));
+            if (costObj == null) {
+                return null;
+            }
+            
+            Map<String, Object> costMap = (Map<String, Object>)costObj;
+            String costType = String.valueOf(costMap.get('type'));
+            Object amountObj = costMap.get('amount');
+            
+            if (String.isBlank(costType) || amountObj == null) {
+                return null;
+            }
+            
+            Decimal amount = Decimal.valueOf(String.valueOf(amountObj));
             if (amount < MIN_COST_AMOUNT) {
                 return null;
             }
+            
+            return new Cost_Detail__c(
+                My_Event__c = eventId,
+                Cost_Type__c = costType,
+                Amount__c = amount,
+                department__c = department
+            );
         } catch (Exception e) {
-            System.debug('금액 파싱 오류: ' + e.getMessage());
-            return null;
+            System.debug('비용 상세 아이템 구성 오류: ' + e.getMessage());
+            return null; // 개별 아이템 오류는 null 반환으로 처리
         }
-        
-        return new Cost_Detail__c(
-            My_Event__c = eventId,
-            Cost_Type__c = costType,
-            Amount__c = amount,
-            department__c = department
-        );
     }
 
     private static void deleteCostDetails(Id eventId) {
@@ -449,24 +461,25 @@ public with sharing class CalendarAppController {
             if (!existingCosts.isEmpty()) {
                 delete existingCosts;
             }
-        } catch (DmlException e) {
+        } catch (DmlException dmlEx) {
+            System.debug('비용 상세 삭제 DML 오류: ' + dmlEx.getMessage());
+            throw new AuraHandledException('비용 상세 삭제 중 오류가 발생했습니다: ' + dmlEx.getDmlMessage(0));
+        } catch (Exception e) {
             System.debug('비용 상세 삭제 오류: ' + e.getMessage());
-            throw new AuraHandledException('비용 상세 삭제 중 오류가 발생했습니다');
+            throw new AuraHandledException('비용 상세 삭제 중 오류가 발생했습니다: ' + e.getMessage());
         }
     }
 
-    // === 유틸리티 메서드들 ===
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
     
-    // getAccountName을 getRelatedRecordName으로 변경하고 확장
     private static String getRelatedRecordName(My_Event__c event) {
-        if (String.isBlank(event?.Related_Record_Type__c) || String.isBlank(event?.Related_Record_Id__c)) {
-            return '';
-        }
-        
         try {
+            if (String.isBlank(event?.Related_Record_Type__c) || String.isBlank(event?.Related_Record_Id__c)) {
+                return '';
+            }
+            
             String recordType = event.Related_Record_Type__c;
             String recordId = event.Related_Record_Id__c;
             

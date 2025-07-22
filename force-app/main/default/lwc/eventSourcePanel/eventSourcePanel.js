@@ -1,5 +1,5 @@
 /**
- * @description       : 
+ * @description       : 이벤트 소스 패널 - async/await 일관성 적용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -18,85 +18,158 @@ import getOpportunityList from '@salesforce/apex/CalendarAppController.getOpport
 
 export default class EventSourcePanel extends LightningElement {
     fullCalendarInitialized = false;
-    // @wire -> salesforce 데이터 자동 조회,캐싱 / 데이터 변경시 자동으로 화면 업데이트
+    
     @wire(getAccountList) wiredAccounts;
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
 
-    get accountData() { return this.wiredAccounts?.data || []; }
-    get contactData() { return this.wiredContacts?.data || []; }
-    get opportunityData() { return this.wiredOpportunities?.data || []; }
+    get accountData() { 
+        try {
+            return this.wiredAccounts?.data || [];
+        } catch (error) {
+            console.error('Account 데이터 조회 오류:', error);
+            return [];
+        }
+    }
     
-    renderedCallback() {
+    get contactData() { 
+        try {
+            return this.wiredContacts?.data || [];
+        } catch (error) {
+            console.error('Contact 데이터 조회 오류:', error);
+            return [];
+        }
+    }
+    
+    get opportunityData() { 
+        try {
+            return this.wiredOpportunities?.data || [];
+        } catch (error) {
+            console.error('Opportunity 데이터 조회 오류:', error);
+            return [];
+        }
+    }
+    
+    async renderedCallback() {
         if (this.fullCalendarInitialized) return;
         
-        loadScript(this, FullCalendar + '/main.min.js')
-            .then(() => {
-                this.fullCalendarInitialized = true;
-                this.initializeExternalDraggables();
-            })
-            .catch(error => {
-                console.warn('FullCalendar 로드 실패:', error.message);
-            });
+        try {
+            await loadScript(this, FullCalendar + '/main.min.js');
+            this.fullCalendarInitialized = true;
+            this.initializeExternalDraggables();
+        } catch (error) {
+            console.error('FullCalendar 로드 실패:', error);
+        }
     }
 
-    // 탭 변경처리(탭 변경시에도 드래그 기능 제공)
-    handleTabActive() {
-        // eslint-disable-next-line @lwc/lwc/no-async-operation
-        setTimeout(() => this.initializeExternalDraggables(), 100); //DOM 다시 랜더링 되므로
+    async handleTabActive() {
+        try {
+            // DOM 재렌더링 대기 후 드래그 기능 재초기화
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            setTimeout(() => {
+                this.initializeExternalDraggables();
+            }, 100);
+        } catch (error) {
+            console.error('탭 활성화 처리 오류:', error);
+        }
     }
     
     initializeExternalDraggables() {
-        if (!this.fullCalendarInitialized || !window.FullCalendar) return;
-
         try {
-            this.cleanupExistingDraggables(); // 기존 인스턴스 정리
-            this.createDraggables(); // 새 인스턴스 생성
+            if (!this.fullCalendarInitialized || !window.FullCalendar) {
+                console.warn('FullCalendar가 초기화되지 않았습니다.');
+                return;
+            }
+
+            this.cleanupExistingDraggables();
+            this.createDraggables();
         } catch (error) {
-            console.warn('드래그 초기화 실패:', error.message);
+            console.error('드래그 초기화 실패:', error);
         }
     }
 
-    cleanupExistingDraggables() { // 탭 변경시 DOM 랜더링 -> 메모리 누ㄴ수 발생 방지
-        this.template.querySelectorAll('.salesforce-components-section, .personal-activity-section')
-            .forEach(container => {
-                if (container._fcDraggable) {
-                    container._fcDraggable.destroy(); // 기존 인스턴스 남아있을시 destroy() 제거
-                    delete container._fcDraggable; // 참조 삭제
+    cleanupExistingDraggables() {
+        try {
+            const containers = this.template.querySelectorAll('.salesforce-components-section, .personal-activity-section');
+            
+            containers.forEach(container => {
+                try {
+                    if (container._fcDraggable) {
+                        container._fcDraggable.destroy();
+                        delete container._fcDraggable;
+                    }
+                } catch (cleanupError) {
+                    console.error('드래그 인스턴스 정리 오류:', cleanupError);
                 }
             });
-    }
-
-    createDraggables() { // 새 인스턴스 생성
-        const salesforceContainer = this.template.querySelector('.salesforce-components-section');
-        if (salesforceContainer) {
-            salesforceContainer._fcDraggable = new window.FullCalendar.Draggable(salesforceContainer, { // Fullcalendar draggable 사용
-                itemSelector: '.table-row',
-                eventData: this.getEventData
-            });
-        }
-
-        const activityContainer = this.template.querySelector('.personal-activity-section');
-        if (activityContainer) {
-            activityContainer._fcDraggable = new window.FullCalendar.Draggable(activityContainer, {
-                itemSelector: '.activity-item',
-                eventData: this.getEventData
-            });
+        } catch (error) {
+            console.error('기존 드래그 인스턴스 정리 오류:', error);
         }
     }
 
-    getEventData(eventEl) { // 드래그 데이터 생성
-        return {
-            title: eventEl.dataset.recordName,
-            extendedProps: {
-                relatedId: eventEl.dataset.recordId,
-                recordType: eventEl.dataset.recordType,
-                accountName: eventEl.dataset.accountName || ''
+    createDraggables() {
+        try {
+            const salesforceContainer = this.template.querySelector('.salesforce-components-section');
+            if (salesforceContainer) {
+                try {
+                    salesforceContainer._fcDraggable = new window.FullCalendar.Draggable(salesforceContainer, {
+                        itemSelector: '.table-row',
+                        eventData: this.getEventData.bind(this)
+                    });
+                } catch (error) {
+                    console.error('Salesforce 컨테이너 드래그 생성 오류:', error);
+                }
             }
-        };
+
+            const activityContainer = this.template.querySelector('.personal-activity-section');
+            if (activityContainer) {
+                try {
+                    activityContainer._fcDraggable = new window.FullCalendar.Draggable(activityContainer, {
+                        itemSelector: '.activity-item',
+                        eventData: this.getEventData.bind(this)
+                    });
+                } catch (error) {
+                    console.error('활동 컨테이너 드래그 생성 오류:', error);
+                }
+            }
+        } catch (error) {
+            console.error('드래그 인스턴스 생성 오류:', error);
+        }
     }
 
-    disconnectedCallback() { // 컴포넌트가 DOM에서 제거시 자동 호출
-        this.cleanupExistingDraggables();
+    getEventData(eventEl) {
+        try {
+            if (!eventEl || !eventEl.dataset) {
+                console.warn('이벤트 요소 또는 데이터셋이 없습니다.');
+                return null;
+            }
+
+            const { recordName, recordId, recordType, accountName } = eventEl.dataset;
+
+            if (!recordName) {
+                console.warn('레코드 이름이 없습니다.');
+                return null;
+            }
+
+            return {
+                title: recordName,
+                extendedProps: {
+                    relatedId: recordId || '',
+                    recordType: recordType || '',
+                    accountName: accountName || ''
+                }
+            };
+        } catch (error) {
+            console.error('이벤트 데이터 생성 오류:', error);
+            return null;
+        }
+    }
+
+    disconnectedCallback() {
+        try {
+            this.cleanupExistingDraggables();
+        } catch (error) {
+            console.error('컴포넌트 해제 시 정리 오류:', error);
+        }
     }
 }
