@@ -7,11 +7,12 @@
 **/
 public with sharing class CalendarEventSelector {
     /**
-    * @description 날짜 범위별 이벤트 조회
+    * @description 지정된 날짜 범위별 이벤트 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param startDt 
-    * @param endDt 
-    * @return List<My_Event__c> 
+    * @param startDt 조회 시작 날짜
+    * @param endDt 조회 종료 날짜
+    * @return List<My_Event__c> | 날짜 범위에 해당하는 이벤트 목록(Limit 200)
+    * @exception AuraHandledException 날짜가 null이거나 읽기 권한이 없는 경우
     **/
     public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt) {
         try {
@@ -40,10 +41,11 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description 이벤트 상세 정보 조회
+    * @description 특정 이벤트 ID로 상세 정보 및 비용 정보 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @return My_Event__c 
+    * @param eventId 조회할 이벤트ID
+    * @return My_Event__c | 이벤트 상세 정보와 관련 비용 정보가 포함된 이벤트 객체
+    * @exception AuraHandledException 이벤트 ID가 null이거나 해당 이벤트를 찾을 수 없는 경우
     **/
     public static My_Event__c selectEventDetailsById(Id eventId) {
         try {
@@ -85,11 +87,12 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description 월별 비용 합계 조회
+    * @description 지정된 기간의 비용 유형별 합계 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param startDate 
-    * @param endDate 
-    * @return Map<String, Decimal> 
+    * @param startDate 조회 시작 날짜
+    * @param endDate 조회 종료 날짜
+    * @return Map<String, Decimal> | 비용 유혈별 합계 Map(활성된 Picklist포함)
+    * @exception AuraHandledException 날짜가 null이거나 읽기 권한이 없는경우
     **/
     public static Map<String, Decimal> selectMonthlyCostSummary(Date startDate, Date endDate) {
         try {
@@ -142,9 +145,10 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description Account 목록 조회
+    * @description Account 목록 조회 (이름순)
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Account> 
+    * @return List<Account> | Account 목록 (ID, Name, Owner.Name, 최대 200개)
+    * @exception AuraHandledException Account 또는 User 객체에 대한 읽기 권한이 없는 경우
     **/
     public static List<Account> selectAccounts() {
         try {
@@ -164,9 +168,11 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description Contact 목록 조회
+    * @description Contact 목록 조회 (이름순)
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Contact> 
+    * @return List<Contact> | Contact 목록 (ID, Name, Account.Name, Owner.Name, 최대 200개)
+    * @exception AuraHandledException Contact, Account 또는 User 객체에 대한 읽기 권한이 없는 경우
+
     **/
     public static List<Contact> selectContacts() {
         try {
@@ -187,9 +193,11 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description Opportunity 목록 조회
+    * @description Opportunity 목록 조회 (내림차순)
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Opportunity> 
+    * @return List<Opportunity> | Opportunity 목록 (ID, Name, StageName, CloseDate, Owner.Name, Account.Name, 최대 200개)
+    * @exception AuraHandledException Opportunity, Account 또는 User 객체에 대한 읽기 권한이 없는 경우
+
     **/
     public static List<Opportunity> selectOpportunities() {
         try {
@@ -210,10 +218,11 @@ public with sharing class CalendarEventSelector {
     } 
 
     /**
-    * @description Picklist 옵션 조회
+    * @description 지정 필드의 활성 Picklist 옵션 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param field 
-    * @return List<Map<String, String>> 
+    * @param field 옵션을 조회할 sObjectField
+    * @return List<Map<String, String>> | label과 value를 포함하는 옵션 맵 리스트
+    * @exception AuraHandledException 필드 정보가 null이거나 Picklist 옵션 조회 중 오류가 발생한 경우
     **/
     private static List<Map<String, String>> getPicklistOptions(SObjectField field) {
         try {
@@ -241,9 +250,10 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description 부서 옵션 조회
+    * @description 부서 옵션 Picklist 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Map<String, String>> 
+    * @return List<Map<String, String>> | 부서 옵션 맵 리스트 (label, value 포함)
+    * @exception AuraHandledException Cost_Detail__c 객체에 대한 읽기 권한이 없는 경우
     **/
     public static List<Map<String, String>> selectDepartmentOptions() {
         try {
@@ -259,9 +269,10 @@ public with sharing class CalendarEventSelector {
     }
 
     /**
-    * @description 비용 유형 옵션 조회
+    * @description 비용 유형 옵션 Picklist 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Map<String, String>> 
+    * @return List<Map<String, String>> | 비용 유형 옵션 맵 리스트 (label, value 포함)
+    * @exception AuraHandledException Cost_Detail__c 객체에 대한 읽기 권한이 없는 경우
     **/
     public static List<Map<String, String>> selectCostTypeOptions() {
         try {
