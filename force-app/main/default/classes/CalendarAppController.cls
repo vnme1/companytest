@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 앱 컨트롤러 - JSON 방식으로 수정
+ * @description       : 캘린더 앱 컨트롤러
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22

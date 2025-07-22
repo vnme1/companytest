@@ -1,5 +1,5 @@
 /**
- * @description       : 데이터 조회용 - 완전한 try-catch 적용
+ * @description       : 데이터 조회용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
