@@ -3,6 +3,27 @@ marp: true
 theme: default
 paginate: true
 headingDivider: 2
+style: |
+  .columns {
+    display:flex;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .column {
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: 14px;
+  }
+  .small-text {
+    font-size: 0.8em;
+  }
+  .highlight {
+    background-color: #e8f4fd;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border-left: 4px solid #0176d3;
+  }
 ---
 
 # 일정 관리 및 비용 집계 시스템 요구사항 정의서
@@ -288,9 +309,7 @@ ex : FR-UI-001, CON-G-004
 * **NFR-COM-001:** 시스템은 최신 버전의 Salesforce Lightning Experience 환경에서 동작해야 합니다.
 * **NFR-COM-002:** Chrome, Firefox, Edge 등 주요 웹 브라우저에서 정상적으로 작동해야 합니다.
 
-
-# 개발 현황 및 완료 상태
-1.1 시스템 구현 범위 (Implementation Scope)
+# 기능 구현 현황
 
 ## 시스템 구현 범위 (Implementation Scope)
 
@@ -300,7 +319,7 @@ LWE 컴포넌트 구조
 - calendarView : 중앙 FullCalendar 달력
 - costSummaryPanel : 우측 비용 요약 및 보고서 패널
 
-# 기능 구현 현황
+
 ## 사용자 인터페이스(UI) 요구사항
 
 | 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
@@ -359,8 +378,140 @@ LWE 컴포넌트 구조
 
 # 시스템 구조도
 
+
 # 기술 스택 설명
 # 테스트 결과
-# 비기능 요구 충족 여부
+
+<div class="columns">
+<div>
+
+#### 테스트 실행 결과 요약
+
+| 항목 | 결과 |
+|:---:|:---:|
+| 전체 테스트 결과 | Passes |
+| 총 테스트 수 | 31 |
+| 통과율 | 100%|
+| 실패율 | 0% |
+| 건너뛴 테스트 | 0% |
+| 전체 코드 커버리지 | 75% |
+
+</div>
+<div>
+
+#### 클래스별 코드 커버리지 분석
+| CLASSES | PERCENT | UNCOVERED LINES 
+|:---:|:---:|:---:|
+| CalendarAppController | 72% | 46,66,69,76,93,... |
+| CalendarEventSelector | 90% | 14,30,48,85,95,... |
+
+
+</div>
+</div>
+
+# 외부 인터페이스 요구사항(External InterfaceRequirements)
+
+## 사용자 인터페이스 (User Interfaces)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `EX-UI-001` | SLDS 가이드라인 준수 | 완료✅ | Lightning Design System 표준 적용 확인 |
+| `EX-UI-002` | 명확한 라벨과 유효성 검사 | 완료✅ | 모든 입력 필드에 라벨 및 검증 로직 구현 |
+| `EX-UI-003` | 드래그 앤 드롭 시각적 피드백 | 완료✅ | FullCalendar 라이브러리를 통한 시각적 피드백 제공 |
+* 드래그시 해당 레코드가 반투명 상태로 이동 확인
+
+## 소프트웨어 인터페이스 (Software Interfaces)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `EX-SW-001` | LWC-Apex @AuraEnabled 통신 | 완료✅ | Lightning Design System 표준 적용 확인 |
+| `EX-SW-002` | FullCalendar 라이브러리 연동 | 완료✅ | 모든 입력 필드에 라벨 및 검증 로직 구현 |
+| `EX-SW-003` | 표준 객체 API 사용 | 완료✅ | Account, Contact, Opportunity 조회 테스트 |
+| `EX-SW-004` | Custom Object 데이터 처리 | 완료✅ | My_Event__c, Cost_Detail__c CRUD 테스트 |
+
+##
+### 하드웨어 인터페이스 (Hardware Interfaces) 
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `EX-HW-001` | 표준 웹 브라우저 접근 | 완료✅ | 표준 웹 브라우저를 통해 접근가능 |
+
+### 통신 인터페이스 (Communications Interfaces) 
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `EX-COM-001` | HTTPS 프로토콜 준수 | 완료✅ | Salesforce 표준 SSL/TLS 암호화 |
+
+## 비기능 요구 사항
+
+### 성능 (Performance)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-PER-001` | 달력 로딩 ≤ 3초  | 완료✅ |
+| `NFR-PER-002` | 이벤트 저장 ≤ 2초 | 완료✅ |
+| `NFR-PER-003` | 보고서 조회 ≤ 5초 | 완료✅ |
+
+### 보안 (Security)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-SEC-001` | Salesforce 표준 보안 모델 준수 | 완료✅ |프로필/권한 집합 테스트 |
+| `NFR-SEC-002` | 사용자별 데이터 접근 제어 | 완료✅ | OwnerId 기반 필터링 검증|
+##
+### 유용성 (Usability)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-US-001` | 직관적이고 사용자 친화적 UI  | 완료✅ |드래그 앤 드롭, SLDS 표준|
+| `NFR-US-002` | 부드러운 드래그 앤 드롭 | 완료✅ |FullCalendar 네이티브 지원|
+
+### 유지보수성 (Maintainability) 
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-MT-001` | 코드 커버리지 ≥ 75% | 완료✅ |75% 달성 |
+| `NFR-MT-002` | 개발 표준 준수 | 완료✅ | |
+
+##
+### 신뢰성 (Reliability) 
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-REL-001` | 데이터 손실 없는 복구 | 완료✅ |savepoint/rollback검증|
+| `NFR-REL-002` | 주요 기능 안정성 | 완료✅ | 31개 test 통과|
+
+### 호환성 (Compatibility)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `NFR-COM-001` | 최신 버전의 Lightning Experience 호환| 완료✅ | 64.0 API |
+| `NFR-COM-002` | 개발 표준 준수 | 완료✅ |주요 브라우저 지원 |
+
+
 # 개발 결과물 목록
-# 요약표
+### LWC 컴포넌트
+calendarContainer - 메인컨테이너, 모달관리
+eventSourcePanel - 드래그 앤 드롭 레코드들
+calendarView - Fullcalendar 연동
+costSummaryPanel - 비용요약 및 보고서 이동 버튼
+### APEX 클래스
+CalendarAppController - 주요 비즈니스 로직
+CalendarEventSelector - 데이터 조회, 합계게산
+CalendarAppControllerTest - 테스트 코드
+CalendarEventSelectorTest - 테스트 코드
+
+# 개발 결과물 목록
+### Custom Fields (My_Event__c)
+
+- Title__c(Text) 이벤트 제목
+- Start_Date__c(Date) 시작일
+- End_Date__c(Date) 종료일
+- Description__c(Long Text Area) 설명
+- Location__(Text) 장소
+- Related_Record_Id__c(Text) 연관 레코드
+- Related_Record_Type__c(PickList) 레코드 타입
+
+# 개발 결과물 목록
+### Custom Fields (Cost_Detail__c)
+
+- My_Event__c(Lookup(My Event)) 상위 이벤트
+- Cost_Type__c(PickList) 비용유형
+- Amount__c(Currency) 금액
+- department__c(Picklist) 부서
+
+# 개발 결과물 목록
+### Static Resource
+Fullcalendar 5.11.5 - Fullcalendar 라이브러리
+### Lightning App
+CalendarWeb - 메인 애플리케이션
