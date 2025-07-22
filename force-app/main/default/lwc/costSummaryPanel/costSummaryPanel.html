@@ -2,11 +2,11 @@
   @description       : 
   @author            : sejin.park@dkbmc.com
   @group             : 
-  @last modified on  : 2025-07-21
+  @last modified on  : 2025-07-22
   @last modified by  : sejin.park@dkbmc.com
 -->
 <template>
-    <lightning-card title="월별 Event 및 Cost" icon-name="standard:currency" class="cost-summary-card">
+    <lightning-card title="Monthly Event or Cost" icon-name="standard:currency" class="cost-summary-card">
         <div class="slds-card__body slds-card__body_inner">
             <div class="cost-summary-content">
                 <template for:each={costItems} for:item="cost">
@@ -17,14 +17,14 @@
                 </template>
 
                 <div class="cost-item total-cost">
-                    <div class="cost-label">총계</div>
+                    <div class="cost-label">Total Amount</div>
                     <div class="cost-amount">{totalAmount}</div>
                 </div>
 
                 <div class="report-button-container slds-m-top_medium">
                     <lightning-button
                         variant="brand"
-                        label="부서 / 월 / 비용유형별 보고서"
+                        label="Dept / Month / Cost Report"
                         class="report-btn"
                         onclick={handleReportClick}>
                     </lightning-button>
