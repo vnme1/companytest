@@ -143,7 +143,7 @@ export default class CalendarContainer extends LightningElement {
                     opportunityName: recordType === 'Opportunity' ? recordName : ''
                 }
             };
-            this.modalTitle = `새 ${recordType === 'Personal' ? '활동' : '이벤트'}: ${recordName}`;
+            this.modalTitle = `NEW ${recordType === 'Personal' ? 'Activity' : 'Event'}: ${recordName}`;
             this.openModal();
         } catch (error) {
             console.error('이벤트 드롭 처리 오류:', error);
@@ -200,7 +200,7 @@ export default class CalendarContainer extends LightningElement {
                 this.costItems = [{ id: 0, type: '', amount: null }];
             }
 
-            this.modalTitle = `이벤트 수정: ${evt.Title__c || 'Untitled'}`;
+            this.modalTitle = `Edit Event: ${evt.Title__c || 'Untitled'}`;
             this.openModal();
 
         } catch (error) {

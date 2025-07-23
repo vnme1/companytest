@@ -641,18 +641,83 @@ wiredCosts(result)
 
 # 3. 구현 세부사항
 ### 3.1 시스템 구조도
-### 3.2 LWC Components
-### 3.3 Custom Objects
+### 3.2 시스템 흐름도
+### 3.3 요구사항 이행 결과
 
 # 시스템 구조도
 <div class="columns">
 <div>
 
-![](2025-07-22-17-07-00.png)
+![](2025-07-22-17-27-56.png)
+
 
 </div>
 <div>
 
-![](2025-07-22-17-27-56.png)
+![](2025-07-22-17-07-00.png)
+
 </div>
 </div>
+
+# 시스템 구조도
+
+# 요구사항 이행 결과
+
+#### 사용자 인터페이스(UI) 요구사항
+
+
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-UI-001` | LWC 기반 페이지 구성 | 완료✅ | calendarContainer 메인 컴포넌트 |
+| `FR-UI-002` | 메인 애플리케이션 탭 제공 | 완료✅ | CalendarWeb LightningApp |
+| `FR-UI-003` | 3분할 레이아웃 구성 | 완료✅ | CSS Flexbox 반응형 레이아웃 |
+
+## 좌측 패널(eventSourcePanel) 기능
+
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-LP-001` | Salesforce 구성 요소 탭 | 완료✅ | Account/Contact/Opportunity |
+| `FR-LP-002` | 레코드 드래그 앤 드롭 | 완료✅ | FullCalendar.Draggable API |
+| `FR-LP-003` | 개인 & 활동 영역 | 완료✅ | 휴가/병가/출장/교육/회의 |
+| `FR-LP-004` | 개인 활동 드래그 앤 드롭 | 완료✅ | FullCalendar.Draggable API |
+* 개인 활동 영역중 공가 -> 회의로 변경
+
+
+
+## 중앙 달력(calendarView) 기능
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-FC-001` | 월간 보기(Month View) | 완료✅ | Fullcalendar API "dayGridMonth" |
+| `FR-FC-002` | 달력 네비게이션 버튼 | 완료✅ | 이전/다음/오늘 + 뷰 전환 |
+| `FR-FC-003` | 드롭으로 이벤트 생성 | 완료✅ | 자동 모달 오픈, 타입별 분기 |
+* 타입별 분기 (isSalesforceObjectEvent | isPersonalActivityEvent)
+
+## 우측 패널(costSummaryPanel)
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-RP-001` | 월별 비용 종류별 합계 | 완료✅ | @wire 실시간 집계 |
+| `FR-RP-002` | [기간별/부서별 보고서 보기] 버튼 | 완료✅ | NavigationMixin 표준 보고서 |
+
+## 이벤트 상세/ 비용
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-MOD-001` | 이벤트 기본 정보 입력 | 완료✅ | Lightning Input 기반 폼 |
+| `FR-MOD-001` | 비용 정보 입력 섹션 | 완료✅ | Picklist + Currency 입력 |
+| `FR-MOD-001` | 다중 비용 추가 기능 | 완료✅ | addCostItem() 동적 추가 |
+| `FR-MOD-001` | 모달 액션 버튼 | 완료✅ | 저장/취소/삭제 |
+* 삭제 버튼은 수정 모달창 작동시
+
+## 보고서 기능
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FR-REP-001` | Matrix 타입 보고서 | 완료✅ | Salesforce 표준 보고서 |
+| `FR-REP-001` | 필터링 기능 | 완료✅ | 표준 보고서 필터 활용 |
+| `FR-REP-001` | 집계 총합 표시 | 완료✅ | Summary 기능 활용 |
+
+## 데이터 저장 및 처리 기능
+| 요구사항ID | 요구사항 내용 | 구현 상태 |구현 상태 |
+|:---:|:---:|:---:|:---:|
+| `FFR-DS-001` | Custom Object 데이터 저장 | 완료✅ | My_Event__c, Cost_Detail__c |
+| `FR-DS-001` | Apex CRUD 로직 | 완료✅ | CalendarAppController 구현 |
+| `FR-DS-001` | 집계 및 보고서 로직 | 완료✅ | AggregateResult 기반 집계 |
+| `FR-DS-001` | 표준 객체 읽기 전용 활용 | 완료✅ | Account/Contact/Opportunity

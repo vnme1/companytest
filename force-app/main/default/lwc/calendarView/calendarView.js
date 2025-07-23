@@ -35,7 +35,7 @@ import updateEventDates from '@salesforce/apex/CalendarAppController.updateEvent
 const CALENDAR_CONFIG = {
     HEIGHT: 800,
     CONTENT_HEIGHT: 700,
-    LOCALE: 'ko',
+    LOCALE: 'en',
     INITIAL_VIEW: 'dayGridMonth',
     LOAD_DELAY_MS: 100
 };
