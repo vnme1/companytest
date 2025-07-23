@@ -2,7 +2,7 @@
  * @description       : 캘린더 컨테이너 - JSON 방식으로 수정
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, track } from 'lwc';
@@ -32,6 +32,23 @@ export default class CalendarContainer extends LightningElement {
     @track departmentPicklistOptions = [];
     @track costTypePicklistOptions = [];
 
+    // --생명주기 메소드--
+    // 컴포넌트 초기화 및 부서/비용 타입 옵션 로드
+    async connectedCallback() {
+        try {
+            const deptOptions = await getDepartmentOptions();
+            const costOptions = await getCostTypeOptions();
+            
+            this.departmentPicklistOptions = deptOptions || [];
+            this.costTypePicklistOptions = costOptions || [];
+        } catch (error) {
+            console.error('부서/비용 옵션 조회 오류:', error);
+            this.showToast('오류', '설정 옵션을 불러오는데 실패했습니다.', 'error');
+        }
+    }
+
+    // --Getters--
+    // 좌측패널 이벤트 판단
     get isSalesforceObjectEvent() {
         return this.newEventData?.extendedProps?.recordType !== 'Personal';
     }
@@ -40,6 +57,7 @@ export default class CalendarContainer extends LightningElement {
         return !this.isSalesforceObjectEvent;
     }
 
+    // Salesforce 객체 타입 판단
     get isAccountType() {
         return this.newEventData?.extendedProps?.recordType === 'Account';
     }
@@ -52,6 +70,7 @@ export default class CalendarContainer extends LightningElement {
         return this.newEventData?.extendedProps?.recordType === 'Opportunity';
     }
 
+    // 관련 레코드명 표시용
     get displayRelatedRecord() {
         const recordType = this.newEventData?.extendedProps?.recordType;
         
@@ -66,27 +85,18 @@ export default class CalendarContainer extends LightningElement {
         return '';
     }
 
+    // 부서 옵션 반환
     get departmentOptions() { 
         return this.departmentPicklistOptions || []; 
     }
     
+    // 비용 타입 옵션 반환
     get costTypeOptions() { 
         return this.costTypePicklistOptions || []; 
     }
 
-    async connectedCallback() {
-        try {
-            const deptOptions = await getDepartmentOptions();
-            const costOptions = await getCostTypeOptions();
-            
-            this.departmentPicklistOptions = deptOptions || [];
-            this.costTypePicklistOptions = costOptions || [];
-        } catch (error) {
-            console.error('부서/비용 옵션 조회 오류:', error);
-            this.showToast('오류', '설정 옵션을 불러오는데 실패했습니다.', 'error');
-        }
-    }
-
+    // 이벤트 처리 메소드
+    // 드래그 드롭으로 새 이벤트 생성
     handleEventDrop(event) {
         try {
             const { draggedEl, date } = event.detail;
@@ -119,6 +129,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
+    // 기존 이벤트 클릭시 상세 정보 조회
     async handleEventClick(event) {
         try {
             const eventId = event.detail?.eventId;
@@ -176,6 +187,127 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
+    // 이벤트 이동완료 후 성공처리
+    handleEventMoved() {
+        try {
+            this.showToast('성공', '이벤트가 이동되었습니다', 'success');
+            this.refreshCostSummary();
+        } catch (error) {
+            console.error('이벤트 이동 후 처리 오류:', error);
+        }
+    }
+
+    // 이벤트 에러발생시 에러 메시지 표시
+    handleEventError(event) {
+        try {
+            const message = event.detail?.message || '알 수 없는 오류가 발생했습니다';
+            this.showToast('오류', message, 'error');
+        } catch (error) {
+            console.error('이벤트 에러 핸들링 오류:', error);
+            this.showToast('오류', '처리 중 오류가 발생했습니다', 'error');
+        }
+    }
+
+    // 달력 범위 변경, 비용 업데이트
+    handleDatesSet(event) {
+        try {
+            const { start, end } = event.detail;
+            if (!start || !end) {
+                console.warn('날짜 설정 이벤트에 필요한 데이터가 없습니다.');
+                return;
+            }
+
+            const mid = new Date((new Date(start).getTime() + new Date(end).getTime()) / 2);
+            this.currentMonthForSummary = mid.toISOString();
+            this.refreshCostSummary();
+        } catch (error) {
+            console.error('날짜 설정 처리 오류:', error);
+        }
+    }
+
+    // --입력 처리 메소드--
+    // 기본 입력 필드 변경 처리
+    handleInputChange(event) {
+        try {
+            const { name, value } = event.target;
+            
+            const allowedFields = [
+                'eventTitle', 'eventStartDate', 'eventEndDate', 
+                'eventDescription', 'eventLocation', 'eventDepartment'
+            ];
+            
+            if (name && allowedFields.includes(name)) {
+                this[name] = value || '';
+            }
+        } catch (error) {
+            console.error('입력 변경 처리 오류:', error);
+        }
+    }
+
+    // 비용 입력 변경 처리
+    handleCostChange(event) {
+        try {
+            const { name, value } = event.target;
+            const itemId = parseInt(event.target.dataset.id, 10);
+            
+            if (isNaN(itemId) || !name) {
+                console.warn('비용 변경 이벤트에 필요한 데이터가 없습니다.');
+                return;
+            }
+
+            this.costItems = this.costItems.map(item =>
+                (item.id === itemId ? { ...item, [name]: value } : item)
+            );
+        } catch (error) {
+            console.error('비용 변경 처리 오류:', error);
+        }
+    }
+
+    // 새 비용 항목 추가
+    addCostItem() {
+        try {
+            this.costItems = [...this.costItems, { 
+                id: this.costItems.length, 
+                type: '', 
+                amount: null 
+            }];
+        } catch (error) {
+            console.error('비용 항목 추가 오류:', error);
+            this.showToast('오류', '비용 항목 추가 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    // --모달 관리 메소드--
+    openModal() { 
+        this.isModalOpen = true; 
+    }
+    
+    closeModal() {
+        try {
+            this.isModalOpen = false;
+            this.resetModal();
+        } catch (error) {
+            console.error('모달 닫기 오류:', error);
+        }
+    }
+
+    resetModal() {
+        try {
+            this.recordId = null;
+            this.eventTitle = '';
+            this.eventStartDate = '';
+            this.eventEndDate = '';
+            this.eventDescription = '';
+            this.eventLocation = '';
+            this.eventDepartment = '';
+            this.costItems = [{ id: 0, type: '', amount: null }];
+            this.newEventData = { extendedProps: {} };
+        } catch (error) {
+            console.error('모달 리셋 오류:', error);
+        }
+    }
+
+    // --데이터 저장,삭제 메소드--
     async saveEvent() {
         try {
             if (!this.eventTitle?.trim()) {
@@ -239,89 +371,8 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    handleEventMoved() {
-        try {
-            this.showToast('성공', '이벤트가 이동되었습니다', 'success');
-            this.refreshCostSummary();
-        } catch (error) {
-            console.error('이벤트 이동 후 처리 오류:', error);
-        }
-    }
-
-    handleEventError(event) {
-        try {
-            const message = event.detail?.message || '알 수 없는 오류가 발생했습니다';
-            this.showToast('오류', message, 'error');
-        } catch (error) {
-            console.error('이벤트 에러 핸들링 오류:', error);
-            this.showToast('오류', '처리 중 오류가 발생했습니다', 'error');
-        }
-    }
-
-    handleDatesSet(event) {
-        try {
-            const { start, end } = event.detail;
-            if (!start || !end) {
-                console.warn('날짜 설정 이벤트에 필요한 데이터가 없습니다.');
-                return;
-            }
-
-            const mid = new Date((new Date(start).getTime() + new Date(end).getTime()) / 2);
-            this.currentMonthForSummary = mid.toISOString();
-            this.refreshCostSummary();
-        } catch (error) {
-            console.error('날짜 설정 처리 오류:', error);
-        }
-    }
-
-    handleInputChange(event) {
-        try {
-            const { name, value } = event.target;
-            
-            const allowedFields = [
-                'eventTitle', 'eventStartDate', 'eventEndDate', 
-                'eventDescription', 'eventLocation', 'eventDepartment'
-            ];
-            
-            if (name && allowedFields.includes(name)) {
-                this[name] = value || '';
-            }
-        } catch (error) {
-            console.error('입력 변경 처리 오류:', error);
-        }
-    }
-
-    handleCostChange(event) {
-        try {
-            const { name, value } = event.target;
-            const itemId = parseInt(event.target.dataset.id, 10);
-            
-            if (isNaN(itemId) || !name) {
-                console.warn('비용 변경 이벤트에 필요한 데이터가 없습니다.');
-                return;
-            }
-
-            this.costItems = this.costItems.map(item =>
-                (item.id === itemId ? { ...item, [name]: value } : item)
-            );
-        } catch (error) {
-            console.error('비용 변경 처리 오류:', error);
-        }
-    }
-
-    addCostItem() {
-        try {
-            this.costItems = [...this.costItems, { 
-                id: this.costItems.length, 
-                type: '', 
-                amount: null 
-            }];
-        } catch (error) {
-            console.error('비용 항목 추가 오류:', error);
-            this.showToast('오류', '비용 항목 추가 중 오류가 발생했습니다.', 'error');
-        }
-    }
-
+    // --유틸리티 메소드--
+    // 날짜 YYYY-MM-DD형식으로 변환
     toLocalYMD(date) {
         try {
             if (!date) {
@@ -335,6 +386,22 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
+    // 날짜 문자열 +1
+    addOneDay(ymdStr) {
+        try {
+            if (!ymdStr) {
+                return ymdStr;
+            }
+            const date = new Date(ymdStr);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().slice(0, 10);
+        } catch (error) {
+            console.error('날짜 하루 추가 오류:', error);
+            return ymdStr;
+        }
+    }
+
+    // 캘린더 뷰에 이벤트 반영
     updateCalendarView(savedEventId) {
         try {
             const calendarView = this.template.querySelector('c-calendar-view');
@@ -360,20 +427,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    addOneDay(ymdStr) {
-        try {
-            if (!ymdStr) {
-                return ymdStr;
-            }
-            const date = new Date(ymdStr);
-            date.setDate(date.getDate() + 1);
-            return date.toISOString().slice(0, 10);
-        } catch (error) {
-            console.error('날짜 하루 추가 오류:', error);
-            return ymdStr;
-        }
-    }
-
+    // 비용요약 패널 새로고침
     refreshCostSummary() {
         try {
             const panel = this.template.querySelector('c-cost-summary-panel');
@@ -386,35 +440,7 @@ export default class CalendarContainer extends LightningElement {
         }
     }
 
-    openModal() { 
-        this.isModalOpen = true; 
-    }
-    
-    closeModal() {
-        try {
-            this.isModalOpen = false;
-            this.resetModal();
-        } catch (error) {
-            console.error('모달 닫기 오류:', error);
-        }
-    }
-
-    resetModal() {
-        try {
-            this.recordId = null;
-            this.eventTitle = '';
-            this.eventStartDate = '';
-            this.eventEndDate = '';
-            this.eventDescription = '';
-            this.eventLocation = '';
-            this.eventDepartment = '';
-            this.costItems = [{ id: 0, type: '', amount: null }];
-            this.newEventData = { extendedProps: {} };
-        } catch (error) {
-            console.error('모달 리셋 오류:', error);
-        }
-    }
-
+    // 토스트 메시지
     showToast(title, message, variant) {
         try {
             this.dispatchEvent(new ShowToastEvent({ title, message, variant }));

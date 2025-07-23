@@ -2,7 +2,7 @@
  * @description       : 캘린더 뷰 - async/await 일관성 적용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, api } from 'lwc';
@@ -23,6 +23,8 @@ const CALENDAR_CONFIG = {
     LOAD_DELAY_MS: 100
 };
 
+// 전역 함수
+// 날짜 YYYY-MM-DD 변환
 function toLocalYMD(date) {
     try {
         if (!date) {
@@ -41,62 +43,8 @@ export default class CalendarView extends LightningElement {
     fullCalendarInitialized = false;
     calendarApi;
 
-    @api
-    refetchEvents() {
-        try {
-            if (this.calendarApi) {
-                this.calendarApi.refetchEvents();
-            }
-        } catch (error) {
-            console.error('이벤트 다시 가져오기 오류:', error);
-        }
-    }
-
-    @api
-    addEvent(eventData) {
-        try {
-            if (this.calendarApi && eventData && !this.calendarApi.getEventById(eventData.id)) {
-                this.calendarApi.addEvent(eventData);
-            }
-        } catch (error) {
-            console.error('이벤트 추가 오류:', error);
-        }
-    }
-
-    @api
-    updateEvent(eventId, eventData) {
-        try {
-            if (!this.calendarApi || !eventId || !eventData) {
-                return;
-            }
-
-            const existingEvent = this.calendarApi.getEventById(eventId);
-            if (existingEvent) {
-                existingEvent.setProp('title', eventData.title);
-                existingEvent.setStart(eventData.start);
-                existingEvent.setEnd(eventData.end);
-            }
-        } catch (error) {
-            console.error('이벤트 업데이트 오류:', error);
-        }
-    }
-
-    @api
-    removeEvent(eventId) {
-        try {
-            if (!this.calendarApi || !eventId) {
-                return;
-            }
-
-            const eventToRemove = this.calendarApi.getEventById(eventId);
-            if (eventToRemove) {
-                eventToRemove.remove();
-            }
-        } catch (error) {
-            console.error('이벤트 제거 오류:', error);
-        }
-    }
-
+    // --컴포넌트 설정--
+    // 컴포넌트 렌더링 후 Fullcalendar로드
     renderedCallback() {
         if (this.fullCalendarInitialized) {
             return;
@@ -108,6 +56,7 @@ export default class CalendarView extends LightningElement {
         }, CALENDAR_CONFIG.LOAD_DELAY_MS);
     }
 
+    // Fullcalendar 라이브러리 및 css로드
     async loadFullCalendar() {
         if (this.fullCalendarInitialized) {
             return;
@@ -126,6 +75,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // Fullcalendar 인스턴스 생성 및 설정
     async initializeCalendar() {
         try {
             const calendarEl = this.template.querySelector('.calendar-container');
@@ -165,6 +115,8 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // --이벤트 데이터 관리--
+    // 이벤트 데이터 조회
     async loadEvents(fetchInfo, successCallback, failureCallback) {
         try {
             if (!fetchInfo || !fetchInfo.start || !fetchInfo.end) {
@@ -190,22 +142,10 @@ export default class CalendarView extends LightningElement {
             console.error('이벤트 로드 실패:', error);
             failureCallback(error);
         }
-    }
+    } 
 
-    addOneDay(dateStr) {
-        try {
-            if (!dateStr) {
-                return dateStr;
-            }
-            const date = new Date(dateStr);
-            date.setDate(date.getDate() + 1);
-            return date.toISOString().slice(0, 10);
-        } catch (error) {
-            console.error('날짜 하루 추가 오류:', error);
-            return dateStr;
-        }
-    }
-
+    // --이벤트 핸들링--
+    // 외부에서 드롭된 요소처리
     handleDrop(info) {
         try {
             if (!info || !info.jsEvent || !info.draggedEl || !info.date) {
@@ -226,6 +166,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // 외부 이벤트 등록시 중복 방지
     handleEventReceive(info) {
         try {
             if (info && info.event) {
@@ -236,6 +177,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // 이벤트 클릭시 상위 컴포넌트에 알림
     handleEventClick(info) {
         try {
             if (!info || !info.event || !info.event.id) {
@@ -251,6 +193,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // 이벤트 드래그이동처리 및 업데이트
     async handleEventDrop(info) {
         try {
             if (!info || !info.event) {
@@ -292,6 +235,7 @@ export default class CalendarView extends LightningElement {
         }
     }
 
+    // 날짜 범위 변경시 상위 컴포넌트에 알림
     handleDatesSet(dateInfo) {
         try {
             if (!dateInfo || !dateInfo.start || !dateInfo.end) {
@@ -307,6 +251,83 @@ export default class CalendarView extends LightningElement {
             }));
         } catch (error) {
             console.error('날짜 설정 처리 오류:', error);
+        }
+    }
+
+    // --외부 api--
+    // 이벤트 목록 새로고침
+    @api
+    refetchEvents() {
+        try {
+            if (this.calendarApi) {
+                this.calendarApi.refetchEvents();
+            }
+        } catch (error) {
+            console.error('이벤트 다시 가져오기 오류:', error);
+        }
+    }
+
+    // 캘린더에 새 이벤트 추가
+    @api
+    addEvent(eventData) {
+        try {
+            if (this.calendarApi && eventData && !this.calendarApi.getEventById(eventData.id)) {
+                this.calendarApi.addEvent(eventData);
+            }
+        } catch (error) {
+            console.error('이벤트 추가 오류:', error);
+        }
+    }
+
+    // 기존 이벤트 정보 수정
+    @api
+    updateEvent(eventId, eventData) {
+        try {
+            if (!this.calendarApi || !eventId || !eventData) {
+                return;
+            }
+
+            const existingEvent = this.calendarApi.getEventById(eventId);
+            if (existingEvent) {
+                existingEvent.setProp('title', eventData.title);
+                existingEvent.setStart(eventData.start);
+                existingEvent.setEnd(eventData.end);
+            }
+        } catch (error) {
+            console.error('이벤트 업데이트 오류:', error);
+        }
+    }
+
+    // 캘린더에서 이벤트 제거
+    @api
+    removeEvent(eventId) {
+        try {
+            if (!this.calendarApi || !eventId) {
+                return;
+            }
+
+            const eventToRemove = this.calendarApi.getEventById(eventId);
+            if (eventToRemove) {
+                eventToRemove.remove();
+            }
+        } catch (error) {
+            console.error('이벤트 제거 오류:', error);
+        }
+    }
+
+    // --유틸리티 메소드--
+    // 날짜 문자열 +1
+    addOneDay(dateStr) {
+        try {
+            if (!dateStr) {
+                return dateStr;
+            }
+            const date = new Date(dateStr);
+            date.setDate(date.getDate() + 1);
+            return date.toISOString().slice(0, 10);
+        } catch (error) {
+            console.error('날짜 하루 추가 오류:', error);
+            return dateStr;
         }
     }
 }

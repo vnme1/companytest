@@ -1,5 +1,5 @@
 /**
- * @description       : 캘린더 앱 컨트롤러 - JSON 방식으로 수정
+ * @description       : 캘린더 앱 컨트롤러
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-22
@@ -36,11 +36,12 @@ public with sharing class CalendarAppController {
     }
     
     /**
-    * @description 이벤트 목록 조회
+    * @description : 지정된 날짜 범위 내의 이벤트 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param startStr 
-    * @param endStr 
-    * @return List<My_Event__c> 
+    * @param startStr 조회 시작 날짜 (YYYY-MM-DD)
+    * @param endStr 조회 종료 날짜 (YYYY-MM-DD)
+    * @return List<My_Event__c> | 날짜 범위에 해당하는 이벤트 목록
+    * @exception AuraHandledException 입력값이 유효하지않거나 읽기 권한이 없을시 발생
     **/
     @AuraEnabled(cacheable=true)
     public static List<My_Event__c> getEvents(String startStr, String endStr) {
@@ -63,10 +64,11 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 이벤트 상세조회
+    * @description : 특정 이벤트의 상세 정보와 관련 비요 정보 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @return EventWrapper 
+    * @param eventId 조회할 이벤트 ID
+    * @return EventWrapper | (이벤트+비용+관련레코드)
+    * @exception AuraHandledException 이벤트ID가 null값이거나 해당 이벤트를 찾을 수 없는 경우 발생
     **/
     @AuraEnabled(cacheable=true)
     public static EventWrapper getEventDetails(Id eventId) {
@@ -102,11 +104,12 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 월별 비용 합계
+    * @description : 월별 비용 유형별 합계 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param startDate 
-    * @param endDate 
-    * @return Map<String, Decimal> 
+    * @param startDate 조회 시작 날짜 (YYYY-MM-DD)
+    * @param endDate 조회 종료 날짜 (YYYY-MM-DD)
+    * @return Map<String, Decimal> | 비용 유형을 key로 하고 합계금액을 value로 하는 Map
+    * @exception AuraHandledException 입력 값이 유효하지 않거나 읽기 권한이 없는 경우
     **/
     @AuraEnabled(cacheable=true) 
     public static Map<String, Decimal> getMonthlyCostSummary(String startDate, String endDate) {
@@ -129,9 +132,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description Account 리스트 getter
+    * @description : Account 리스트 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Account> 
+    * @return List<Account> | Account 목록(ID, Name, Owner.Name등등)
+    * @exception AuraHandledException Account 읽기 권한이 없는 경우
     **/
     @AuraEnabled(cacheable=true)
     public static List<Account> getAccountList() {
@@ -147,9 +151,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description contact 리스트 getter
+    * @description : contact 리스트 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Contact> 
+    * @return List<Contact> | Contact 목록(ID, Name, Account.Name, Owner.Name등등)
+    * @exception AuraHandledException Contact 읽기 권한이 없는 경우
     **/
     @AuraEnabled(cacheable=true)
     public static List<Contact> getContactList() {
@@ -165,9 +170,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description opportunity 리스트 getter
+    * @description : opportunity 리스트 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Opportunity> 
+    * @return List<Opportunity> | Opportunity 목록 (ID, Name, StageName, CloseDate, Owner.Name, Account.Name등등)
+    * @exception AuraHandledException Opportunity  읽기 권한이 없는 경우
     **/
     @AuraEnabled(cacheable=true)
     public static List<Opportunity> getOpportunityList() {
@@ -183,9 +189,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 부소 옵션 getter
+    * @description : 부서 옵션 picklist 목록 조회
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @return List<Map<String, String>> 
+    * @return List<Map<String, String>> | label과 value를 포함하는 맵의 리스트
+    * @exception AuraHandledException 부서 옵션 조회 중 오류가 발생한 경우
     **/
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> getDepartmentOptions() {
@@ -197,6 +204,12 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description : 비용 옵션 picklist 목록 조회 
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @return List<Map<String, String>> | label과 value를 포함하는 맵의 리스트
+    * @exception AuraHandledException 비용 유형 옵션 조회 중 오류가 발생한 경우
+    **/
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> getCostTypeOptions() {
         try {
@@ -210,11 +223,12 @@ public with sharing class CalendarAppController {
     // JSON 방식으로 수정된 메소드
     
     /**
-    * @description 이벤트 저장 (LWC에서 호출하는 public 메소드)
+    * @description 이벤트 관련 비용 정보 JSON저장 (LWC에서 호출하는 public 메소드)
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventDataJson 
-    * @param costDetailsJson 
-    * @return String 
+    * @param eventDataJson 이벤트 기본 정보가 담긴 JSON문자열
+    * @param costDetailsJson 비용 상세 정보가 담긴 JSON문자열
+    * @return String | 저장된 이벤트의iID
+    * @exception AuraHandledException 이벤트 데이터가 없거나 JSON 파싱 오류, 저장중 오류가 발생한 경우
     **/
     @AuraEnabled
     public static String saveEventAndCosts(String eventDataJson, String costDetailsJson) {
@@ -248,11 +262,12 @@ public with sharing class CalendarAppController {
     }
     
     /**
-    * @description 이벤트 업데이트 메소드
+    * @description 기존 이벤트 시작일 종료일 업데이트
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @param newStartDate 
-    * @param newEndDate 
+    * @param eventId 업데이트할 이벤트 ID
+    * @param newStartDate 새로운 시작일 (YYYY-MM-DD)
+    * @param newEndDate 새로운 종료일 (YYYY-MM-DD)
+    * @exception AuraHandledException 이벤트 ID가 null 또는 수정 권한이 없는 경우
     **/
     @AuraEnabled
     public static void updateEventDates(Id eventId, String newStartDate, String newEndDate) {
@@ -287,9 +302,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 이벤트 삭제 메소드
+    * @description 이벤트 관련 비용 정보 삭제 메소드
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
+    * @param eventId 삭제할 이벤트ID
+    * @exception AuraHandledException 이벤트 ID가 null이거나 삭제 권한이 없는 경우
     **/
     @AuraEnabled
     public static void deleteEvent(Id eventId) {
@@ -323,13 +339,12 @@ public with sharing class CalendarAppController {
         }
     }
     
-    // === PRIVATE METHODS ===
-    
     /**
-    * @description 실제 저장 로직 / test시 isTestVisible?사용하기
+    * @description 실제 저장 내부 메소드 / test시 isTestVisible?사용하기
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param request 
-    * @return String 
+    * @param request 이벤트 저장에 필요한 정보가 담긴 EventSaveRequest
+    * @return String | 저장된 이벤트ID
+    * @exception AuraHandledException 입력 검증 실패, 권한 없음, DML 오류 등이 발생한 경우
     **/
     private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
@@ -374,11 +389,12 @@ public with sharing class CalendarAppController {
     }
     
     /**
-    * @description 
+    * @description 이벤트 입력값의 유효성 검증
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param title 
-    * @param department 
-    * @param recordType 
+    * @param title 이벤트 제목
+    * @param department 부서명
+    * @param recordType 레코드 타입
+    * @exception AuraHandledException 필수 입력값이 누락된 경우
     **/
     private static void validateEventInputs(String title, String department, String recordType) {
         try {
@@ -399,6 +415,12 @@ public with sharing class CalendarAppController {
         }
     }
 
+    /**
+    * @description 현재 사용자가 해당 이벤트의 소유자인지 확인
+    * @author sejin.park@dkbmc.com | 2025-07-22 
+    * @param eventId 검증할 이벤트ID
+    * @exception AuraHandledException 이벤트를 찾을 수 없거나 소유자가 아닌 경우
+    **/
     private static void validateEventOwnership(Id eventId) {
         try {
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
@@ -423,8 +445,9 @@ public with sharing class CalendarAppController {
     /**
     * @description 이벤트 레코드 생성,수정
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param request 
-    * @return My_Event__c 
+    * @param request 이벤트 정보가 담긴 EventSaveRequest 객체
+    * @return My_Event__c | 저장된 이벤트 레코드
+    * @exception AuraHandledException DML 오류 또는 이벤트 레코드 저장 중 오류가 발생한 경우
     **/
     private static My_Event__c upsertEventRecord(EventSaveRequest request) {
         try {
@@ -467,11 +490,12 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 비용 상세 처리
+    * @description 이벤트에 연관된 비용 상세 처리(기존 삭제->신규 생성)
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @param costDetailsJson 
-    * @param department 
+    * @param eventId 비용이 연관될 이벤트ID
+    * @param costDetailsJson 비용 상세정보 JSON 문자열
+    * @param department 부서명
+    * @exception AuraHandledException DML 오류 또는 비용 상세 처리 중 오류가 발생한 경우
     **/
     private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
@@ -493,12 +517,13 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description  JSON을 비용 레코드로 변환처리
+    * @description 검증된 JSON 문자열 Cost_Detail__c 레코드 리스트로 변환처리
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @param costDetailsJson 
-    * @param department 
-    * @return List<Cost_Detail__c> 
+    * @param eventId 비용이 연관될 이벤트ID
+    * @param costDetailsJson 비용 상세정보 JSON문자열
+    * @param department 부서명
+    * @return List<Cost_Detail__c> | 검증된 비용 상세 레코드 리스트
+    * @exception AuraHandledException JSON 파싱 오류 또는 비용 데이터 형식이 올바르지 않은 경우
     **/
     private static List<Cost_Detail__c> buildValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
@@ -523,10 +548,11 @@ public with sharing class CalendarAppController {
     /**
     * @description 개별 비용 레코드 생성
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
-    * @param costObj 
-    * @param department 
-    * @return Cost_Detail__c 
+    * @param eventId 비용이 연관될 이벤트ID
+    * @param costObj 비용 정보 객체
+    * @param department 부서명
+    * @return Cost_Detail__c | 생성될 비용 상세 레코드
+    * @exception 예외 발생 시 null 반환하여 개별 아이템 오류 처리
     **/
     private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
         try {
@@ -560,9 +586,10 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 비용 이벤트 삭제처리
+    * @description 특정 이벤트에 연관된 비용 이벤트들 삭제처리
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param eventId 
+    * @param eventId 비용을 삭제할 이벤트ID
+    * @exception AuraHandledException 읽기 권한이 없거나 DML 오류가 발생한 경우
     **/
     private static void deleteCostDetails(Id eventId) {
         try {
@@ -584,10 +611,11 @@ public with sharing class CalendarAppController {
     }
 
     /**
-    * @description 개인활동 인지 salesforce 데이터인지 구분 
+    * @description record type이 개인활동 인지 확인
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param recordType 
-    * @return Boolean 
+    * @param recordType 확인할 레코드 타입
+    * @return Boolean | 개인활동일시 true, 아닐시 false반환
+    * @exception
     **/
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
@@ -596,8 +624,9 @@ public with sharing class CalendarAppController {
     /**
     * @description 이벤트와 연결된 salesforce 오브젝트 name 가져옴
     * @author sejin.park@dkbmc.com | 2025-07-22 
-    * @param event 
-    * @return String 
+    * @param event 관련 레코드 정보가 포함된 이벤트 객체
+    * @return String | 관련 레코드의 이름
+    * @exception
     **/
     private static String getRelatedRecordName(My_Event__c event) {
         try {

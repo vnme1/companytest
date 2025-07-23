@@ -2,7 +2,7 @@
  * @description       : 이벤트 소스 패널 - async/await 일관성 적용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 import { LightningElement, wire } from 'lwc';
@@ -23,6 +23,30 @@ export default class EventSourcePanel extends LightningElement {
     @wire(getContactList) wiredContacts;
     @wire(getOpportunityList) wiredOpportunities;
 
+    // --생명주기 메소드--
+    // Fullcalendar 로드 후 드래그 기능 초기화
+    async renderedCallback() {
+        if (this.fullCalendarInitialized) return;
+        
+        try {
+            await loadScript(this, FullCalendar + '/main.min.js');
+            this.fullCalendarInitialized = true;
+            this.initializeExternalDraggables();
+        } catch (error) {
+            console.error('FullCalendar 로드 실패:', error);
+        }
+    }
+
+    // 컴포넌트 해제시 드래그 인스턴스 정리
+    disconnectedCallback() {
+        try {
+            this.cleanupExistingDraggables();
+        } catch (error) {
+            console.error('컴포넌트 해제 시 정리 오류:', error);
+        }
+    }
+
+    // --Getters--
     get accountData() { 
         try {
             return this.wiredAccounts?.data || [];
@@ -50,30 +74,8 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
     
-    async renderedCallback() {
-        if (this.fullCalendarInitialized) return;
-        
-        try {
-            await loadScript(this, FullCalendar + '/main.min.js');
-            this.fullCalendarInitialized = true;
-            this.initializeExternalDraggables();
-        } catch (error) {
-            console.error('FullCalendar 로드 실패:', error);
-        }
-    }
-
-    async handleTabActive() {
-        try {
-            // DOM 재렌더링 대기 후 드래그 기능 재초기화
-            // eslint-disable-next-line @lwc/lwc/no-async-operation
-            setTimeout(() => {
-                this.initializeExternalDraggables();
-            }, 100);
-        } catch (error) {
-            console.error('탭 활성화 처리 오류:', error);
-        }
-    }
-    
+    // --드래그 설정--
+    // 드래그 가능한 요소들 초기화
     initializeExternalDraggables() {
         try {
             if (!this.fullCalendarInitialized || !window.FullCalendar) {
@@ -88,6 +90,7 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
+    // 기존 드래그 인스턴스 정리
     cleanupExistingDraggables() {
         try {
             const containers = this.template.querySelectorAll('.salesforce-components-section, .personal-activity-section');
@@ -107,6 +110,7 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
+    // 새로운 드래그 인스턴스들 생성
     createDraggables() {
         try {
             const salesforceContainer = this.template.querySelector('.salesforce-components-section');
@@ -137,6 +141,7 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
+    //드래그된 요소의 이벤트 데이터 생성
     getEventData(eventEl) {
         try {
             if (!eventEl || !eventEl.dataset) {
@@ -165,11 +170,22 @@ export default class EventSourcePanel extends LightningElement {
         }
     }
 
-    disconnectedCallback() {
+    // --이벤트 처리--
+    async handleTabActive() {
         try {
-            this.cleanupExistingDraggables();
+            // DOM 재렌더링 대기 후 드래그 기능 재초기화
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            setTimeout(() => {
+                this.initializeExternalDraggables();
+            }, 100);
         } catch (error) {
-            console.error('컴포넌트 해제 시 정리 오류:', error);
+            console.error('탭 활성화 처리 오류:', error);
         }
     }
+    
+    
+
+    
+
+    
 }
