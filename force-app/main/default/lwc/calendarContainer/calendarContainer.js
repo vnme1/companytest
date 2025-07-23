@@ -65,7 +65,7 @@ export default class CalendarContainer extends LightningElement {
             this.costTypePicklistOptions = costOptions || [];
         } catch (error) {
             console.error('부서/비용 옵션 조회 오류:', error);
-            this.showToast('오류', '설정 옵션을 불러오는데 실패했습니다.', 'error');
+            this.showToast('Error', 'Failed to load configuration options.', 'error');
         }
     }
 
@@ -147,7 +147,7 @@ export default class CalendarContainer extends LightningElement {
             this.openModal();
         } catch (error) {
             console.error('이벤트 드롭 처리 오류:', error);
-            this.showToast('오류', '이벤트 생성 중 오류가 발생했습니다.', 'error');
+            this.showToast('Error', 'An error occurred while creating the event.', 'error');
         }
     }
 
@@ -205,14 +205,14 @@ export default class CalendarContainer extends LightningElement {
 
         } catch (error) {
             console.error('이벤트 상세 조회 오류:', error);
-            this.showToast('오류', '이벤트 정보를 불러오는데 실패했습니다.', 'error');
+            this.showToast('Error', 'Failed to load event information.', 'error');
         }
     }
 
     // 이벤트 이동완료 후 성공처리
     handleEventMoved() {
         try {
-            this.showToast('성공', '이벤트가 이동되었습니다', 'success');
+            this.showToast('Success', 'Event successfully moved.', 'success');
             this.refreshCostSummary();
         } catch (error) {
             console.error('이벤트 이동 후 처리 오류:', error);
@@ -223,10 +223,10 @@ export default class CalendarContainer extends LightningElement {
     handleEventError(event) {
         try {
             const message = event.detail?.message || '알 수 없는 오류가 발생했습니다';
-            this.showToast('오류', message, 'error');
+            this.showToast('Error', message, 'error');
         } catch (error) {
             console.error('이벤트 에러 핸들링 오류:', error);
-            this.showToast('오류', '처리 중 오류가 발생했습니다', 'error');
+            this.showToast('Error', 'An error occurred while processing.', 'error');
         }
     }
 
@@ -295,7 +295,7 @@ export default class CalendarContainer extends LightningElement {
             }];
         } catch (error) {
             console.error('비용 항목 추가 오류:', error);
-            this.showToast('오류', '비용 항목 추가 중 오류가 발생했습니다.', 'error');
+            this.showToast('Error', 'Failed to add cost item.', 'error');
         }
     }
 
@@ -333,7 +333,7 @@ export default class CalendarContainer extends LightningElement {
     async saveEvent() {
         try {
             if (!this.eventTitle?.trim()) {
-                this.showToast('입력 오류', '제목을 입력해주세요', 'error');
+                this.showToast('Input Error', 'Please enter a title.', 'error');
                 return;
             }
 
@@ -361,14 +361,14 @@ export default class CalendarContainer extends LightningElement {
             });
 
             this.updateCalendarView(savedEventId);
-            this.showToast('성공', '저장되었습니다', 'success');
+            this.showToast('Success', 'Saved successfully', 'success');
             this.closeModal();
             this.refreshCostSummary();
 
         } catch (error) {
             console.error('이벤트 저장 오류:', error);
             const msg = error?.body?.message || error?.message || '저장 실패';
-            this.showToast('저장 오류', msg, 'error');
+            this.showToast('Save Error', msg, 'error');
         }
     }
 
@@ -382,14 +382,14 @@ export default class CalendarContainer extends LightningElement {
             await deleteEvent({ eventId: this.recordId });
             
             this.template.querySelector('c-calendar-view')?.removeEvent(this.recordId);
-            this.showToast('성공', '삭제되었습니다', 'success');
+            this.showToast('Success', 'Deleted successfully.', 'success');
             this.closeModal();
             this.refreshCostSummary();
 
         } catch (error) {
             console.error('이벤트 삭제 오류:', error);
             const msg = error?.body?.message || error?.message || '삭제 실패';
-            this.showToast('삭제 오류', msg, 'error');
+            this.showToast('Delete Error', msg, 'error');
         }
     }
 
@@ -467,7 +467,7 @@ export default class CalendarContainer extends LightningElement {
         try {
             this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
         } catch (error) {
-            console.error('토스트 메시지 표시 오류:', error);
+            console.error('Failed to display toast message :', error);
         }
     }
 }

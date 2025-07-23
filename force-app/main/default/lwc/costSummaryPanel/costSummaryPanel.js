@@ -75,12 +75,12 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
             } catch (error) {
                 console.error('비용 데이터 처리 오류:', error);
                 this.resetCostData();
-                this.showToast('오류', '비용 데이터 처리 중 오류가 발생했습니다.', 'error');
+                this.showToast('Error', 'An error occurred while processing cost data.', 'error');
             }
         } else if (result.error) {
             console.error('비용 데이터 조회 오류:', result.error);
             this.resetCostData();
-            this.showToast('오류', '비용 데이터를 불러오는데 실패했습니다.', 'error');
+            this.showToast('Error', 'Failed to load cost data.', 'error');
         }
     }
 
@@ -139,7 +139,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
             await refreshApex(this._wiredCostResult);
         } catch (error) {
             console.error('비용 요약 새로고침 오류:', error);
-            this.showToast('오류', '데이터 새로고침에 실패했습니다.', 'error');
+            this.showToast('Error', 'Failed to refresh data.', 'error');
         }
     }
 
@@ -170,7 +170,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
             });
         } catch (error) {
             console.error('보고서 페이지 이동 오류:', error);
-            this.showToast('오류', '보고서 페이지로 이동할 수 없습니다.', 'error');
+            this.showToast('Error', 'Unable to navigate to the report page.', 'error');
         }
     }
 
@@ -198,7 +198,7 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
         try {
             this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
         } catch (error) {
-            console.error('토스트 메시지 표시 오류:', error);
+            console.error('Failed to display toast message :', error);
         }
     }
 }
