@@ -1,5 +1,22 @@
 /**
- * @description       : 캘린더 뷰 - async/await 일관성 적용
+ * @description       : 중앙 캘린더 뷰 패널
+ * 
+ * @Method :
+ *  - renderedCallback() : 컴포넌트 렌더링 후 FullCalendar 로드
+ *  - loadFullCalendar() : FullCalendar 라이브러리 및 CSS 로드
+ *  - initializeCalendar() : FullCalendar 인스턴스 생성 및 설정
+ *  - loadEvents(fetchInfo, successCallback, failureCallback) : 이벤트 데이터 조회
+ *  - handleDrop(info) : 외부에서 드롭된 요소 처리
+ *  - handleEventReceive(info) : 외부 이벤트 등록시 중복 방지
+ *  - handleEventClick(info) : 이벤트 클릭시 상위 컴포넌트에 알림
+ *  - handleEventDrop(info) : 이벤트 드래그이동처리 및 업데이트
+ *  - handleDatesSet(dateInfo) : 날짜 범위 변경시 상위 컴포넌트에 알림
+ *  - @api refetchEvents() : 이벤트 목록 새로고침
+ *  - @api addEvent(eventData) : 캘린더에 새 이벤트 추가
+ *  - @api updateEvent(eventId, eventData) : 기존 이벤트 정보 수정
+ *  - @api removeEvent(eventId) : 캘린더에서 이벤트 제거
+ *  - addOneDay(dateStr) : 날짜 문자열 +1일
+ * 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-23

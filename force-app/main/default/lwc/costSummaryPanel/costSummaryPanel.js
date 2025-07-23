@@ -1,5 +1,16 @@
 /**
- * @description       : 비용 요약 패널 - async/await 일관성 적용
+ * @description       : 우측 비용 요약 패널
+ * 
+ * @Method :
+ *  - wiredCosts(result) : 월별 비용 데이터 자동조회 및 처리
+ *  - processCostData(data) : 비용 데이터 가공 및 표시
+ *  - resetCostData() : 비용 데이터 초기화
+ *  - @api refreshSummary() : 비용 요약 데이터 새로고침
+ *  - @api updateMonth(newMonth) : 표시 월 업데이트
+ *  - handleReportClick() : 보고서 페이지 이동
+ *  - formatCurrency(amount) : 원화로 포맷팅
+ *  - showToast(title, message, variant) : 토스트 메시지 표시
+ * 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-23

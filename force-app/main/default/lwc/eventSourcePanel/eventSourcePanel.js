@@ -1,5 +1,15 @@
 /**
- * @description       : 이벤트 소스 패널 - async/await 일관성 적용
+ * @description       : 좌측 이벤트 소스 패널
+ * 
+ * * @Method :
+ *  - renderedCallback() : FullCalendar 로드 후 드래그 기능 초기화
+ *  - disconnectedCallback() : 컴포넌트 해제시 드래그 인스턴스 정리
+ *  - initializeExternalDraggables() : 드래그 가능한 요소들 초기화
+ *  - cleanupExistingDraggables() : 기존 드래그 인스턴스 정리
+ *  - createDraggables() : 새로운 드래그 인스턴스들 생성
+ *  - getEventData(eventEl) : 드래그된 요소의 이벤트 데이터 생성
+ *  - handleTabActive() : 탭 활성화시 드래그 기능 재초기화
+ * 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-23
