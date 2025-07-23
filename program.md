@@ -47,35 +47,39 @@ style: |
 ### 3. 구현 세부사항
 
 
-# 1. 프로그램 구성
+# 1. 프로젝트 구성
 ### 1.1 Apex Classes
 ### 1.2 LWC Components
 ### 1.3 Static Resources
 ### 1.4 Custom Objects
 
-# 1.1 Apex Classes (4개)
+#
+
+### 1.1 Apex Classes (4개)
 - CalendarAppController.cls (메인 컨트롤러)
 - CalendarEventSelector.cls (데이터 조회 및 합계)
 - CalendarAppControllerTest.cls (컨트롤러 테스트)
 - CalendarEventSelectorTest.cls (셀렉터 테스트)
 
-# 1.2 LWC Components (4개)
+### 1.2 LWC Components (4개)
 - calendarContainer (메인컨테이너)
 - eventSourcePanel (좌측 이벤트 소스 패널)
 - calendarView (달력 뷰 패널)
 - costSummaryPanel (우측 비용 요약 패널)
 
-# 1.3 Static Resources (1개)
-- FullCalendarV5_new (FullCallendar 라이브러리)
+#
 
-# 1.4 Custom Objects (2개)
+### 1.3 Static Resources (1개)
+- FullCalendarV5_new (FullCalendar 라이브러리)
+
+### 1.4 Custom Objects (2개)
 - My_Event__c (이벤트 정보)
 - Cost_Detail__c (비용 상세)
 
 # 2. 컴포넌트 정리
 ### 2.1 Apex Classes
 ### 2.2 LWC Components
-### 2.3 Database Objects
+### 2.3 Custom Objects
 
 # 2.1 Apex Classes
 ### CallendarAppController
@@ -99,7 +103,7 @@ public static List<My_Event__c> getEvents(String startStr, String endStr)
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | starStr | String | 조회 시작 날짜(YYYY-MM-DD 형식) |
 | endStr | String | 조회 종료 날짜 (YYYY-MM-DD 형식) |
@@ -123,7 +127,7 @@ public static EventWrapper getEventDetails(Id eventId)
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | eventId | Id | 조회할 이벤트 ID |
 
@@ -146,7 +150,7 @@ public static Map<String, Decimal> getMonthlyCostSummary(String startDate, Strin
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | startDate | String | 조회 시작 날짜(YYYY-MM-DD 형식) |
 | endDate | String | 조회 종료 날짜 (YYYY-MM-DD 형식) |
@@ -170,7 +174,7 @@ public static String saveEventAndCosts(String eventDataJson, String costDetailsJ
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | eventDataJson | String | 이벤트 기본 정보가 담긴 JSON 문자열 |
 | costDetailsJson | String | 비용 상세 정보 배열이 담긴 JSON 문자열 |
@@ -195,7 +199,7 @@ public static void updateEventDates(Id eventId, String newStartDate, String newE
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | eventId | Id | 업데이트할 이벤트 ID |
 | newStartDate | String | 새로운 시작일 (YYYY-MM-DD) |
@@ -220,7 +224,7 @@ public static void deleteEvent(Id eventId)
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | eventId | Id | 삭제할 이벤트ID |
 
@@ -299,7 +303,7 @@ public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | startDt | Date | 조회 시작 날짜 |
 | endDt | Date | 조회 시작 날짜 |
@@ -322,7 +326,7 @@ public static Map<String, Decimal> selectMonthlyCostSummary(Date startDate, Date
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | startDate | Date | 조회 시작 날짜 |
 | endDate | Date | 조회 시작 날짜 |
@@ -332,26 +336,63 @@ public static Map<String, Decimal> selectMonthlyCostSummary(Date startDate, Date
 # 2.2 LWC Component
 ### calendarContainer
 역할 : 메인 컨테이너 이벤트 조정자
-특징 : 3분할 레이아웃 관리, 모달 상태 관리, 컴포넌트간 이벤트 통신 조정
+특징 : 3분할 레이아웃 관리, 모달 상태 관리, 이벤트CRUD 및 컴포넌트 간 데이터 동기화
+
+## connectedCallback()
+컴포넌트 초기화 및 부서/비용 타입 옵션 로드
+
+<div class="small-text">
+<pre>
+async connectedCallback()
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 부서/비용 옵션 조회 실패 시 토스트 메시지 표시
+###### Description : 컴포넌트 초기화 시 부서 및 비용 유형 Picklist 옵션을 Apex에서 조회하여 로드. getDepartmentOptions와 getCostTypeOptions를 호출하여 저장.
+###### Example : 컴포넌트 렌더링 시 자동 호출
 
 ## handleEventDrop(event)
 드래그 드롭시 새 이벤트 생성
 
 <div class="small-text">
 <pre>
-public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt)
+handleEventDrop(event)
 </pre>
 </div>
 
 ###### Returns : `void`
-###### Description : 드래그 드롭으로 새 이벤트 생성 시 호출. 드롭된 레코드의 데이터 를 추출하여 모달 초기화 후 새 이벤트 생성 프로세스 시작
+###### Exceptions : 처리 중 오류 발생 시 토스트 메시지 표시
+###### Description : 드래그 드롭으로 새 이벤트 생성 시 호출. 드롭된 레코드의 데이터를 기반으로 이벤트 기본 정보 설정 및 모달창 표시
 ###### Example : 좌측 패널에서 특정 레코드 중앙 달력 패널에 드롭시 호출
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
 | event | CustomEvent | 드래그 드롭 이벤트 객체 (detail.draggedEl, detail.date 포함) |
+
+</div>
+
+## handleEventClick(event)
+기존 이벤트 클릭시 상세 정보 조회
+
+<div class="small-text">
+<pre>
+async handleEventClick(event)
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 이벤트 데이터 조회 실패 시 토스트 메시지 표시
+###### Description : 기존 이벤트 클릭시 getEventDetails Apex메소드를 호출하여 이벤트, 비용 정보 조회, 조회한 데이터로 모달 초기화를 한뒤 수정 모드로 표시
+###### Example : calendarView에서 이벤트 클릭 시 호출
+
+<div class="small-table-text">
+
+| Name | Type | Description |
+|:---:|:---:|:---:|
+| event | CustomEvent | 이벤트 클릭 객체 (detail.eventId 포함) |
 
 </div>
 
@@ -360,18 +401,258 @@ public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt
 
 <div class="small-text">
 <pre>
-public static List<My_Event__c> selectEventsByDateRange(Date startDt, Date endDt)
+async saveEvent()
 </pre>
 </div>
 
 ###### Returns : `void`
-###### Description : 드래그 드롭으로 새 이벤트 생성 시 호출. 드롭된 레코드의 데이터 를 추출하여 모달 초기화 후 새 이벤트 생성 프로세스 시작
-###### Example : 좌측 패널에서 특정 레코드 중앙 달력 패널에 드롭시 호출
+###### Exceptions : 제목이 비어있는 경우 또는 저장 실패시 오류 토스트 메시지 표시
+###### Description : 모달에 입력된 정보를 JSON형태로 구성하여 Apex 메소드를 통해 저장, 성공시 달력 뷰 업데이트 및 비용 패널 새로고침
+###### Example : 사용자가 이벤트 생성/수정 모달에서 Save 버튼을 클릭할 때 실행
+
+# 2.2 LWC Component
+### eventSourcePanel
+역할 : 좌측 이벤트 소스 패널
+특징 : 드래그 기능 구현 및  @wire를 통한 자동 데이터 로딩, 탭 기반 데이터 분류
+
+## renderedCallback()
+FullCalendar 로드 후 드래그 기능 초기화
+
+<div class="small-text">
+<pre>
+async renderedCallback()
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : FullCalendar 로드 실패 시 콘솔 에러 출력
+###### Description : 컴포넌트가 렌더링된 후 FullCalendar 스크립트를 로드하고 드래그 기능을 초기화
+###### Example : 죄측 패널이 로드시 실행되어 좌측 레코드들이 드래그 가능하게 만듬
+
+
+## initializeExternalDraggables()
+드래그 가능한 요소들 초기화
+
+###### Returns : `void`
+###### Exceptions : FullCalendar 초기화 실패시 경고 로그 및 드래그 초기화 실패시 콘솔에러
+###### Description : 좌측 레코드들을 FullCalendar Draggable로 설정, 기존 드래그 인스턴스 정리 후 새로운 인스턴스 생성
+###### Example : 컴포넌트 초기화 또는 좌측 패널 상단의 탭 변경시 호출하여 드래그 가능하도록 설정
+
+
+## getEventData(eventEl)
+드래그 가능한 요소들 초기화
+
+###### Returns : `Object | null` FullCalendar 이벤트 데이터 객체 또는 null
+###### Exceptions : 요소나 데이터 셋, 레코드 명이 없는 경우 null 반환
+###### Description : 드래그된 DOM 요소의 data 속성들을 읽어 FullCalendar에서 사용할 이벤트 데이터 객체를 생성
+###### Example : 사용자가 좌측 레코드 드래그시 Fullcalendar에 의해 자동 호출
+
 
 <div class="small-table-text">
 
-| name | type | info |
+| Name | Type | Description |
 |:---:|:---:|:---:|
-| event | CustomEvent | 드래그 드롭 이벤트 객체 (detail.draggedEl, detail.date 포함) |
+| eventEl | HTMLElement | 드래그된 DOM 요소 |
 
+</div>
+
+# 2.2 LWC Component
+### calendarView
+역할 : 중앙 달력 뷰 패널
+특징 : FullCalendar 라이브러리 연동, 드래그앤드롭 처리
+
+## renderedCallback()
+이벤트 및 비용 정보 저장
+
+###### Returns : `void`
+###### Exceptions : 이미 초기화된 경우 조기 반환, FullCalendar 로드 실패시 콘솔에러 출력
+###### Description : 컴포넌트가 렌더링 된 후 FullCalendar라이브러리를 로드하고 초기화
+###### Example : 컴포넌트가 처음 DOM에 렌더링될 때 자동으로 실행되어 달력 UI를 구성
+
+
+## loadEvents()
+이벤트 데이터 조회
+
+<div class="small-text">
+<pre>
+async loadEvents(fetchInfo, successCallback, failureCallback)
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 날짜 정보 올바르지 않을시, 이벤트 로드 실패시 (failureCallback 호출)
+###### Description : 지정된 날짜 범위 이벤트 조회, FullCalendar 형식으로 변환
+###### Example : 달력이 초기 로드 또는 사용자가 월을 변경할 때 FullCalendar에 의해 자동 호출
+
+<div class="small-table-text">
+
+| Name | Type | Description |
+|:---:|:---:|:---:|
+| fetchInfo | Object | FullCalendar에서 제공하는 날짜 범위 정보 |
+| successCallback | Function | 성공 시 호출할 콜백 함수 |
+| failureCallback | Function | 실패 시 호출할 콜백 함수 |
+
+</div>
+
+## handleEventDrop()
+이벤트 드래그 이동 처리 및 업데이트
+
+<div class="small-text">
+<pre>
+async handleEventDrop(info)
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 업데이트 실패시 이벤트 되돌리기 및 에러 이벤트 발생
+###### Description : 달력내 드래그 드롭시 실행. Apex 메소드를 사용해 이벤트 날짜 업데이트(날짜 변경)
+###### Example : 달력내 드래그 드롭시 실행
+
+<div class="small-table-text">
+
+| Name | Type | Description |
+|:---:|:---:|:---:|
+| info | Object | FullCalendar 드롭 정보 객체 |
+
+</div>
+
+
+# 2.2 LWC Component
+### costSummaryPanel
+역할 : 우측 비용 요약 패널
+특징 : 월별 비용 종류별 합계 , matrix 보고서
+
+## wiredCosts()
+월별 비용 데이터 자동 조회 및 처리
+
+<div class="small-text">
+<pre>
+@wire(getMonthlyCostSummary, { startDate: '$monthRange.start', endDate: '$monthRange.end' })
+wiredCosts(result)
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 데이터 처리 오류시 또는 조회 오류시 에러 로그 및 토스트 메시지
+###### Description : Lightning Web Component의 @wire 데코레이터를 사용하여 월별 비용 데이터를 자동으로 조회, 또한 데이터 변경 시 자동으로 재조회되며, 결과를 처리하여 화면에 표시.
+###### Example : 월 변경 또는 비용 데이터 업데이트시 실행
+
+
+<div class="small-table-text">
+
+| Name | Type | Description |
+|:---:|:---:|:---:|
+| result | Object | Wire 서비스 결과 객체 (data 또는 error 포함) |
+
+</div>
+
+## refreshSummary()
+비용 요약 데이터 새로고침
+
+<div class="small-text">
+<pre>
+@api async refreshSummary()
+</pre>
+</div>
+
+###### Returns : `void`
+###### Exceptions : 새로고침 실패 시 토스트 메시지 표시
+###### Description : @wire 서비스를 수동으로 새로고침하여 최신 비용 데이터 조회
+###### Example : 이벤트를 저장하거나 삭제한 후 calendarContainer에서 호출하여 비용 요약을 업데이트
+
+
+# 2.3 Custom Objects
+<div class="columns">
+<div>
+
+### My_Event__c
+<div class="small-table-text">
+
+| Field Name            | Type                | Description             |
+|:----------------------|:--------------------|:-------------------------|
+| Event Name            | Text(80)            | 기본 이름 필드             |
+| Title__c              | Text(80)            | 이벤트 제목                |
+| Start_Date__c         | Date                | 시작일                    |
+| End_Date__c           | Date                | 종료일                    |
+| Description__c        | Long Text Area()    | 이벤트 설명               |
+| Location__c           | Text(255)           | 장소                     |
+| Related_Record_Id__c  | Text(18)            | 관련 레코드 ID            |
+| Related_Record_Type__c| Picklist            | 관련 레코드 타입           |
+| CreatedById           | Lookup(User)        | 생성자 (시스템 필드)       |
+| LastModifiedById      | Lookup(User)        | 최근 수정자 (시스템 필드)   |
+| OwnerId               | Lookup(User,Group)  | 소유자                    |
+
+
+</div>
+</div>
+<div>
+
+### Cost_Detail__c
+<div class="small-table-text">
+
+| Field Name            | Type                | Description             |
+|:----------------------|:--------------------|:-------------------------|
+| Amount__c             | Currency(16, 2)     | 비용 금액                |
+| Name                  | Text(80)            | 레코드명                 |
+| Cost_Type__c          | Picklist            | 비용 유형                |
+| CreatedById           | Lookup(User)        | 시스템 필드              |
+| department__c         | Picklist            | 부서                     |
+| Event__c              | Lookup(My_Event__c) | 이벤트 관계              |
+| LastModifiedById      | Lookup(User)        | 시스템 필드              |
+| My_Event__c           | Lookup(My_Event__c) | 메인 이벤트 관계         |
+| Note__c               | Text(255)           | 메모                     |
+| OwnerId               | Lookup(User,Group)  | 소유자                   |
+
+
+</div>
+</div>ㄴ
+
+## Picklist 값 정의
+
+<div class="columns">
+<div>
+
+##### Cost_Type__c 비용 유형
+- Transportation (교통비)
+- Education (교육비)
+- Fuel (주유비)
+- Meal (식대)
+- TollGate (톨게이트)
+
+</div>
+<div>
+
+##### department__c 부서 유형
+- Development (개발팀)
+- Sales (영업팀)
+- Marketing (마케팅팀)
+- Planning (기획팀)
+
+</div>
+<div>
+
+##### Related_Record_Type__c
+- Account
+- Contact
+- Opportunity
+- Personal
+</div>
+</div>
+
+# 3. 구현 세부사항
+### 3.1 시스템 구조도
+### 3.2 LWC Components
+### 3.3 Custom Objects
+
+# 시스템 구조도
+<div class="columns">
+<div>
+
+![](2025-07-22-17-07-00.png)
+
+</div>
+<div>
+
+![](2025-07-22-17-27-56.png)
+</div>
 </div>
