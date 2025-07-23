@@ -8,7 +8,7 @@
 public with sharing class CalendarAppController {
     
     // 상수 정의
-    private static final String DEFAULT_DEPARTMENT = '개발팀';
+    private static final String DEFAULT_DEPARTMENT = 'Development';
     private static final String PERSONAL_RECORD_TYPE = 'Personal';
     private static final String ACCOUNT_RECORD_TYPE = 'Account';
     private static final Decimal MIN_COST_AMOUNT = 0.01;

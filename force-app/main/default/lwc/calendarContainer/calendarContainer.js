@@ -1,5 +1,27 @@
 /**
- * @description       : 캘린더 컨테이너 - JSON 방식으로 수정
+ * @description       : 메인 컨테이너
+ * 
+ * @Method :
+ *  - connectedCallback() : 컴포넌트 초기화 및 부서/비용 타입 옵션 로드
+ *  - handleEventDrop(event) : 드래그 드롭으로 새 이벤트 생성
+ *  - handleEventClick(event) : 기존 이벤트 클릭시 상세 정보 조회
+ *  - handleEventMoved() : 이벤트 이동완료 후 성공처리
+ *  - handleEventError(event) : 이벤트 에러발생시 에러 메시지 표시
+ *  - handleDatesSet(event) : 달력 범위 변경, 비용 업데이트
+ *  - handleInputChange(event) : 기본 입력 필드 변경 처리
+ *  - handleCostChange(event) : 비용 입력 변경 처리
+ *  - addCostItem() : 새 비용 항목 추가
+ *  - openModal() : 모달 열기
+ *  - closeModal() : 모달 닫기
+ *  - resetModal() : 모달 초기화
+ *  - saveEvent() : 이벤트 및 비용 정보 저장
+ *  - handleDelete() : 이벤트 삭제
+ *  - toLocalYMD(date) : 날짜 YYYY-MM-DD형식으로 변환
+ *  - addOneDay(ymdStr) : 날짜 문자열 +1일
+ *  - updateCalendarView(savedEventId) : 캘린더 뷰에 이벤트 반영
+ *  - refreshCostSummary() : 비용요약 패널 새로고침
+ *  - showToast(title, message, variant) : 토스트 메시지 표시
+ * 
  * @author            : sejin.park@dkbmc.com
  * @group             : 
  * @last modified on  : 2025-07-23

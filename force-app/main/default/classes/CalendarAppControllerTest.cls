@@ -2,7 +2,7 @@
  * @description       : Calendar App Controller Test Class - JSON 방식으로 수정
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 @isTest
@@ -24,9 +24,9 @@ public class CalendarAppControllerTest {
         
         Cost_Detail__c testCost = new Cost_Detail__c(
             My_Event__c = testEvent.Id,
-            Cost_Type__c = '교통비',
+            Cost_Type__c = 'Transportation',
             Amount__c = 10000,
-            department__c = '개발팀'
+            department__c = 'Development'
         );
         insert testCost;
         
@@ -86,7 +86,7 @@ public class CalendarAppControllerTest {
         Test.stopTest();
         
         System.assertNotEquals(null, summary, '비용 요약이 null이면 안됩니다');
-        System.assertEquals(10000, summary.get('교통비'), '교통비 합계가 일치해야 합니다');
+        System.assertEquals(10000, summary.get('Transportation'), '교통비 합계가 일치해야 합니다');
     }
     
     @isTest
@@ -101,12 +101,12 @@ public class CalendarAppControllerTest {
             'endDate' => String.valueOf(Date.today()),
             'description' => 'Test Description',
             'location' => 'Test Location',
-            'department' => '개발팀',
+            'department' => 'Development',
             'relatedId' => null,
             'recordType' => 'Account'
         };
         
-        String costJson = '[{"type":"교통비","amount":15000}]';
+        String costJson = '[{"type":"Transportation","amount":15000}]';
         
         String eventId = CalendarAppController.saveEventAndCosts(
             JSON.serialize(eventData),
@@ -138,7 +138,7 @@ public class CalendarAppControllerTest {
             'endDate' => String.valueOf(Date.today()),
             'description' => 'Updated Description',
             'location' => 'Updated Location',
-            'department' => '개발팀',
+            'department' => 'Development',
             'relatedId' => null,
             'recordType' => 'Account'
         };
@@ -334,7 +334,7 @@ public class CalendarAppControllerTest {
                 'endDate' => String.valueOf(Date.today()),
                 'description' => '',
                 'location' => '',
-                'department' => '개발팀',
+                'department' => 'Development',
                 'relatedId' => null,
                 'recordType' => 'Account'
             };

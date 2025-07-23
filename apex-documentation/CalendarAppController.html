@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>Apex Documentation</title>
+    <meta charset="UTF-8">
+    <script type="module" src="./assets/index.js"></script>
+    <script type="module" src="./assets/search-idx.js"></script>
+    <script type="module" src="./assets/search.js"></script>
+    <script charset="UTF-8" src="./assets/highlight.js"></script>
+    <script charset="UTF-8" src="./assets/mark.js"></script>
+    <script charset="UTF-8" src="./assets/lunr.js"></script>
+    <link rel="stylesheet" href="./assets/highlight.css" />
+    <link rel="stylesheet" type="text/css" href="./assets/index.css" />
+    <link rel="shortcut icon" type="image/png" href="./assets/favicon.png" />
+  </head>
+
+  <body>
+    <div id="side-bar">
+      <div id="logo-container">
+        <div class="title">
+          Apex Documentation
+        </div>
+        <img src="assets/logo.png" />
+        <div class="subtitle">
+          Powered by <a target="_blank" rel="noopener noreferrer" href="https://github.com/no-stack-dub-sack/apexdox-vs-code">ApexDox VS Code</a>
+        </div>
+      </div>
+      <div id="search-wrapper">
+        <div class="search-icon"></div>
+        <input id="search-input" type="text" autocomplete="off" placeholder="Search...">
+      </div>
+      <ul id="search-results" class=""></ul>
+      <div class="navbar">
+        <nav role="navigation">
+          <a class="nav-header" id="home" href="javascript:void(0)" onclick="goToLocation('index.html');">
+            Home
+          </a>
+          <details id="@last_modified_by_:_sejin.park@dkbmc.com" class="group-name">
+            <summary id="header-@last_modified_by_:_sejin.park@dkbmc.com" class="nav-header">
+              <span>@last modified by  : sejin.park@dkbmc.com</span>
+            </summary>
+            <ul>
+              <!-- menu items -->
+              <li title="CalendarAppController" id="item-CalendarAppController" class="nav-item class " onclick="goToLocation('CalendarAppController.html');">
+                <a tabindex="1" href="javascript:void(0)">CalendarAppController</a>
+              </li>
+              <li title="CalendarAppControllerTest" id="item-CalendarAppControllerTest" class="nav-item class " onclick="goToLocation('CalendarAppControllerTest.html');">
+                <a tabindex="1" href="javascript:void(0)">CalendarAppControllerTest</a>
+              </li>
+              <li title="CalendarEventSelector" id="item-CalendarEventSelector" class="nav-item class " onclick="goToLocation('CalendarEventSelector.html');">
+                <a tabindex="1" href="javascript:void(0)">CalendarEventSelector</a>
+              </li>
+            </ul>
+          </details>
+          <details id="Miscellaneous" class="group-name">
+            <summary id="header-Miscellaneous" class="nav-header">
+              <span>Miscellaneous</span>
+            </summary>
+            <ul>
+              <!-- menu items -->
+              <li title="CalendarEventSelectorTest" id="item-CalendarEventSelectorTest" class="nav-item class " onclick="goToLocation('CalendarEventSelectorTest.html');">
+                <a tabindex="1" href="javascript:void(0)">CalendarEventSelectorTest</a>
+              </li>
+            </ul>
+          </details>
+        </nav>
+      </div>
+    </div>
+    <table id="content">
+      <tr>
+        <td class="scoping-panel">
+          Show: <input type="checkbox" checked="true" id="cbx-all" onclick="toggleAllScopes(this.checked);" />
+          <label for="cbx-all">All</label>&nbsp;&nbsp;
+          <input type="checkbox" checked="true" id="cbx-global" onclick="toggleScope('global', this.checked);" />
+          <label for="cbx-global">
+            global
+          </label>&nbsp;&nbsp;<input type="checkbox" checked="true" id="cbx-public" onclick="toggleScope('public', this.checked);" />
+          <label for="cbx-public">
+            public
+          </label>&nbsp;&nbsp;<input type="checkbox" checked="true" id="cbx-protected" onclick="toggleScope('protected', this.checked);" />
+          <label for="cbx-protected">
+            protected
+          </label>&nbsp;&nbsp;<input type="checkbox" checked="true" id="cbx-private" onclick="toggleScope('private', this.checked);" />
+          <label for="cbx-private">
+            private
+          </label>&nbsp;&nbsp;<input type="checkbox" checked="true" id="cbx-testmethod" onclick="toggleScope('testmethod', this.checked);" />
+          <label for="cbx-testmethod">
+            testMethod
+          </label>&nbsp;&nbsp;<input type="checkbox" checked="true" id="cbx-webservice" onclick="toggleScope('webservice', this.checked);" />
+          <label for="cbx-webservice">
+            webService
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td class="doc-page">
+
+          <div class="section">
+
+            <h2 class="class-title top-level-type" id="CalendarAppController">
+              <span>CalendarAppController</span>
+            </h2>
+            <div class="class-container">
+
+              <div class="class-description">
+                : 캘린더 앱 컨트롤러
+              </div>
+              <div class="class-subtitle">
+                Signature
+              </div>
+
+              <div class="class-signature">
+                public with sharing class CalendarAppController
+              </div>
+              <div class="class-subtitle">
+                Author
+              </div>
+              <div class="class-subtitle-description">
+                : sejin.park@dkbmc.com
+              </div>
+            </div>
+            <div class="subsection properties CalendarAppController">
+              <h3 class="subsection-title properties">CalendarAppController Properties</h3>
+              <table class="attributes-table properties">
+
+                <tr>
+                  <th>Name</th>
+                  <th>Signature</th>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>ACCOUNT_RECORD_TYPE</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      private static final String ACCOUNT_RECORD_TYPE
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>DEFAULT_DEPARTMENT</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      private static final String DEFAULT_DEPARTMENT
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>MIN_COST_AMOUNT</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      private static final Decimal MIN_COST_AMOUNT
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>PERSONAL_RECORD_TYPE</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      private static final String PERSONAL_RECORD_TYPE
+                    </div>
+                  </td>
+
+
+                </tr>
+              </table>
+            </div>
+            <div class="subsection methods">
+              <h3 class="subsection-title methods">CalendarAppController Methods</h3>
+              <div class="methods-container">
+                <ul class="methods-toc">
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.buildCostDetail">
+                      buildCostDetail (eventId, costObj, department)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      개별 비용 레코드 생성
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.buildValidatedCostDetails">
+                      buildValidatedCostDetails (eventId, costDetailsJson, department)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      검증된 JSON 문자열 Cost_Detail__c 레코드 리스트로 변환처리
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.deleteCostDetails">
+                      deleteCostDetails (eventId)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      특정 이벤트에 연관된 비용 이벤트들 삭제처리
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.deleteEvent">
+                      deleteEvent (eventId)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트 관련 비용 정보 삭제 메소드
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getAccountList">
+                      getAccountList ()
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : Account 리스트 목록 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getContactList">
+                      getContactList ()
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : contact 리스트 목록 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getCostTypeOptions">
+                      getCostTypeOptions ()
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : 비용 옵션 picklist 목록 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getDepartmentOptions">
+                      getDepartmentOptions ()
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : 부서 옵션 picklist 목록 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getEventDetails">
+                      getEventDetails (eventId)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : 특정 이벤트의 상세 정보와 관련 비요 정보 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getEvents">
+                      getEvents (startStr, endStr)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : 지정된 날짜 범위 내의 이벤트 목록 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getMonthlyCostSummary">
+                      getMonthlyCostSummary (startDate, endDate)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : 월별 비용 유형별 합계 조회
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getOpportunityList">
+                      getOpportunityList ()
+                    </a>
+
+                    <div class="methods-toc__description">
+                      : opportunity 리스트 목록 조회
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.getRelatedRecordName">
+                      getRelatedRecordName (event)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트와 연결된 salesforce 오브젝트 name 가져옴
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.isPersonalActivity">
+                      isPersonalActivity (recordType)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      record type이 개인활동 인지 확인
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.processCostDetails">
+                      processCostDetails (eventId, costDetailsJson, department)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트에 연관된 비용 상세 처리(기존 삭제-&gt;신규 생성)
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.saveEventAndCosts">
+                      saveEventAndCosts (eventDataJson, costDetailsJson)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트 관련 비용 정보 JSON저장 (LWC에서 호출하는 public 메소드)
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.saveEventAndCostsInternal">
+                      saveEventAndCostsInternal (request)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      실제 저장 내부 메소드 / test시 isTestVisible?사용하기
+                    </div>
+                  </li>
+                  <li class="method public">
+                    <a class="methods-toc__entry " href="#CalendarAppController.updateEventDates">
+                      updateEventDates (eventId, newStartDate, newEndDate)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      기존 이벤트 시작일 종료일 업데이트
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.upsertEventRecord">
+                      upsertEventRecord (request)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트 레코드 생성,수정
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.validateEventInputs">
+                      validateEventInputs (title, department, recordType)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      이벤트 입력값의 유효성 검증
+                    </div>
+                  </li>
+                  <li class="method private">
+                    <a class="methods-toc__entry " href="#CalendarAppController.validateEventOwnership">
+                      validateEventOwnership (eventId)
+                    </a>
+
+                    <div class="methods-toc__description">
+                      현재 사용자가 해당 이벤트의 소유자인지 확인
+                    </div>
+                  </li>
+                </ul>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.buildCostDetail">
+                    <span>buildCostDetail(eventId, costObj, department)</span>
+                  </h4>
+                  <div class="method-description">
+                    개별 비용 레코드 생성
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">비용이 연관될 이벤트ID</div>
+                  <div class="param-name">costObj</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Object</code>
+                  </div>
+                  <div class="param-description">비용 정보 객체</div>
+                  <div class="param-name">department</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">부서명</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    Cost_Detail__c | 생성될 비용 상세 레코드
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    예외 발생 시 null 반환하여 개별 아이템 오류 처리
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.buildValidatedCostDetails">
+                    <span>buildValidatedCostDetails(eventId, costDetailsJson, department)</span>
+                  </h4>
+                  <div class="method-description">
+                    검증된 JSON 문자열 Cost_Detail__c 레코드 리스트로 변환처리
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static List&lt;Cost_Detail__c&gt; buildValidatedCostDetails(Id eventId, String costDetailsJson, String department)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">비용이 연관될 이벤트ID</div>
+                  <div class="param-name">costDetailsJson</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">비용 상세정보 JSON문자열</div>
+                  <div class="param-name">department</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">부서명</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Cost_Detail__c&gt; | 검증된 비용 상세 레코드 리스트
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException JSON 파싱 오류 또는 비용 데이터 형식이 올바르지 않은 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.deleteCostDetails">
+                    <span>deleteCostDetails(eventId)</span>
+                  </h4>
+                  <div class="method-description">
+                    특정 이벤트에 연관된 비용 이벤트들 삭제처리
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static void deleteCostDetails(Id eventId)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">비용을 삭제할 이벤트ID</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 읽기 권한이 없거나 DML 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.deleteEvent">
+                    <span>deleteEvent(eventId)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트 관련 비용 정보 삭제 메소드
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled</div>
+                  <div class="method-signature">
+                    public static void deleteEvent(Id eventId)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">삭제할 이벤트ID</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 이벤트 ID가 null이거나 삭제 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getAccountList">
+                    <span>getAccountList()</span>
+                  </h4>
+                  <div class="method-description">
+                    : Account 리스트 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;Account&gt; getAccountList()
+                  </div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Account&gt; | Account 목록(ID, Name, Owner.Name등등)
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException Account 읽기 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getContactList">
+                    <span>getContactList()</span>
+                  </h4>
+                  <div class="method-description">
+                    : contact 리스트 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;Contact&gt; getContactList()
+                  </div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Contact&gt; | Contact 목록(ID, Name, Account.Name, Owner.Name등등)
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException Contact 읽기 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getCostTypeOptions">
+                    <span>getCostTypeOptions()</span>
+                  </h4>
+                  <div class="method-description">
+                    : 비용 옵션 picklist 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;Map&lt;String, String&gt;&gt; getCostTypeOptions()
+                  </div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Map&lt;String, String&gt;&gt; | label과 value를 포함하는 맵의 리스트
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 비용 유형 옵션 조회 중 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getDepartmentOptions">
+                    <span>getDepartmentOptions()</span>
+                  </h4>
+                  <div class="method-description">
+                    : 부서 옵션 picklist 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;Map&lt;String, String&gt;&gt; getDepartmentOptions()
+                  </div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Map&lt;String, String&gt;&gt; | label과 value를 포함하는 맵의 리스트
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 부서 옵션 조회 중 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getEventDetails">
+                    <span>getEventDetails(eventId)</span>
+                  </h4>
+                  <div class="method-description">
+                    : 특정 이벤트의 상세 정보와 관련 비요 정보 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static EventWrapper getEventDetails(Id eventId)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">조회할 이벤트 ID</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    EventWrapper | (이벤트+비용+관련레코드)
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 이벤트ID가 null값이거나 해당 이벤트를 찾을 수 없는 경우 발생
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getEvents">
+                    <span>getEvents(startStr, endStr)</span>
+                  </h4>
+                  <div class="method-description">
+                    : 지정된 날짜 범위 내의 이벤트 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;My_Event__c&gt; getEvents(String startStr, String endStr)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">startStr</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">조회 시작 날짜 (YYYY-MM-DD)</div>
+                  <div class="param-name">endStr</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">조회 종료 날짜 (YYYY-MM-DD)</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;My_Event__c&gt; | 날짜 범위에 해당하는 이벤트 목록
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 입력값이 유효하지않거나 읽기 권한이 없을시 발생
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getMonthlyCostSummary">
+                    <span>getMonthlyCostSummary(startDate, endDate)</span>
+                  </h4>
+                  <div class="method-description">
+                    : 월별 비용 유형별 합계 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static Map&lt;String, Decimal&gt; getMonthlyCostSummary(String startDate, String endDate)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">startDate</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">조회 시작 날짜 (YYYY-MM-DD)</div>
+                  <div class="param-name">endDate</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">조회 종료 날짜 (YYYY-MM-DD)</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    Map&lt;String, Decimal&gt; | 비용 유형을 key로 하고 합계금액을 value로 하는 Map
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 입력 값이 유효하지 않거나 읽기 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.getOpportunityList">
+                    <span>getOpportunityList()</span>
+                  </h4>
+                  <div class="method-description">
+                    : opportunity 리스트 목록 조회
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled(cacheable=true)</div>
+                  <div class="method-signature">
+                    public static List&lt;Opportunity&gt; getOpportunityList()
+                  </div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    List&lt;Opportunity&gt; | Opportunity 목록 (ID, Name, StageName, CloseDate, Owner.Name, Account.Name등등)
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException Opportunity 읽기 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.getRelatedRecordName">
+                    <span>getRelatedRecordName(event)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트와 연결된 salesforce 오브젝트 name 가져옴
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static String getRelatedRecordName(My_Event__c event)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">event</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">My_Event__c</code>
+                  </div>
+                  <div class="param-description">관련 레코드 정보가 포함된 이벤트 객체</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    String | 관련 레코드의 이름
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.isPersonalActivity">
+                    <span>isPersonalActivity(recordType)</span>
+                  </h4>
+                  <div class="method-description">
+                    record type이 개인활동 인지 확인
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static Boolean isPersonalActivity(String recordType)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">recordType</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">확인할 레코드 타입</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    Boolean | 개인활동일시 true, 아닐시 false반환
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.processCostDetails">
+                    <span>processCostDetails(eventId, costDetailsJson, department)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트에 연관된 비용 상세 처리(기존 삭제-&gt;신규 생성)
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static void processCostDetails(Id eventId, String costDetailsJson, String department)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">비용이 연관될 이벤트ID</div>
+                  <div class="param-name">costDetailsJson</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">비용 상세정보 JSON 문자열</div>
+                  <div class="param-name">department</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">부서명</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException DML 오류 또는 비용 상세 처리 중 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.saveEventAndCosts">
+                    <span>saveEventAndCosts(eventDataJson, costDetailsJson)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트 관련 비용 정보 JSON저장 (LWC에서 호출하는 public 메소드)
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled</div>
+                  <div class="method-signature">
+                    public static String saveEventAndCosts(String eventDataJson, String costDetailsJson)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventDataJson</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">이벤트 기본 정보가 담긴 JSON문자열</div>
+                  <div class="param-name">costDetailsJson</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">비용 상세 정보가 담긴 JSON문자열</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    String | 저장된 이벤트의iID
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 이벤트 데이터가 없거나 JSON 파싱 오류, 저장중 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.saveEventAndCostsInternal">
+                    <span>saveEventAndCostsInternal(request)</span>
+                  </h4>
+                  <div class="method-description">
+                    실제 저장 내부 메소드 / test시 isTestVisible?사용하기
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static String saveEventAndCostsInternal(EventSaveRequest request)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">request</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">EventSaveRequest</code>
+                  </div>
+                  <div class="param-description">이벤트 저장에 필요한 정보가 담긴 EventSaveRequest</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    String | 저장된 이벤트ID
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 입력 검증 실패, 권한 없음, DML 오류 등이 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method public">
+                  <h4 class="method-title " id="CalendarAppController.updateEventDates">
+                    <span>updateEventDates(eventId, newStartDate, newEndDate)</span>
+                  </h4>
+                  <div class="method-description">
+                    기존 이벤트 시작일 종료일 업데이트
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@AuraEnabled</div>
+                  <div class="method-signature">
+                    public static void updateEventDates(Id eventId, String newStartDate, String newEndDate)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">업데이트할 이벤트 ID</div>
+                  <div class="param-name">newStartDate</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">새로운 시작일 (YYYY-MM-DD)</div>
+                  <div class="param-name">newEndDate</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">새로운 종료일 (YYYY-MM-DD)</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 이벤트 ID가 null 또는 수정 권한이 없는 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.upsertEventRecord">
+                    <span>upsertEventRecord(request)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트 레코드 생성,수정
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static My_Event__c upsertEventRecord(EventSaveRequest request)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">request</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">EventSaveRequest</code>
+                  </div>
+                  <div class="param-description">이벤트 정보가 담긴 EventSaveRequest 객체</div>
+                  <div class="method-subtitle">
+                    Returns
+                  </div>
+                  <div class="method-subtitle-description">
+                    My_Event__c | 저장된 이벤트 레코드
+                  </div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException DML 오류 또는 이벤트 레코드 저장 중 오류가 발생한 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.validateEventInputs">
+                    <span>validateEventInputs(title, department, recordType)</span>
+                  </h4>
+                  <div class="method-description">
+                    이벤트 입력값의 유효성 검증
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static void validateEventInputs(String title, String department, String recordType)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">title</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">이벤트 제목</div>
+                  <div class="param-name">department</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">부서명</div>
+                  <div class="param-name">recordType</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">String</code>
+                  </div>
+                  <div class="param-description">레코드 타입</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 필수 입력값이 누락된 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+                <div class="method private">
+                  <h4 class="method-title " id="CalendarAppController.validateEventOwnership">
+                    <span>validateEventOwnership(eventId)</span>
+                  </h4>
+                  <div class="method-description">
+                    현재 사용자가 해당 이벤트의 소유자인지 확인
+                  </div>
+                  <div class="method-subtitle">
+                    Signature
+                  </div>
+                  <div class="method-annotations">@TestVisible</div>
+                  <div class="method-signature">
+                    private static void validateEventOwnership(Id eventId)
+                  </div>
+                  <div class="method-subtitle">Parameters</div>
+                  <div class="param-name">eventId</div>
+                  <div class="param-type">
+                    Type: <code class="code-inline">Id</code>
+                  </div>
+                  <div class="param-description">검증할 이벤트ID</div>
+                  <div class="method-subtitle">
+                    Exceptions
+                  </div>
+                  <div class="method-subtitle-description">
+                    AuraHandledException 이벤트를 찾을 수 없거나 소유자가 아닌 경우
+                  </div>
+                  <div class="method-subtitle">
+                    Author
+                  </div>
+                  <div class="method-subtitle-description">
+                    sejin.park@dkbmc.com | 2025-07-22
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+
+            <h2 class="class-title " id="CalendarAppController.EventSaveRequest">
+              <span>CalendarAppController.EventSaveRequest</span>
+            </h2>
+            <div class="class-container">
+
+              <div class="class-subtitle">
+                Signature
+              </div>
+
+              <div class="class-signature">
+                public class EventSaveRequest
+              </div>
+            </div>
+            <div class="subsection properties CalendarAppController_EventSaveRequest">
+              <h3 class="subsection-title properties">CalendarAppController.EventSaveRequest Properties</h3>
+              <table class="attributes-table properties">
+
+                <tr>
+                  <th>Name</th>
+                  <th>Signature</th>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>costDetailsJson</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String costDetailsJson
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>department</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String department
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>description</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String description
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>endDate</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String endDate
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>location</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String location
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>recordId</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public Id recordId
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>recordType</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String recordType
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>relatedId</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String relatedId
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>startDate</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String startDate
+                    </div>
+                  </td>
+
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>title</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String title
+                    </div>
+                  </td>
+
+
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="section">
+
+            <h2 class="class-title " id="CalendarAppController.EventWrapper">
+              <span>CalendarAppController.EventWrapper</span>
+            </h2>
+            <div class="class-container">
+
+              <div class="class-subtitle">
+                Signature
+              </div>
+
+              <div class="class-signature">
+                public class EventWrapper
+              </div>
+            </div>
+            <div class="subsection properties CalendarAppController_EventWrapper">
+              <h3 class="subsection-title properties">CalendarAppController.EventWrapper Properties</h3>
+              <table class="attributes-table properties">
+
+                <tr>
+                  <th>Name</th>
+                  <th>Signature</th>
+                  <th>Annotations</th>
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>costs</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public List&lt;Cost_Detail__c&gt; costs
+                    </div>
+                  </td>
+                  <td>
+                    <div class="prop-annotations">@AuraEnabled</div>
+                  </td>
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>event</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public My_Event__c event
+                    </div>
+                  </td>
+                  <td>
+                    <div class="prop-annotations">@AuraEnabled</div>
+                  </td>
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>recordTypeName</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String recordTypeName
+                    </div>
+                  </td>
+                  <td>
+                    <div class="prop-annotations">@AuraEnabled</div>
+                  </td>
+
+                </tr>
+                <tr class="property ">
+                  <td class="attribute-name"><span>relatedRecordName</span></td>
+                  <td>
+                    <div class="attribute-signature">
+                      public String relatedRecordName
+                    </div>
+                  </td>
+                  <td>
+                    <div class="prop-annotations">@AuraEnabled</div>
+                  </td>
+
+                </tr>
+              </table>
+            </div>
+          </div>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="footer">
+
+          <div>
+            <a href="https://github.com/no-stack-dub-sack/apexdox-vs-code" target="_blank" rel="noopener noreferrer">
+              Powered By ApexDox VS Code
+            </a>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
+
+</html>
