@@ -2,7 +2,7 @@
  * @description       : 데이터 조회용
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarEventSelector {
@@ -224,6 +224,7 @@ public with sharing class CalendarEventSelector {
     * @return List<Map<String, String>> | label과 value를 포함하는 옵션 맵 리스트
     * @exception AuraHandledException 필드 정보가 null이거나 Picklist 옵션 조회 중 오류가 발생한 경우
     **/
+    @TestVisible
     private static List<Map<String, String>> getPicklistOptions(SObjectField field) {
         try {
             if (field == null) {

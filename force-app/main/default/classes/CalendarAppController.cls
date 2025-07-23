@@ -2,7 +2,7 @@
  * @description       : 캘린더 앱 컨트롤러
  * @author            : sejin.park@dkbmc.com
  * @group             : 
- * @last modified on  : 2025-07-22
+ * @last modified on  : 2025-07-23
  * @last modified by  : sejin.park@dkbmc.com
 **/
 public with sharing class CalendarAppController {
@@ -346,6 +346,7 @@ public with sharing class CalendarAppController {
     * @return String | 저장된 이벤트ID
     * @exception AuraHandledException 입력 검증 실패, 권한 없음, DML 오류 등이 발생한 경우
     **/
+    @TestVisible
     private static String saveEventAndCostsInternal(EventSaveRequest request) {
         Savepoint sp = Database.setSavepoint();
         
@@ -396,6 +397,7 @@ public with sharing class CalendarAppController {
     * @param recordType 레코드 타입
     * @exception AuraHandledException 필수 입력값이 누락된 경우
     **/
+    @TestVisible
     private static void validateEventInputs(String title, String department, String recordType) {
         try {
             List<String> errors = new List<String>();
@@ -421,6 +423,7 @@ public with sharing class CalendarAppController {
     * @param eventId 검증할 이벤트ID
     * @exception AuraHandledException 이벤트를 찾을 수 없거나 소유자가 아닌 경우
     **/
+    @TestVisible
     private static void validateEventOwnership(Id eventId) {
         try {
             if (!Schema.sObjectType.My_Event__c.isAccessible()) {
@@ -449,6 +452,7 @@ public with sharing class CalendarAppController {
     * @return My_Event__c | 저장된 이벤트 레코드
     * @exception AuraHandledException DML 오류 또는 이벤트 레코드 저장 중 오류가 발생한 경우
     **/
+    @TestVisible
     private static My_Event__c upsertEventRecord(EventSaveRequest request) {
         try {
             My_Event__c eventRecord;
@@ -497,6 +501,7 @@ public with sharing class CalendarAppController {
     * @param department 부서명
     * @exception AuraHandledException DML 오류 또는 비용 상세 처리 중 오류가 발생한 경우
     **/
+    @TestVisible
     private static void processCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
             deleteCostDetails(eventId);
@@ -525,6 +530,7 @@ public with sharing class CalendarAppController {
     * @return List<Cost_Detail__c> | 검증된 비용 상세 레코드 리스트
     * @exception AuraHandledException JSON 파싱 오류 또는 비용 데이터 형식이 올바르지 않은 경우
     **/
+    @TestVisible
     private static List<Cost_Detail__c> buildValidatedCostDetails(Id eventId, String costDetailsJson, String department) {
         try {
             List<Cost_Detail__c> costsToInsert = new List<Cost_Detail__c>();
@@ -554,6 +560,7 @@ public with sharing class CalendarAppController {
     * @return Cost_Detail__c | 생성될 비용 상세 레코드
     * @exception 예외 발생 시 null 반환하여 개별 아이템 오류 처리
     **/
+    @TestVisible
     private static Cost_Detail__c buildCostDetail(Id eventId, Object costObj, String department) {
         try {
             if (costObj == null) {
@@ -591,6 +598,7 @@ public with sharing class CalendarAppController {
     * @param eventId 비용을 삭제할 이벤트ID
     * @exception AuraHandledException 읽기 권한이 없거나 DML 오류가 발생한 경우
     **/
+    @TestVisible
     private static void deleteCostDetails(Id eventId) {
         try {
             if (!Schema.sObjectType.Cost_Detail__c.isAccessible()) {
@@ -617,6 +625,7 @@ public with sharing class CalendarAppController {
     * @return Boolean | 개인활동일시 true, 아닐시 false반환
     * @exception
     **/
+    @TestVisible
     private static Boolean isPersonalActivity(String recordType) {
         return recordType == PERSONAL_RECORD_TYPE;
     }
@@ -628,6 +637,7 @@ public with sharing class CalendarAppController {
     * @return String | 관련 레코드의 이름
     * @exception
     **/
+    @TestVisible
     private static String getRelatedRecordName(My_Event__c event) {
         try {
             if (String.isBlank(event?.Related_Record_Type__c) || String.isBlank(event?.Related_Record_Id__c)) {

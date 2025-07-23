@@ -20,10 +20,6 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
     @track costItems = [];
     @track totalAmount = '₩0';
 
-    @wire(getMonthlyCostSummary, { 
-        startDate: '$monthRange.start',
-        endDate: '$monthRange.end' 
-    })
     _wiredCostResult;
 
     // --데이터 계산--
@@ -55,6 +51,10 @@ export default class CostSummaryPanel extends NavigationMixin(LightningElement) 
 
     // --데이터 수신--
     // 월별 비용 데이터 자동조회 및 처리
+    @wire(getMonthlyCostSummary, { // @wire 데코레이터
+        startDate: '$monthRange.start',
+        endDate: '$monthRange.end' 
+    })
     wiredCosts(result) {
         this._wiredCostResult = result;
         
