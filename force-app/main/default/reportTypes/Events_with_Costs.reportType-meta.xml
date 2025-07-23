@@ -150,4 +150,17 @@
         </columns>
         <masterLabel>Cost Details</masterLabel>
     </sections>
+    <sections>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Start_Date__c</field>
+            <table>My_Event__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>End_Date__c</field>
+            <table>My_Event__c</table>
+        </columns>
+        <masterLabel>MyEvents</masterLabel>
+    </sections>
 </ReportType>

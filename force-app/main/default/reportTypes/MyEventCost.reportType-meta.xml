@@ -80,6 +80,16 @@
             <field>Location__c</field>
             <table>My_Event__c</table>
         </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Start_Date__c</field>
+            <table>My_Event__c</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>End_Date__c</field>
+            <table>My_Event__c</table>
+        </columns>
         <masterLabel>MyEvents</masterLabel>
     </sections>
     <sections>
@@ -125,11 +135,6 @@
         </columns>
         <columns>
             <checkedByDefault>false</checkedByDefault>
-            <field>Cost_Type__c</field>
-            <table>My_Event__c.Cost_Details1__r</table>
-        </columns>
-        <columns>
-            <checkedByDefault>false</checkedByDefault>
             <field>Amount__c</field>
             <table>My_Event__c.Cost_Details1__r</table>
         </columns>
@@ -146,6 +151,16 @@
         <columns>
             <checkedByDefault>false</checkedByDefault>
             <field>department__c</field>
+            <table>My_Event__c.Cost_Details1__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>My_Event__c</field>
+            <table>My_Event__c.Cost_Details1__r</table>
+        </columns>
+        <columns>
+            <checkedByDefault>false</checkedByDefault>
+            <field>Cost_Type__c</field>
             <table>My_Event__c.Cost_Details1__r</table>
         </columns>
         <masterLabel>Cost Details (My Event)</masterLabel>

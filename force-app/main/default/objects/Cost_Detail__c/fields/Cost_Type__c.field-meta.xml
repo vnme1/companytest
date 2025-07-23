@@ -11,29 +11,29 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>교통비</fullName>
+                <fullName>Transportation</fullName>
                 <default>false</default>
-                <label>교통비</label>
+                <label>Transportation</label>
             </value>
             <value>
-                <fullName>교육비</fullName>
+                <fullName>Education</fullName>
                 <default>false</default>
-                <label>교육비</label>
+                <label>Education</label>
             </value>
             <value>
-                <fullName>주유비</fullName>
+                <fullName>Fuel</fullName>
                 <default>false</default>
-                <label>주유비</label>
+                <label>Fuel</label>
             </value>
             <value>
-                <fullName>식대</fullName>
+                <fullName>Meal</fullName>
                 <default>false</default>
-                <label>식대</label>
+                <label>Meal</label>
             </value>
             <value>
-                <fullName>톨게이트</fullName>
+                <fullName>TollGate</fullName>
                 <default>false</default>
-                <label>톨게이트</label>
+                <label>TollGate</label>
             </value>
         </valueSetDefinition>
     </valueSet>

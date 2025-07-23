@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Translations xmlns="http://soap.sforce.com/2006/04/metadata">
+    <aiCoachAgentScnrDefs>
+        <name>InsightsExplorerPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>PD_6ef0b49db9844a48a06d0d51a5765948</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SessionHijackingEvent_SessionHijackingEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>costSummaryPanel</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Builder_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceStandard</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>DataCloudGeoLocation</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>eventSourcePanel</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>news</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule37</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityQuantityScheduleDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>PID_XOrg_Proxy_User</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CommerceUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__MyServiceJourneySetupPrompt</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ExperienceAdmin_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ReportAnomalyEvent_ReportAnomalyEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SharedApp</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SalesPipelineInspectionWalkthrough</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>B2C_Order</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>MIAW</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>EmbeddedServiceMessagingUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityRevenueProductDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SearchSchemaOverrideObject0wy</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ContentManager_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>test</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Field_Service_Default_Org_Settings</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule34</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WOLItem</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Read_Only_profilePasswordPolicy1637020333583</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ContentViewer_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SvcCatalogManagementPage</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesforcePaymentsExtUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Solution</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesforceCPQ_CPQStandardPerm</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ChunkableTask1516819299127</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__UnifiedAnalyticsHomeDashboardsUser</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>B2BBuyerPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesforcePaymentsIntUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CPQIntegrationUserApp_oauth</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SearchSchemaOverrideObject0wy4</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtB0000000UBwD</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Standard Template</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__PlatformUserListViewAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__APIOnly</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>DedupeObjectMapping_0BmB0000000ULwB_0JDB0000000btfO_1</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__salescreateanopportunity</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__PlatformUserSettingsAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__UnifiedAnalyticsHomeReportsUser</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7L_ParallelJobStatusId_0YsB0000007Cxnm</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Asset</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Opportunity</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Account</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7J_ParallelJobStatusId_0YsB0000007Cxnc</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>IdentityConnect</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Testyong</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WaveEmbeddedApp</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__GuidedPromotionWizard</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>InsightsBuilderPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>null_1662095310504</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__ManageUsers</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Standard_Account_Match_Rule_v1_0_DEFINITION</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LineItemRevenueScheduleDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtAu000000Zz3q</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FeedItem</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceScheduling</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>B2B_Order</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesConsoleUser</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceDispatcherPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SvcEligiblityPage</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule31</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Field_Service_Mobile_Settings</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__FieldServiceSetupHomeSetupFloatingPromptAdminV1</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__GuidedPromotionWizardBenefits</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Standard_Contact_Match_Rule_v1_1_LOOKUP_DEFINITION</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__WorkCapacitySetup</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CPQIntegrationUserApp</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceMobilePsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>PT1_profileSessionSetting1752923920447</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>cms_document</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LightningSales_UtilityBar</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SalesHVSDialer</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Standard_Lead_Match_Rule_v1_0_DEFINITION</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LineItemQuantityProductDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Event</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceStandardPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__UserAccessPolicy</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SalesCloudSMSPilotPrompt</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LineItemRevenueProductDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__prompt_ESO</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7G_ParallelJobStatusId_0YsB0000007CxnX</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtB00000000cfl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WOLI_SA</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>calendarContainer</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EnablementSwitchToProgramsEnblAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ReplayDebuggerLevels</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SearchSchemaOverrideObject0wy3</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Contact</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SvcFulfillmentsPage</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityQuantity</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SFDC_DevConsole</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ContentDocument</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7H_ParallelJobStatusId_0YsB0000007Cxnh</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Lead</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__ProspectingCenterMain</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>IMessage</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__BundlePropagation</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__gscreatecontact</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WhatsAppMessenger</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>primaryModel</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityLineItemQuantity</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>B2BBuyerManagerPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Task</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CommerceAdminUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FinServ_FinancialServicesCloudBasicPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7I_ParallelJobStatusId_0YsB0000007CxnN</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityQuantityProductDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Admin_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CommerceMerchandiserUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SalesCloudGoUser</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EinsteinPredictionBuilderSetupPagePrompt</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>DedupeObjectMapping_0BmB0000000ULwC_0JDB0000000btfP_1</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__AnalyticsforStarterandPro</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtB0000000VAO5</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Standard_Contact_Match_Rule_v1_1_DEFINITION</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LineItemQuantityScheduleDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceDispatcher</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__DefineCapacityLimits</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>EnablementLitePsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CalendarWeb</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule38</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SearchSchemaOverrideObject0wy1</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceMobile</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesCloudMobile_UtilityBar</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CredentialStuffingEvent_CredentialStuffingEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtB0000000TmQA</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>calendarView</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7M_ParallelJobStatusId_0YsB0000007CxnS</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule35</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule_07iB0000000MS7K_ParallelJobStatusId_0YsB0000007Cxnr</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Publisher_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunitySplitRevenue</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FieldServiceSchedulingPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CommerceBusinessUserPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SearchSchemaOverrideObject0wy2</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Case</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SurveyCreatorPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule39</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>DataGovernanceConsole_UtilityBar</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Contract</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EnablementExploreProgramsEnblAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Viewer_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Campaign</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SMS</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityRevenueScheduleDate</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EnablementExploreAnalyticsEnblAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule32</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule40</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesforceAPIIntegrationPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Rule1bb692f0e95bbb0fcbfa487f1eb58e785e5a12fabed4832122e919b7d220af70</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FacebookMessenger</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Read_Only_profileSessionSetting1637020333761</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>FinServ_FinancialServicesCloudStandardPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ChunkableTask1612252490351</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CommerceConciergeOrder</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__CDPOnboardingInAppGuidance</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>CPQIntegrationUserApp_oauth_devConfig</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ApiAnomalyEvent_ApiAnomalyEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule36</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WoOrder</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>null_1662095311616</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule33</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>cms_image</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>GuestUserAnomalyEvent_GuestUserAnomalyEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>WoOr_SA</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>PT1_profilePasswordPolicy1752923920243</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>SalesforceCPQ_CPQAAPerm</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__SalesCoreQuoteAdminCpq</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>rule22</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityLineItemRevenue</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>x0RtAu000000Zz3p</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ContentAuthor_INTERNAL</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>LoginAnomalyEvent_LoginAnomalyEventStore</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>ContractsOrdersProductsPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__FieldServiceSetupHomeTargetedPromptAdminV1</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__CatalogSettings</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EngagementAttributeTips</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EncourageOpportunityCreationFromAccount</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Order</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__PlatformUserClassicAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>HealthCloudGA_HealthCloudPsl</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>OpportunityRevenue</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Dev03Page</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>standard__EnablementExploreMeasuresEnblAdmin</name>
+    </aiCoachAgentScnrDefs>
+    <aiCoachAgentScnrDefs>
+        <name>Ruleeceed79d48cbd49d279d55f8dbcc3bdf3b94354a2fe7b5b93f7654cbc9df03aa</name>
+    </aiCoachAgentScnrDefs>
+    <customLabels>
+        <label><!-- LABEL_CONFIRM_DELETE --></label>
+        <name>LABEL_CONFIRM_DELETE</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_COST_DELETE_ERROR --></label>
+        <name>LABEL_COST_DELETE_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_COST_SUMMARY_ERROR --></label>
+        <name>LABEL_COST_SUMMARY_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_DEFAULT_COST_UNIT --></label>
+        <name>LABEL_DEFAULT_COST_UNIT</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_DEFAULT_DEPT --></label>
+        <name>LABEL_DEFAULT_DEPT</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_DELETE_ERROR --></label>
+        <name>LABEL_EVENT_DELETE_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_DETAIL_ERROR --></label>
+        <name>LABEL_EVENT_DETAIL_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_FETCH_ERROR --></label>
+        <name>LABEL_EVENT_FETCH_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_NOT_FOUND --></label>
+        <name>LABEL_EVENT_NOT_FOUND</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_SAVED --></label>
+        <name>LABEL_EVENT_SAVED</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_SAVE_ERROR --></label>
+        <name>LABEL_EVENT_SAVE_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_EVENT_UPDATE_ERROR --></label>
+        <name>LABEL_EVENT_UPDATE_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_GENERAL_ERROR --></label>
+        <name>LABEL_GENERAL_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_INPUT_ERROR --></label>
+        <name>LABEL_INPUT_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_INVALID_COST_JSON --></label>
+        <name>LABEL_INVALID_COST_JSON</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_INVALID_EVENT_ID --></label>
+        <name>LABEL_INVALID_EVENT_ID</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_NO_CREATE_PERMISSION --></label>
+        <name>LABEL_NO_CREATE_PERMISSION</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_NO_DELETE_PERMISSION --></label>
+        <name>LABEL_NO_DELETE_PERMISSION</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_NO_PERMISSION --></label>
+        <name>LABEL_NO_PERMISSION</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_NO_READ_PERMISSION --></label>
+        <name>LABEL_NO_READ_PERMISSION</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_NO_UPDATE_PERMISSION --></label>
+        <name>LABEL_NO_UPDATE_PERMISSION</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_REQUIRED_DEPARTMENT --></label>
+        <name>LABEL_REQUIRED_DEPARTMENT</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_REQUIRED_TITLE --></label>
+        <name>LABEL_REQUIRED_TITLE</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_SAVE_ERROR --></label>
+        <name>LABEL_SAVE_ERROR</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_SUCCESS_DELETE --></label>
+        <name>LABEL_SUCCESS_DELETE</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_SUCCESS_SAVE --></label>
+        <name>LABEL_SUCCESS_SAVE</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_SUCCESS_UPDATE --></label>
+        <name>LABEL_SUCCESS_UPDATE</name>
+    </customLabels>
+    <customLabels>
+        <label><!-- LABEL_UNTITLED_EVENT --></label>
+        <name>LABEL_UNTITLED_EVENT</name>
+    </customLabels>
+    <customTabs>
+        <label><!-- CalendarWeb --></label>
+        <name>CalendarWeb</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- Dev03Page --></label>
+        <name>Dev03Page</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- Testyong --></label>
+        <name>Testyong</name>
+    </customTabs>
+    <quickActions>
+        <label><!-- LogACall --></label>
+        <name>LogACall</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewAccount --></label>
+        <name>NewAccount</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewCase --></label>
+        <name>NewCase</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewContact --></label>
+        <name>NewContact</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewEvent --></label>
+        <name>NewEvent</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewGroup --></label>
+        <name>NewGroup</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewLead --></label>
+        <name>NewLead</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewNote --></label>
+        <name>NewNote</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewOpportunity --></label>
+        <name>NewOpportunity</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewTask --></label>
+        <name>NewTask</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- SendEmail --></label>
+        <name>SendEmail</name>
+    </quickActions>
+    <reportTypes>
+        <description><!-- Events with Costs --></description>
+        <label><!-- Events with Costs --></label>
+        <name>Events_with_Costs</name>
+        <sections>
+            <label><!-- Cost Details --></label>
+            <name>Cost Details</name>
+        </sections>
+        <sections>
+            <label><!-- Events --></label>
+            <name>Events</name>
+        </sections>
+        <sections>
+            <label><!-- MyEvents --></label>
+            <name>MyEvents</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- MyEventCost --></description>
+        <label><!-- MyEventCost --></label>
+        <name>MyEventCost</name>
+        <sections>
+            <label><!-- Cost Details (My Event) --></label>
+            <name>Cost Details (My Event)</name>
+        </sections>
+        <sections>
+            <label><!-- MyEvents --></label>
+            <name>MyEvents</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Run Logs Spring &apos;24 --></description>
+        <label><!-- Orchestration Run Logs Spring &apos;24 --></label>
+        <name>flow_orchestration_log_ootb_crt_two_four_eight</name>
+        <sections>
+            <label><!-- Orchestration Run Log --></label>
+            <name>Orchestration Run Log</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Runs --></description>
+        <label><!-- Orchestration Runs --></label>
+        <name>flow_orchestration_run_crt</name>
+        <sections>
+            <label><!-- Orchestration Runs --></label>
+            <name>Orchestration Runs</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Runs Spring &apos;24 --></description>
+        <label><!-- Orchestration Runs Spring &apos;24 --></label>
+        <name>flow_orchestration_run_ootb_crt_two_four_eight</name>
+        <sections>
+            <label><!-- Orchestration Runs --></label>
+            <name>Orchestration Runs</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Stage Runs Spring &apos;24 --></description>
+        <label><!-- Orchestration Stage Runs Spring &apos;24 --></label>
+        <name>flow_orchestration_stage_run_ootb_crt_two_four_eight</name>
+        <sections>
+            <label><!-- Orchestration Stage Runs --></label>
+            <name>Orchestration Stage Runs</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Step Runs Spring &apos;24 --></description>
+        <label><!-- Orchestration Step Runs Spring &apos;24 --></label>
+        <name>flow_orchestration_step_run_ootb_crt_two_four_eight</name>
+        <sections>
+            <label><!-- Orchestration Step Runs --></label>
+            <name>Orchestration Step Runs</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Orchestration Work Items Spring &apos;24 --></description>
+        <label><!-- Orchestration Work Items Spring &apos;24 --></label>
+        <name>flow_orchestration_work_item_ootb_crt_two_four_eight</name>
+        <sections>
+            <columns>
+                <label><!-- Orchestration Step Run: Label --></label>
+                <name>Orchestration Step Run: Label</name>
+            </columns>
+            <columns>
+                <label><!-- Orchestration Step Run: Name --></label>
+                <name>Orchestration Step Run: Name</name>
+            </columns>
+            <columns>
+                <label><!-- Orchestration Step Run: Status --></label>
+                <name>Orchestration Step Run: Status</name>
+            </columns>
+            <label><!-- Orchestration Step Runs --></label>
+            <name>Orchestration Step Runs</name>
+        </sections>
+        <sections>
+            <columns>
+                <label><!-- Assigned Group or Queue --></label>
+                <name>Assigned Group or Queue</name>
+            </columns>
+            <columns>
+                <label><!-- Assigned User --></label>
+                <name>Assigned User</name>
+            </columns>
+            <label><!-- Orchestration Work Items --></label>
+            <name>Orchestration Work Items</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- Screen Flows --></description>
+        <label><!-- Screen Flows --></label>
+        <name>screen_flows_prebuilt_crt</name>
+        <sections>
+            <label><!-- Flow Interview Log Entries --></label>
+            <name>Flow Interview Log Entries</name>
+        </sections>
+        <sections>
+            <label><!-- Flow Interview Logs --></label>
+            <name>Flow Interview Logs</name>
+        </sections>
+    </reportTypes>
+</Translations>

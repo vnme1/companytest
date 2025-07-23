@@ -4,7 +4,7 @@
         <name>main</name>
         <type>Region</type>
     </flexiPageRegions>
-    <masterLabel>Dev03Page</masterLabel>
+    <masterLabel>Testyong</masterLabel>
     <template>
         <name>flexipage:defaultAppHomeTemplate</name>
     </template>

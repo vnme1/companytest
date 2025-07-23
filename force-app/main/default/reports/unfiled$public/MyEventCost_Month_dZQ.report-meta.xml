@@ -25,7 +25,7 @@
     <format>Matrix</format>
     <groupingsAcross>
         <dateGranularity>Month</dateGranularity>
-        <field>My_Event__c$Start_DateTime__c</field>
+        <field>My_Event__c$Start_Date__c</field>
         <sortOrder>Asc</sortOrder>
     </groupingsAcross>
     <groupingsDown>

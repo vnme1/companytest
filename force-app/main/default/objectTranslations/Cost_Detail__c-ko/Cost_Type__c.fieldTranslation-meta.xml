@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Cost Type --></label>
+    <name>Cost_Type__c</name>
+    <picklistValues>
+        <masterLabel>Education</masterLabel>
+        <translation>교육비</translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Fuel</masterLabel>
+        <translation>주유비</translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Meal</masterLabel>
+        <translation>식비</translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>TollGate</masterLabel>
+        <translation>톨게이트비</translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Transportation</masterLabel>
+        <translation>교통비</translation>
+    </picklistValues>
+</CustomFieldTranslation>

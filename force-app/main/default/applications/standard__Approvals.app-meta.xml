@@ -8,11 +8,16 @@
     <label>Approvals</label>
     <navType>Console</navType>
     <tabs>standard-ApprovalsHome</tabs>
+    <tabs>Testyong</tabs>
     <tabs>Dev03Page</tabs>
+    <tabs>CalendarWeb</tabs>
     <tabs>My_Event__c</tabs>
     <tabs>Cost_Detail__c</tabs>
     <uiType>Lightning</uiType>
     <workspaceConfig>
+        <mappings>
+            <tab>CalendarWeb</tab>
+        </mappings>
         <mappings>
             <tab>Cost_Detail__c</tab>
         </mappings>
@@ -21,6 +26,9 @@
         </mappings>
         <mappings>
             <tab>My_Event__c</tab>
+        </mappings>
+        <mappings>
+            <tab>Testyong</tab>
         </mappings>
         <mappings>
             <tab>standard-ApprovalsHome</tab>

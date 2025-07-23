@@ -14,24 +14,24 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>영업팀</fullName>
+                <fullName>Development</fullName>
                 <default>false</default>
-                <label>영업팀</label>
+                <label>Development</label>
             </value>
             <value>
-                <fullName>개발팀</fullName>
+                <fullName>Sales</fullName>
                 <default>false</default>
-                <label>개발팀</label>
+                <label>Sales</label>
             </value>
             <value>
-                <fullName>마케팅팀</fullName>
+                <fullName>Marketing</fullName>
                 <default>false</default>
-                <label>마케팅팀</label>
+                <label>Marketing</label>
             </value>
             <value>
-                <fullName>기획팀</fullName>
+                <fullName>Planning</fullName>
                 <default>false</default>
-                <label>기획팀</label>
+                <label>Planning</label>
             </value>
         </valueSetDefinition>
     </valueSet>
